@@ -1,0 +1,26 @@
+{
+  "name": "warble",
+  "version": "0.0.0",
+  "description": "ABC-inspired specification for representing musical tracks and loops with a focus on readabiliy and productivity",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slurmulon/warble.git"
+  },
+  "keywords": [
+    "music",
+    "track",
+    "song",
+    "loop"
+  ],
+  "author": "Erik Vavro <me@madhax.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/slurmulon/warble/issues"
+  },
+  "homepage": "https://github.com/slurmulon/warble#readme",
+  "dependencies": {}
+}
