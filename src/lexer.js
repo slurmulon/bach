@@ -8,7 +8,7 @@ export class Stream {
     this.col   = 0
   }
 
-  next () {
+  * next () {
     let ch = this.input.charAt(this.pos++)
 
     if (ch === '\n') {
@@ -18,7 +18,7 @@ export class Stream {
       this.col++
     }
 
-    return ch
+    return yield ch
   }
 
   peek () {
@@ -38,7 +38,7 @@ export class Stream {
 export class TokenStream extends Stream {
 
   constructor (input) {
-    this.input = input
+    super(input)
   }
 
   isMeta() {
