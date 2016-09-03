@@ -23,7 +23,9 @@
     "url": "https://github.com/slurmulon/warble/issues"
   },
   "homepage": "https://github.com/slurmulon/warble#readme",
-  "dependencies": {},
+  "dependencies": {
+    "optionize": "0.0.6"
+  },
   "devDependencies": {
     "babel-cli": "^6.14.0",
     "babel-core": "^6.14.0",
