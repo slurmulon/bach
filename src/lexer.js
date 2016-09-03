@@ -1,5 +1,4 @@
 // http://lisperator.net/pltut/parser/
-
 export class Stream {
 
   constructor (input) {
@@ -42,8 +41,40 @@ export class TokenStream extends Stream {
     this.input = input
   }
 
-  readNext() {
+  isMeta() {
 
+  }
+
+  isSection() {
+
+  }
+
+  isBeat() {
+
+  }
+
+  isChord() {
+
+  }
+
+  isScale() {
+
+  }
+
+  isName() {
+
+  }
+
+  isWhitespace(ch) {
+    return ' \t\n'.indexOf(ch) >= 0
+  }
+
+  readWhile() {
+
+  }
+
+  readNext() {
+    // super.next()
   }
 
   readMeta() {
