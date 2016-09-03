@@ -1,4 +1,7 @@
 // http://lisperator.net/pltut/parser/
+
+import { some, none } from 'optionize'
+
 export class Stream {
 
   constructor (input) {
@@ -18,15 +21,15 @@ export class Stream {
       this.col++
     }
 
-    return yield ch
+    yield ch
   }
 
-  peek () {
+  cursor () {
     return this.input.charAt(this.pos)
   }
 
-  isEOF() {
-    return this.peek() === ''
+  eof () {
+    return this.cursor() === null //this.cursor() === ''
   }
 
   error (msg) {
@@ -61,31 +64,66 @@ export class TokenStream extends Stream {
 
   }
 
-  isName() {
+  isKeyword() {
 
+  }
+
+  isIdent(ch) {
+    return this.isIdentStart(ch) || /[a-zA-Z0-9]/.test(ch)
+  }
+
+  isIdentStart(ch) {
+    return ch === '#' || ch === '['
   }
 
   isWhitespace(ch) {
     return ' \t\n'.indexOf(ch) >= 0
   }
 
-  readWhile() {
-
+  * readWhile(predicate) {
+    while (!this.input.eof() && predicate(this.input.cursor()) {
+      yield input.next()
+    }
   }
 
   readNext() {
     // super.next()
+
+    this.readWhile(this.isWhitespace)
+
+    if (this.input.eof()) return none
+
+    const ch = this.input.cursor()
+
+    if (this.isMeta(ch)) return readMeta(c))
+  }
+
+  readIdent() {
+    const ident = [... yield this.readWhile(this.isIdent)]
+
+    return {
+      type  : this.isKeyword(ident) ? 'kw' : 'var',
+      value : ident
+    }
   }
 
   readMeta() {
 
   }
 
-  readString() {
+  readSection() {
 
   }
 
-  readNumber() {
+  readBeat() {
+
+  }
+
+  readChord() {
+
+  }
+
+  readScale() {
 
   }
 
