@@ -44,11 +44,19 @@ export class TokenStream extends Stream {
     super(input)
   }
 
+  isKeyword() {
+
+  }
+
   isMeta() {
 
   }
 
   isSection() {
+
+  }
+
+  isComment() {
 
   }
 
@@ -64,7 +72,7 @@ export class TokenStream extends Stream {
 
   }
 
-  isKeyword() {
+  isColor() {
 
   }
 
@@ -81,25 +89,34 @@ export class TokenStream extends Stream {
   }
 
   * readWhile(predicate) {
-    while (!this.input.eof() && predicate(this.input.cursor()) {
+    while (!this.input.eof() && predicate(this.input.cursor())) {
       yield input.next()
     }
   }
 
   readNext() {
-    // super.next()
-
     this.readWhile(this.isWhitespace)
 
     if (this.input.eof()) return none
 
-    const ch = this.input.cursor()
+    const ch   = this.input.cursor()
+    const pipe = ['meta', 'comment', 'ident', 'section', 'beat', 'chord', 'scale', 'color']
 
-    if (this.isMeta(ch)) return readMeta(c))
+    for (stage in pipe) {
+      const name = stage.toUppercase()
+      const is   = this[`is${name}`]
+      const read = this[`read${name}`]
+
+      if (is(ch)) {
+        return read()
+      }
+    }
+
+    this.input.error(`invalid character: ${ch}`)
   }
 
   readIdent() {
-    const ident = [... yield this.readWhile(this.isIdent)]
+    const ident = [... this.readWhile(this.isIdent)]
 
     return {
       type  : this.isKeyword(ident) ? 'kw' : 'var',
@@ -108,6 +125,10 @@ export class TokenStream extends Stream {
   }
 
   readMeta() {
+
+  }
+
+  readComment() {
 
   }
 
@@ -124,6 +145,10 @@ export class TokenStream extends Stream {
   }
 
   readScale() {
+
+  }
+
+  readColor() {
 
   }
 
