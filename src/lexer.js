@@ -44,6 +44,22 @@ export class TokenStream extends Stream {
     this.current = null
   }
 
+  cursor() {
+    return current || (this.current = this.readNext())
+  }
+
+  next() {
+    const token = this.current
+
+    this.current = null
+
+    return token || this.readNext()
+  }
+
+  eof() {
+    return this.cursor() === null
+  }
+
   isKeyword(str) {
     return ~('Loop Times Forever'.indexOf(str))
   }
@@ -69,7 +85,7 @@ export class TokenStream extends Stream {
   }
 
   isWhitespace(ch) {
-    return ' \t\n'.indexOf(ch) >= 0
+    return ~(' \t\n'.indexOf(ch))
   }
 
   isComment() {
@@ -164,20 +180,8 @@ export class TokenStream extends Stream {
 
   }
 
-  cursor() {
-    return current || (this.current = this.readNext())
-  }
+  skipComment() {
 
-  next() {
-    const token = this.current
-
-    this.current = null
-
-    return token || this.readNext()
-  }
-
-  eof() {
-    return this.cursor() === null
   }
 
 }
