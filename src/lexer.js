@@ -1,7 +1,5 @@
 // http://lisperator.net/pltut/parser/
 
-import { some, none } from 'optionize'
-
 export class Stream {
 
   constructor (input) {
@@ -42,10 +40,12 @@ export class TokenStream extends Stream {
 
   constructor (input) {
     super(input)
+
+    this.current = null
   }
 
-  isKeyword(chs) {
-    return ['Loop', 'Times', 'Forever']
+  isKeyword(str) {
+    return ~('Loop Times Forever'.indexOf(str))
   }
 
   isIdent(ch) {
@@ -61,7 +61,7 @@ export class TokenStream extends Stream {
   }
 
   isPunc(ch) {
-    return ~'[](),'.indexOf(ch)
+    return ~('[](),'.indexOf(ch))
   }
 
   isNumber(ch) {
@@ -109,7 +109,7 @@ export class TokenStream extends Stream {
   readNext() {
     this.readWhile(this.isWhitespace)
 
-    if (this.input.eof()) return none
+    if (this.input.eof()) return null
 
     const ch   = this.input.cursor()
     const pipe = ['meta', 'comment', 'ident', 'section', 'beat', 'chord', 'scale', 'color']
@@ -162,6 +162,22 @@ export class TokenStream extends Stream {
 
   readColor() {
 
+  }
+
+  cursor() {
+    return current || (this.current = this.readNext())
+  }
+
+  next() {
+    const token = this.current
+
+    this.current = null
+
+    return token || this.readNext()
+  }
+
+  eof() {
+    return this.cursor() === null
   }
 
 }
