@@ -48,15 +48,31 @@ export class TokenStream extends Stream {
 
   }
 
+  isIdent(ch) {
+    return this.isIdentStart(ch) || /[a-zA-Z0-9]/.test(ch)
+  }
+
+  isIdentStart(ch) {
+    return ch === '#' || ch === '['
+  }
+
+  isParam(ch) {
+    return ch === '{'
+  }
+
+  isWhitespace(ch) {
+    return ' \t\n'.indexOf(ch) >= 0
+  }
+
+  isComment() {
+    return ch === '/'
+  }
+
   isMeta() {
 
   }
 
   isSection() {
-
-  }
-
-  isComment() {
 
   }
 
@@ -74,18 +90,6 @@ export class TokenStream extends Stream {
 
   isColor() {
 
-  }
-
-  isIdent(ch) {
-    return this.isIdentStart(ch) || /[a-zA-Z0-9]/.test(ch)
-  }
-
-  isIdentStart(ch) {
-    return ch === '#' || ch === '['
-  }
-
-  isWhitespace(ch) {
-    return ' \t\n'.indexOf(ch) >= 0
   }
 
   * readWhile(predicate) {
@@ -122,6 +126,10 @@ export class TokenStream extends Stream {
       type  : this.isKeyword(ident) ? 'kw' : 'var',
       value : ident
     }
+  }
+
+  readParam() {
+
   }
 
   readMeta() {
