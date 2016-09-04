@@ -44,8 +44,8 @@ export class TokenStream extends Stream {
     super(input)
   }
 
-  isKeyword() {
-
+  isKeyword(chs) {
+    return ['Loop', 'Times', 'Forever']
   }
 
   isIdent(ch) {
@@ -53,11 +53,19 @@ export class TokenStream extends Stream {
   }
 
   isIdentStart(ch) {
-    return ch === '#' || ch === '['
+    return ch === ':' ||  ch === '~'
   }
 
-  isParam(ch) {
-    return ch === '{'
+  isOperator(ch) {
+    return ch === '='
+  }
+
+  isPunc(ch) {
+    return ~'[](),'.indexOf(ch)
+  }
+
+  isNumber(ch) {
+    return /[0-9]/i.test(ch)
   }
 
   isWhitespace(ch) {
@@ -126,10 +134,6 @@ export class TokenStream extends Stream {
       type  : this.isKeyword(ident) ? 'kw' : 'var',
       value : ident
     }
-  }
-
-  readParam() {
-
   }
 
   readMeta() {
