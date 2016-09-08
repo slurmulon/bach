@@ -61,7 +61,7 @@ export class TokenStream extends Stream {
   }
 
   isKeyword(str) {
-    return ~('Loop Times Forever'.indexOf(str))
+    return ~('Loop Times Forever Title'.indexOf(str))
   }
 
   isIdent(ch) {
@@ -69,11 +69,11 @@ export class TokenStream extends Stream {
   }
 
   isIdentStart(ch) {
-    return ch === ':' ||  ch === '~'
+    return ch === ':'
   }
 
   isOperator(ch) {
-    return ch === '='
+    return ~('=+'.indexOf(ch))
   }
 
   isPunc(ch) {
