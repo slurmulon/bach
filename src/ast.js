@@ -11,6 +11,8 @@ export class AST {
     this.input = input
   }
 
+
+
   delimited(start, stop, separator, parser) {
     let delimited = [], first = true
 
@@ -36,7 +38,17 @@ export class AST {
   }
 
   skipPunc(ch) {
+    // if (this.isPunc
+  }
 
+  parseInput() {
+    const track = []
+
+    while (!this.input.eof()) {
+      track.push(this.parseExpression())
+    }
+
+    return { type: 'track', track }
   }
 
   parseObject() {
@@ -47,11 +59,39 @@ export class AST {
     }
   }
 
-  parseName() {
+  parseArray() {
 
   }
 
-  parseStatement() {
+  parseTuple() {
+
+  }
+
+  parseName() {
+    const name = this.input.next()
+
+    if (name.type !== 'var') this.input.error('expected variable name')
+
+    return name.value
+  }
+
+  parseExpression() {
+
+  }
+
+  parseCall(func) {
+    return {
+      type: 'call',
+      args: this.delimited('(', ')', ',', this.parseExpression())
+      func
+    }
+  }
+
+  maybeBinary(left, prec) {
+
+  }
+
+  maybeCall(expr) {
 
   }
 

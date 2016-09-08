@@ -73,11 +73,11 @@ export class TokenStream extends Stream {
   }
 
   isOperator(ch) {
-    return ~('=+'.indexOf(ch))
+    return /=|\+/.test(ch)
   }
 
   isPunc(ch) {
-    return ~('[](),'.indexOf(ch))
+    return /\[|\]|\(|\)/.test(ch)
   }
 
   isNumber(ch) {
@@ -89,7 +89,7 @@ export class TokenStream extends Stream {
   }
 
   isWhitespace(ch) {
-    return ~(' \t\n'.indexOf(ch))
+    return !!~' \t\n'.indexOf(ch)
   }
 
   isComment() {
@@ -136,6 +136,10 @@ export class TokenStream extends Stream {
     }
   }
 
+  readTuple() {
+    // Key -> Value
+  }
+
   readNumber() {
     let slash = false
     const number = this.readWhile(ch => {
@@ -162,7 +166,8 @@ export class TokenStream extends Stream {
   }
 
   skipComment() {
-
+    this.readWhile(ch => ch !== '\n')
+    this.input.next()
   }
 
 }
