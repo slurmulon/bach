@@ -45,7 +45,7 @@ export class TokenStream extends Stream {
   }
 
   cursor() {
-    return current || (this.current = this.readNext())
+    return current || (this.current = this.readNext()) // FIXME: make this pure, no side effects
   }
 
   next() {
@@ -84,32 +84,16 @@ export class TokenStream extends Stream {
     return /[0-9]/i.test(ch)
   }
 
+  isDigit(ch) {
+    return /[0-9]/i.test(ch)
+  }
+
   isWhitespace(ch) {
     return ~(' \t\n'.indexOf(ch))
   }
 
   isComment() {
     return ch === '/'
-  }
-
-  isMeta() {
-
-  }
-
-  isSection() {
-
-  }
-
-  isBeat() {
-
-  }
-
-  isChord() {
-
-  }
-
-  isScale() {
-
   }
 
   isColor() {
@@ -152,31 +136,28 @@ export class TokenStream extends Stream {
     }
   }
 
-  readMeta() {
+  readNumber() {
+    let slash = false
+    const number = this.readWhile(ch => {
+      if (ch === '/') {
+        if (slash) {
+          return false
+        }
+
+        slash = true
+
+        return true
+      }
+
+      return this.isDigit(dh)
+    })
+  }
+
+  readFraction() {
 
   }
 
   readComment() {
-
-  }
-
-  readSection() {
-
-  }
-
-  readBeat() {
-
-  }
-
-  readChord() {
-
-  }
-
-  readScale() {
-
-  }
-
-  readColor() {
 
   }
 

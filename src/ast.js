@@ -51,7 +51,7 @@ export class AST {
 
   }
 
-  parseExpression() {
+  parseStatement() {
 
   }
 
