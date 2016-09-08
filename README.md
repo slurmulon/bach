@@ -85,7 +85,7 @@ Multiple `Elements` may be played on a single beat:
 ```
 :ABC = [
   1 -> [
-    [ 
+    [
       1 -> Scale(C2 Minor),
       1 -> Note(E2),
       1+1/2 -> Note(B2)
@@ -116,7 +116,7 @@ Colors are useful for succesfully expressing a variety of data to the user at on
 
 ```
 :ABC = [
-  1 -> [ 
+  1 -> [
     Scale(C2min,  cyan),
     Chord(D2min7, purple)
   ],
