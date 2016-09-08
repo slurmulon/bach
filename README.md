@@ -49,6 +49,7 @@ Multiple notes can be grouped together by hugging them in brackets `[ ]` and sep
 
 ### Loops
 
+
 To assign a loop a unique name, prefix the name with the `:` operator:
 
 ```
@@ -124,6 +125,19 @@ Colors are useful for succesfully expressing a variety of data to the user at on
   3 -> Chord(C2Maj7, purple)
 ]
 ```
+
+## Documentation
+
+### Elements
+
+TODO: add some actual content
+
+- `Loop`
+- `Tempo`
+- `Note`
+- `Scale`
+- `Chord`
+- `Rest`
 
 # TODO
 
