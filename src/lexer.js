@@ -80,10 +80,6 @@ export class TokenStream extends Stream {
     return /\[|\]|\(|\)/.test(ch)
   }
 
-  isNumber(ch) {
-    return /[0-9]/i.test(ch)
-  }
-
   isDigit(ch) {
     return /[0-9]/i.test(ch)
   }

@@ -2,7 +2,8 @@
 
 export const PRECEDENCE = {
   '=': 1,
-  '+': 2
+  '/': 2,
+  '+': 3
 }
 
 export class AST {
@@ -10,8 +11,6 @@ export class AST {
   constructor(input) {
     this.input = input
   }
-
-
 
   delimited(start, stop, separator, parser) {
     let delimited = [], first = true
@@ -37,8 +36,30 @@ export class AST {
     return delimited
   }
 
+  isPunc(ch) {
+    const token = this.input.cursor()
+
+    return token && token.type === 'punc' && (!ch || token.value === ch) && token
+  }
+
+  isKeyword(keyword) {
+    const token = this.input.cursor()
+
+    return token && token.type === 'kw' && (!keyword || token.value === keyword) && token
+  }
+
+  isOperator(op) {
+    const token = this.input.cursor()
+
+    return token && token.type === 'op' && (!op || token.value === op) && token
+  }
+
   skipPunc(ch) {
-    // if (this.isPunc
+    if (this.isPunc(ch)) {
+      this.input.next()
+    } else {
+      this.input.error(`expected punctuation but got ${ch}`)
+    }
   }
 
   parseInput() {
@@ -54,13 +75,16 @@ export class AST {
   parseObject() {
     return {
       type: 'object',
-      vars: this.delimited('(', ')', this.parseName),
+      vars: this.delimited('(', ')', ',' this.parseName),
       body: this.parseExpression()
     }
   }
 
   parseArray() {
-
+    return {
+      type: 'array',
+      body: this.delimited('[', ']', ',', this.parseExpression)
+    }
   }
 
   parseTuple() {
