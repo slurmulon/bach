@@ -104,7 +104,9 @@ export class AST {
   }
 
   parseExpression() {
-
+    return this.maybeCall(() => {
+      return this.maybeBinary(this.parseAtom(), 0)
+    })
   }
 
   parseCall(func) {
