@@ -61,7 +61,7 @@ export class TokenStream extends Stream {
   }
 
   isKeyword(str) {
-    return ~('Loop Times Forever Title'.indexOf(str))
+    return 'Loop Times Forever Title'.includes(str)
   }
 
   isIdent(ch) {
@@ -85,7 +85,7 @@ export class TokenStream extends Stream {
   }
 
   isWhitespace(ch) {
-    return !!~' \t\n'.indexOf(ch)
+    return ' \t\n'.includes(ch)
   }
 
   isComment(ch) {
