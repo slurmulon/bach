@@ -81,7 +81,7 @@ Multiple `Elements` may be played on a single beat:
 
 ### Sequences and Transitions
 
-`Elements will continue to play until another `Element` is encountered. Multple chords cannot be played at once, but a `Scale`, `Note`, and `Chord` can be played simultaneously:
+`Elements` will continue to play until another `Element` is encountered. Multple chords cannot be played at once, but a `Scale`, `Note`, and `Chord` can be played simultaneously:
 
 ```
 :ABC = [
