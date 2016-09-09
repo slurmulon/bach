@@ -4,7 +4,7 @@
 
 ---
 
-`warble` aims to establish a pragmatic and intuitive interface for representing musical loops. It assumes little about the interpretor and is founded upon traditional music theory concepts.
+`warble` aims to establish a pragmatic and intuitive interface for representing musical loops and tracks. It assumes little about the interpretor and is founded upon traditional music theory concepts.
 
 It is a very new project and is looking for contributors and ideas. If you would like to contribute, feel free to message me@madhax.io.
 
