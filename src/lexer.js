@@ -39,8 +39,7 @@ export class InputStream {
 export class TokenStream {
 
   constructor(input) {
-    super(input)
-
+    this.input   = input
     this.current = null
   }
 
