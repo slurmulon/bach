@@ -1,6 +1,6 @@
 // http://lisperator.net/pltut/parser/
 
-export class Stream {
+export class InputStream {
 
   constructor(input) {
     this.input = input
@@ -36,7 +36,7 @@ export class Stream {
 
 }
 
-export class TokenStream extends Stream {
+export class TokenStream {
 
   constructor(input) {
     super(input)
