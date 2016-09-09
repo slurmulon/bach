@@ -142,6 +142,7 @@ export class TokenStream extends Stream {
 
   readNumber() {
     let slash = false
+
     const number = this.readWhile(ch => {
       if (ch === '/') {
         if (slash) {
@@ -155,6 +156,8 @@ export class TokenStream extends Stream {
 
       return this.isDigit(dh)
     })
+
+    return { type: 'num', value: parseFloat(number) } // TODO: consider using mathjs.fraction
   }
 
   skipComment() {
