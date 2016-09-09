@@ -88,7 +88,7 @@ export class TokenStream extends Stream {
     return !!~' \t\n'.indexOf(ch)
   }
 
-  isComment() {
+  isComment(ch) {
     return ch === '/'
   }
 
@@ -155,14 +155,6 @@ export class TokenStream extends Stream {
 
       return this.isDigit(dh)
     })
-  }
-
-  readFraction() {
-
-  }
-
-  readComment() {
-
   }
 
   skipComment() {

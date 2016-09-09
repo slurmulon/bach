@@ -36,6 +36,8 @@ export class AST {
     return delimited
   }
 
+  // FIXME: update the pattern of these is* methods, strange how it supports arity 0
+
   isPunc(ch) {
     const token = this.input.cursor()
 
@@ -72,6 +74,8 @@ export class AST {
     return { type: 'track', track }
   }
 
+  // TODO: parseAtom()
+
   parseObject() {
     return {
       type: 'object',
@@ -106,17 +110,38 @@ export class AST {
   parseCall(func) {
     return {
       type: 'call',
-      args: this.delimited('(', ')', ',', this.parseExpression())
+      args: this.delimited('(', ')', ',', this.parseExpression()),
       func
     }
   }
 
   maybeBinary(left, prec) {
+    const token = this.isOperator()
 
+    if (token) {
+      const otherPrec = PRECEDENCE[token.value]
+
+      if (otherPrec > prec) {
+        this.input.next()
+
+        return this.maybeBinary({
+          type     : token.values === '=' ? 'assign' : 'binary',
+          operator : token.value,
+          left     : left,
+          right    : this.maybeBinary(this.parseAtom(), otherPrec)
+        }, otherPrec)
+      }
+    }
+
+    return left
   }
 
   maybeCall(expr) {
+    if (expr instanceof Function) {
+      expr = expr()
 
+      return this.isPunc('(') ? this.parseCall(expr) : expr
+    }
   }
 
 }
