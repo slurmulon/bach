@@ -2,14 +2,14 @@
 
 export class Stream {
 
-  constructor (input) {
+  constructor(input) {
     this.input = input
     this.pos   = 0
     this.line  = 1
     this.col   = 0
   }
 
-  * next () {
+  next() {
     let ch = this.input.charAt(this.pos++)
 
     if (ch === '\n') {
@@ -19,18 +19,18 @@ export class Stream {
       this.col++
     }
 
-    yield ch
+    return ch
   }
 
-  cursor () {
+  cursor() {
     return this.input.charAt(this.pos)
   }
 
-  eof () {
+  eof() {
     return this.cursor() === null //this.cursor() === ''
   }
 
-  error (msg) {
+  error(msg) {
     throw new Error(`${msg} (${this.line}: ${this.col})`)
   }
 
@@ -38,7 +38,7 @@ export class Stream {
 
 export class TokenStream extends Stream {
 
-  constructor (input) {
+  constructor(input) {
     super(input)
 
     this.current = null
@@ -96,10 +96,14 @@ export class TokenStream extends Stream {
 
   }
 
-  * readWhile(predicate) {
+  readWhile(predicate) {
+    let result = ''
+
     while (!this.input.eof() && predicate(this.input.cursor())) {
-      yield input.next()
+      result += input.next()
     }
+
+    return result
   }
 
   readNext() {
