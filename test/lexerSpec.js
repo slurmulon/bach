@@ -1,3 +1,4 @@
+import { InputStream, TokenStream } from '../src/lexer'
 import chai from 'chai'
 import chaiThings from 'chai-things'
 
@@ -40,4 +41,72 @@ describe('TokenStream', () => {
 
   })
 
-})
+  describe('next', () => {
+
+  })
+
+  describe('eof', () => {
+
+  })
+
+  describe('isKeyword', () => {
+
+  })
+
+  describe('isIdent', () => {
+
+  })
+
+  describe('isIdentStart', () => {
+
+  })
+
+  describe('isOperator', () => {
+
+  })
+
+  describe('isPunc', () => {
+
+  })
+
+  describe('isDigit', () => {
+
+  })
+
+  describe('isWhitespace', () => {
+
+  })
+
+  describe('isComment', () => {
+
+  })
+
+  describe('isColor', () => {
+
+  })
+
+  describe('readWhile', () => {
+
+  })
+
+  describe('readNext', () => {
+
+  })
+
+  describe('readIdent', () => {
+
+  })
+
+  describe('readTuple', () => {
+
+  })
+
+  describe('readNumber', () => {
+
+  })
+
+  describe('skipComment', () => {
+
+  })
+
+ })
