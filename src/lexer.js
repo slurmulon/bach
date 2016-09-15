@@ -42,6 +42,10 @@ export class InputStream {
 export class TokenStream {
 
   constructor(input) {
+    if (!input instanceof InputStream) {
+      throw new TypeError('token streams can only accept input streams')
+    }
+
     this.input   = input
     this.current = null
   }
@@ -102,7 +106,7 @@ export class TokenStream {
     let result = ''
 
     while (!this.input.eof() && predicate(this.input.cursor())) {
-      result += input.next()
+      result += this.input.next()
     }
 
     return result
@@ -114,15 +118,15 @@ export class TokenStream {
     if (this.input.eof()) return null
 
     const ch   = this.input.cursor()
-    const pipe = ['meta', 'comment', 'ident', 'section', 'beat', 'chord', 'scale', 'color']
+    const pipe = ['ident', 'section', 'beat', 'chord', 'scale', 'color']
 
-    for (stage in pipe) {
+    for (let stage of pipe) {
       const name = stage.capitalize()
       const is   = this[`is${name}`]
       const read = this[`read${name}`]
 
-      if (is(ch)) {
-        return read()
+      if (is instanceof Function && is.call(this, ch)) {
+        return read.call(this)
       }
     }
 
@@ -130,7 +134,7 @@ export class TokenStream {
   }
 
   readIdent() {
-    const ident = this.readWhile(this.isIdent)
+    const ident = this.readWhile(this.isIdent.bind(this))
 
     return {
       type  : this.isKeyword(ident) ? 'kw' : 'var',
