@@ -1,5 +1,8 @@
 // http://lisperator.net/pltut/parser/
 
+import './util'
+import debug from 'debug'
+
 export class InputStream {
 
   constructor(input) {
@@ -27,7 +30,7 @@ export class InputStream {
   }
 
   eof() {
-    return this.cursor() === null //this.cursor() === ''
+    return this.cursor() === ''
   }
 
   error(msg) {
@@ -44,7 +47,7 @@ export class TokenStream {
   }
 
   cursor() {
-    return current || (this.current = this.readNext()) // FIXME: make this pure, no side effects
+    return this.current || (this.current = this.readNext()) // FIXME: make this pure, no side effects
   }
 
   next() {
@@ -114,7 +117,7 @@ export class TokenStream {
     const pipe = ['meta', 'comment', 'ident', 'section', 'beat', 'chord', 'scale', 'color']
 
     for (stage in pipe) {
-      const name = stage.toUppercase()
+      const name = stage.capitalize()
       const is   = this[`is${name}`]
       const read = this[`read${name}`]
 
@@ -127,7 +130,7 @@ export class TokenStream {
   }
 
   readIdent() {
-    const ident = [... this.readWhile(this.isIdent)]
+    const ident = this.readWhile(this.isIdent)
 
     return {
       type  : this.isKeyword(ident) ? 'kw' : 'var',

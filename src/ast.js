@@ -79,7 +79,7 @@ export class AST {
   parseObject() {
     return {
       type: 'object',
-      vars: this.delimited('(', ')', ',' this.parseName),
+      vars: this.delimited('(', ')', ',', this.parseName),
       body: this.parseExpression()
     }
   }
