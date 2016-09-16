@@ -2,16 +2,17 @@
 root = statement*
 statement = token (<empty> token)*
 
-<token> = keyword | !keyword (elem | list) | assign
+<token> = keyword | !keyword elem | assign
 <term> = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
 <atom> = [<empty>] keyword init [<empty>]
-<elem> = [<empty>] atom | term | pair | identifier [<empty>]
+<elem> = [<empty>] atom | term | pair | identifier | list [<empty>]
 list = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
-pair = term <'->'> (elem | list) [<empty>,<empty>]
-assign = identifier <'='> (atom | list)
-identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
-init = keyword <'('> identifier* <')'> [<empty>]
-keyword = [<empty>] #'Loop|Note|Scale|Chord|Rest|Times|Forever' [<empty>]
+pair = term <'->'> elem [<empty>,<empty>]
+assign = identifier <'='> (atom | term | list)
+identifier = #'\s+:[a-zA-Z]+\s+'
+arguments = ((identifier | word) [<','>])*
+init = <'('> arguments <')'>
+keyword = #'\s(Loop|Note|Scale|Chord|Rest|Times|Forever)\s'
 empty = #'\s+'
 word = letter+
 number = digit+
