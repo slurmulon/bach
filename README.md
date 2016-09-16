@@ -14,7 +14,7 @@ In the meantime please give the proposal a read and see if it piques your intere
 
 A more formal proposal will eventually be written, but for now this is the canonical source of documentation and ideas.
 
-A Backus-Naur Form (BNF) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/grammar.bnf).
+An Extended Backus-Naur Form (EBNF) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/grammar.bnf).
 
 ### Beats
 
