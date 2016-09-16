@@ -139,15 +139,15 @@ TODO: add some actual content
  - `Chord`
  - `Rest`
 
-# Setup
+## Setup
 
 `lein install`
 
-# Testing
+## Testing
 
 `lein test`
 
-# Usage
+## Usage
 
 ```clojure
 (ns my.namespace
@@ -157,7 +157,7 @@ TODO: add some actual content
 
 ```
 
-# TODO
+## TODO
 
  - [ ] Actual specfiication
  - [ ] Support named sections (via `#` operator)
