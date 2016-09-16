@@ -14,6 +14,8 @@ In the meantime please give the proposal a read and see if it piques your intere
 
 A more formal proposal will eventually be written, but for now this is the canonical source of documentation and ideas.
 
+A Backus-Naur Form (BNF) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/grammar.bnf).
+
 ### Beats
 
 `Loops` (or tracks) are simply nested collections of either `Chords`, `Scales`, `Notes`, `Rests`, or other `Loops`. For the sake of brevity, these will be combinationally referred to as `Elements` in this proposal and potential in the source code.
