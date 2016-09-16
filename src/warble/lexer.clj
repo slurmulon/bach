@@ -16,18 +16,17 @@
      add = [<empty>] add-sub [<empty>] <'+'> [<empty>] mul-div [<empty>]
      sub = [<empty>] add-sub [<empty>] <'-'> [<empty>] mul-div [<empty>]
      <mul-div> = term | mul | div
-     mul = [<empty>] mul-div [<empty>] <'*'> [<empty>] term [<empty>]
-     div = [<empty>] mul-div [<empty>] <'/'> [<empty>] term [<empty>]
-     <term> = number | [<'('>] add-sub [<')'>]
-     <atom> = keyword init
-     <elem> = atom | term | pair | identifier
-     list = <'['> [<empty>] elem* [<empty>] <']'> [<empty>]
-     pair = term [<empty>] <'->'> [<empty>] (elem | list) [<empty>]
-     assign = identifier [<empty>] <'='> [<empty>] (atom | list) [<empty>]
-     identifier = #':[a-zA-Z]+'
-     init = keyword [<empty>] <'('> [<empty>] identifier* [<empty>] <')'> [<empty>]
-     keyword = #'Loop|Note|Scale|Chord|Rest|Times|Forever'"))
+     mul = mul-div <'*'> term
+     div = mul-div <'/'> term
+     <term> = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
+     <atom> = [<empty>] keyword init [<empty>]
+     <elem> = [<empty>] atom | term | pair | identifier [<empty>]
+     list = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
+     pair = term <'->'> (elem | list) [<empty>,<empty>]
+     assign = identifier <'='> (atom | list)
+     identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
+     init = keyword <'('> identifier* <')'> [<empty>]
+     keyword = [<empty>] #'Loop|Note|Scale|Chord|Rest|Times|Forever' [<empty>]"))
 
-; (tokenize ":Foo = [:Bar]")
-(tokenize ":Foo = [1 -> [:Bar]]")
+(tokenize ":Foo = [1 -> [:Bar], 2 -> [:Zaz]]")
 
