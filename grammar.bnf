@@ -1,0 +1,28 @@
+(* Core *)
+root = statement*
+statement = token (<empty> token)*
+
+<token>    = keyword | !keyword elem | assign
+<term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
+<atom>     = [<empty>] keyword init [<empty>]
+<elem>     = [<empty>] atom | term | pair | identifier | list [<empty>]
+list       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
+pair       = term <'->'> elem [<empty>,<empty>]
+assign     = identifier <'='> (atom | term | list)
+identifier = #'\s*:[a-zA-Z]+\s*'
+arguments  = ((identifier | word) [<','>])*
+init       = <'('> arguments <')'>
+keyword    = #'\s*(Loop|Note|Scale|Chord|Rest|Times|Forever)\s*'
+empty      = #'\s*'
+word       = letter+
+number     = digit+
+<letter>   = #'[a-zA-Z]'
+<digit>    = #'[0-9]'
+
+(* Math *)
+<add-sub>  = mul-div | add | sub
+add        = [<empty>] add-sub [<empty>] <'+'> [<empty>] mul-div [<empty>]
+sub        = [<empty>] add-sub [<empty>] <'-'> [<empty>] mul-div [<empty>]
+<mul-div>  = term | mul | div
+mul        = mul-div <'*'> term
+div        = mul-div <'/'> term

@@ -132,12 +132,30 @@ Colors are useful for succesfully expressing a variety of data to the user at on
 
 TODO: add some actual content
 
-- `Loop`
-- `Tempo`
-- `Note`
-- `Scale`
-- `Chord`
-- `Rest`
+ - `Loop`
+ - `Tempo`
+ - `Note`
+ - `Scale`
+ - `Chord`
+ - `Rest`
+
+# Setup
+
+`lein install`
+
+# Testing
+
+`lein test`
+
+# Usage
+
+```clojure
+(ns my.namespace
+  (:require [warble.lexer :as lexer]))
+
+(lexer/tokenize ":Foo = []")
+
+```
 
 # TODO
 
