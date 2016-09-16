@@ -13,11 +13,11 @@ identifier = #'\s*:[a-zA-Z]+\s*'
 arguments  = ((identifier | word) [<','>])*
 init       = <'('> arguments <')'>
 keyword    = #'\s*(Loop|Note|Scale|Chord|Rest|Times|Forever)\s*'
-empty      = #'\s*'
 word       = letter+
 number     = digit+
 <letter>   = #'[a-zA-Z]'
 <digit>    = #'[0-9]'
+<empty>    = #'\s*'
 
 (* Math *)
 <add-sub>  = mul-div | add | sub
