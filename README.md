@@ -118,7 +118,7 @@ There will be support down the road for named sequences so that individual instr
 Colors are useful for succesfully expressing a variety of data to the user at once:
 
 ```
-@ABC = [
+:ABC = [
   1 -> [
     Scale('C2min',  #6CB359),
     Chord('D2min7', #AA5585)
