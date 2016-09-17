@@ -1,5 +1,5 @@
 (* Core *)
-root = statement*
+track = statement*
 statement = token (<empty> token)*
 
 <token>    = keyword | !keyword elem | assign
