@@ -1,6 +1,7 @@
 (ns warble.lexer-test
   (:require [clojure.test :refer :all]
-            [warble.lexer :refer :all]))
+            [warble.lexer :refer :all]
+            [instaparse.core :as insta]))
 
 (deftest variables
   (testing "can be assigned"
@@ -18,7 +19,15 @@
     (let [want [:track [:statement [:add [:number "1"] [:div [:number "2"] [:number "3"]]]]]]
       (is (= (tokenize "1 + 2/3") want)))))
 
-(deftest list
+(deftest pair
+  (testing "term keys"
+    (testing "valid"
+      (let [want [:track [:statement [:pair [:number "1"] [:list]]]]]
+        (is (= (tokenize "1 -> []") want))))
+    (testing "invalid"
+      (is (= (insta/failure? (tokenize "abc -> []")) true)))))
+
+(deftest arrays
   (testing "emptiness"
     (let [want [:track [:statement [:list]]]]
       (is (= (tokenize "[]") want))))
