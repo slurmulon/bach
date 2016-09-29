@@ -1,4 +1,4 @@
-(ns warble.interp
+(ns warble.interpret
   (:require [warble.lexer :as lexer]))
 
 (def default-tempo 120)
