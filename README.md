@@ -26,7 +26,19 @@ The `Beat` at which any `Element` may be played at is specified via a tuple-like
 1 -> Note('C2')
 ```
 
-All `Elements` must be instantiated in a `Beat` tuple, and the first parameter of every `Element` is a [`teoria`](https://github.com/saebekassebil/teoria)-supported string-like (surrounded with `'` or `"`) identifier such as `'C2'`, which is a second octave `C` note.
+When a `Beat` identifier is not provided in an an assignment or list, it will be implied at run-time to be the index of each respective element as they are played. For instance:
+
+```
+[1 -> Note('C2'), 2 -> Note('F2')]
+```
+
+is the same as
+
+```
+[Note('C2'), Note('F2')]
+```
+
+All `Elements` must be instantiated in a `Beat` tuple (or marshalled into one), and the first parameter of every `Element` is a [`teoria`](https://github.com/saebekassebil/teoria)-supported string-like (surrounded with `'` or `"`) identifier such as `'C2'`, which is a second octave `C` note.
 
 `Beats` may be written where the left hand side represents the starting beat and the right hand side of `+` represents the additional number of beats to delay playing:
 
@@ -113,6 +125,33 @@ Play [:ABC, :DEF] Forever
 
 There will be support down the road for named sequences so that individual instruments / layers of the track can be more easily worked with.
 
+# Cadences
+
+In music it's common to see cadence sections labeled as `A`, `B`, `C`, and so on. warble's syntax favors this nicely:
+
+```
+Scale('C2 Major')
+
+:A = Chord('F2maj')
+:B = Chord('G2maj')
+:C = Chord('C2maj')
+
+:Song = [
+  1 -> :A,
+  2 -> :B,
+  3 -> :C
+  4 -> :A
+]
+
+Play :Song Forever
+```
+
+Destructured list assignments will soon be supported and will also favor cadences:
+
+```
+[A, B, C, D] = [Chord('E7'), Chord('Emin7'), Chord('Cmaj7'), Chord('Dmaj7')]
+```
+
 ### Color Labeling
 
 Colors are useful for succesfully expressing a variety of data to the user at once:
@@ -166,6 +205,9 @@ Color values must be hexadecimal (no `red`, `blue`, etc. for now).
 ## Roadmap
 
  - [ ] Write technical specfiication
- - [ ] Create bi-directional [Overtone](https://github.com/overtone/overtone/) interface and parser
- - [ ] Create [SuperCollider](http://supercollider.github.io/) interface and parser
+ - [ ] Destructured list assignments
+ - [ ] General work towards making the tracks iterable in a normalized fashion
+ - [ ] Allow track linking with Hypermedia
+ - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress
  - [ ] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
+ - [ ] Note fitness / quality data (i.e. how well it fits a given scale or chord in the current context)
