@@ -144,6 +144,13 @@ Scale('C2 Major')
 ]
 
 Play :Song Forever
+```
+
+Destructured list assignments will soon be supported and will also favor cadences:
+
+```
+[A, B, C, D] = [Chord('E7'), Chord('Emin7'), Chord('Cmaj7'), Chord('Dmaj7')]
+```
 
 ### Color Labeling
 
@@ -198,6 +205,9 @@ Color values must be hexadecimal (no `red`, `blue`, etc. for now).
 ## Roadmap
 
  - [ ] Write technical specfiication
- - [ ] Create bi-directional [Overtone](https://github.com/overtone/overtone/) interface and parser
- - [ ] Create [SuperCollider](http://supercollider.github.io/) interface and parser
+ - [ ] Destructured list assignments
+ - [ ] General work towards making the tracks iterable in a normalized fashion
+ - [ ] Allow track linking with Hypermedia
+ - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress
  - [ ] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
+ - [ ] Note fitness / quality data (i.e. how well it fits a given scale or chord in the current context)
