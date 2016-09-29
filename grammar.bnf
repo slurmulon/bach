@@ -12,7 +12,7 @@ assign     = identifier <'='> (atom | term | list)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | word) [<','>])*
 init       = <'('> arguments <')'>
-keyword    = #'\s*(Note|Scale|Chord|Rest|Times|Signature|Tempo|Play|Stop|Forever)\s*'
+keyword    = #'\s*(Note|Scale|Chord|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)\s*'
 word       = letter+
 number     = digit+
 <letter>   = #'[a-zA-Z]'
