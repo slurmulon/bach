@@ -2,17 +2,18 @@
 track = statement*
 statement = token (<empty> token)*
 
-<token>    = keyword | !keyword elem | assign
+<token>    = elem | assign
 <term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
-<atom>     = [<empty>] keyword init [<empty>]
+<atom>     = [<empty>] keyword [<empty>] init [<empty>]
 <elem>     = [<empty>] atom | term | pair | identifier | list [<empty>]
 list       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> (atom | term | list)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
-arguments  = ((identifier | word) [<','>])*
+arguments  = ((identifier | string) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
 keyword    = #'\s*(Note|Scale|Chord|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)\s*'
+string     = <#"\"|\'"> (word | number)* <#"\"|\'">
 word       = letter+
 number     = digit+
 <letter>   = #'[a-zA-Z]'
