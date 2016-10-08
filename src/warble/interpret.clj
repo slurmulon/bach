@@ -10,14 +10,16 @@
   ; determine if beats/pairs align with defined tempo (simple base/modulus comparison should do the trick)
   ; @context will contain meta information describing the current context of the AST traversal, such as the current TEMPO
   [ast context]
-  (for [node ast]
-    (let [next-node (next ast)]
-      (case node
-        :track (validate next-node)
-        :assign "TODO"
-        :pair "TODO"
-        :tempo "TODO"
-        true))))
+  (let [vars (get context :vars {})]
+    (for [node ast]
+      (let [next-node (next ast)]
+        (case node
+          :track  (validate next-node)
+          :assign (validate next-node (conj context {:vars vars}))
+          :identifier "TODO: if EOF and an unknown variable is encountered, error"
+          :pair "TODO"
+          :tempo "TODO"
+          true))))
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
