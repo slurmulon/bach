@@ -15,8 +15,8 @@
       (let [next-node (next ast)]
         (case node
           :track  (validate next-node)
-          :assign (validate next-node (conj context {:vars vars}))
-          :identifier "TODO: if EOF and an unknown variable is encountered, error"
+          :assign (validate next-node (assoc context {:vars vars}))
+          :identifier "TODO: if EOF and an unknown variable is encountered, error (use .indexOf)"
           :pair "TODO"
           :tempo "TODO"
           true))))
