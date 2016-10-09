@@ -24,7 +24,7 @@
             (let [has-var (contains? vars next-node)]
               (cond (has-var) (validate next-node context) ; known variable, keep going
                     (not has-var) (validate next-node (track-variable next-node nil)) ; register unknown variable
-                    (and (not (next ast)) (not (contains? context :vars))) throw (Exception. "variable is never declared")))
+                    (and (not (next ast)) (not (contains? context :vars))) (throw (Exception. "variable is never declared"))))
           :pair (if (contains? (take 10 powers-of-two) next-node)
                     (validate next-node context)
                     (throw (Exception. "note divisors must be base 2 and no greater than 512")))
