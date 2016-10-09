@@ -8,15 +8,23 @@
 (defn validate
   ; determine if variable assignments make sense. support hoisting.
   ; determine if beats/pairs align with defined tempo (simple base/modulus comparison should do the trick)
+  ; ensure that keywords are invoked with valid arguments
   ; @context will contain meta information describing the current context of the AST traversal, such as the current TEMPO
   [ast context]
   (let [vars (get context :vars {})]
     (for [node ast]
       (let [next-node (next ast)]
         (case node
-          :track  (validate next-node)
-          :assign (validate next-node (assoc context {:vars vars}))
-          :identifier "TODO: if EOF and an unknown variable is encountered, error (use .indexOf)"
+          :track
+            (validate next-node context)
+          :assign
+            (validate next-node (assoc context {:vars vars}))
+          :identifier
+            (let [has-var (contains? context :vars)]
+              (cond
+                (has-var) (validate next-node context)
+                ; (not has-var) ()
+                (and (not (next ast)) (not (contains? context :vars))) false)))
           :pair "TODO"
           :tempo "TODO"
           true))))
