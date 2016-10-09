@@ -5,12 +5,14 @@
 (def default-time-signature (4/4))
 (def default-scale "C2 Major")
 
+(def powers-of-two (iterate (partial * 2) 1))
+
 (defn validate
   ; determine if variable assignments make sense. support hoisting.
   ; determine if beats/pairs align with defined tempo (simple base/modulus comparison should do the trick)
   ; ensure that keywords are invoked with valid arguments
   ; @context will contain meta information describing the current context of the AST traversal, such as the current TEMPO
-  [ast context issues]
+  [ast context]
   (let [vars (get context :vars {})]
     (fn track-variable [label, value] (assoc context :vars (conj vars [label value])))
     (for [node ast] ; FIXME: consider using "reduce" instead as we can't return early in our for loop
@@ -20,12 +22,15 @@
             (validate next-node (track-variable next-node (next next-node)))
           :identifier
             (let [has-var (contains? vars next-node)]
-              (cond
-                (has-var) (validate next-node context) ; known variable, keep going
-                (not has-var) (validate next-node (track-variable next-node nil)) ; register unknown variable
-                (and (not (next ast)) (not (contains? context :vars))) (validate next-node context true)))
-          :pair "TODO: enforce that the denominator/divosor is modulus 2"
-          :tempo "TODO"
+              (cond (has-var) (validate next-node context) ; known variable, keep going
+                    (not has-var) (validate next-node (track-variable next-node nil)) ; register unknown variable
+                    (and (not (next ast)) (not (contains? context :vars))) throw (Exception. "variable is never declared")))
+          :pair (if (contains? (take 10 powers-of-two) next-node)
+                    (validate next-node context)
+                    (throw (Exception. "note divisors must be base 2 and no greater than 512")))
+          :tempo (if (<= 0 next-node 256)
+                    (validate next-node context)
+                    (throw (Exception. "tempos must be between 0 and 256 beats per minute")))
           (validate next-node context))))
       true))
 
