@@ -10,24 +10,24 @@
   ; determine if beats/pairs align with defined tempo (simple base/modulus comparison should do the trick)
   ; ensure that keywords are invoked with valid arguments
   ; @context will contain meta information describing the current context of the AST traversal, such as the current TEMPO
-  [ast context]
+  [ast context issues]
   (let [vars (get context :vars {})]
-    (for [node ast]
+    (fn track-variable [label, value] (assoc context :vars (conj vars [label value])))
+    (for [node ast] ; FIXME: consider using "reduce" instead as we can't return early in our for loop
       (let [next-node (next ast)]
         (case node
-          :track
-            (validate next-node context)
           :assign
-            (validate next-node (assoc context {:vars vars}))
+            (validate next-node (track-variable next-node (next next-node)))
           :identifier
-            (let [has-var (contains? context :vars)]
+            (let [has-var (contains? vars next-node)]
               (cond
-                (has-var) (validate next-node context)
-                ; (not has-var) ()
-                (and (not (next ast)) (not (contains? context :vars))) false)))
-          :pair "TODO"
+                (has-var) (validate next-node context) ; known variable, keep going
+                (not has-var) (validate next-node (track-variable next-node nil)) ; register unknown variable
+                (and (not (next ast)) (not (contains? context :vars))) (validate next-node context true)))
+          :pair "TODO: enforce that the denominator/divosor is modulus 2"
           :tempo "TODO"
-          true))))
+          (validate next-node context))))
+      true))
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
