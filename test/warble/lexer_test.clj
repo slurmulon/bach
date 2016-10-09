@@ -44,7 +44,7 @@
     (let [want [:track [:statement [:list [:pair [:number "1"] [:list]]]]]]
       (is (= (parse "[1 -> []]")) want))))
 
-(deftest atoms
-  (testing "arbitrary"
-    (let [want [:track [:statement [:keyword "Note"] [:init [:arguments [:string [:word "C"] [:number "2"]]]]]]]
-      (is (= (parse "Note('C2')") want)))))
+; (deftest atoms
+;   (testing "arbitrary"
+;     (let [want [:track [:statement [:keyword "Note"] [:init [:arguments [:string [:word "C"] [:number "2"]]]]]]]
+;       (is (= (parse "Note('C2')") want)))))
