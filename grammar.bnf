@@ -8,7 +8,7 @@ statement = token (<empty> token)*
 <elem>     = [<empty>] atom | term | pair | identifier | list [<empty>]
 list       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
-assign     = identifier <'='> (atom | term | list)
+assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
