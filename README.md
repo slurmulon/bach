@@ -1,6 +1,6 @@
 # warble
 
-> :musical_score: ABC-inspired notation for representing musical tracks and loops with a focus on readability and productivity
+> :musical_score: Notation for musical loops and tracks with a focus on readability and productivity
 
 ---
 
