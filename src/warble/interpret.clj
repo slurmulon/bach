@@ -14,16 +14,18 @@
   ; @context will contain meta information describing the current context of the AST traversal, such as the current TEMPO
   [ast context]
   (let [vars (get context :vars {})]
-    (fn track-variable [label, value] (assoc context :vars (conj vars [label value]))
-      (for [node ast] ; FIXME: consider using "reduce" instead as we can't return early in our for loop
-        (let [next-node (next ast)]
+    (letfn [(track-variable [label, value] (assoc context :vars (conj vars [label value])))]
+      ; FIXME: use https://clojuredocs.org/clojure.walk/walk instead
+      ; FIXME: fails to dig into the deepest array for some reason
+      (doseq [node ast :when (vector? node)]
+        (let [next-node (-> ast next first)]
           (case node
             :assign
               (validate next-node (track-variable next-node (next next-node)))
             :identifier
               (let [has-var (contains? vars next-node)]
                 (cond (has-var) (validate next-node context) ; known variable, keep going
-                      (not has-var) (validate next-node (track-variable next-node nil)) ; register unknown variable
+                      (not has-var) (validate next-node (track-variable next-node :empty)) ; register unknown variable
                       (and (not (next ast)) (not (contains? context :vars))) (throw (Exception. "variable is never declared"))))
             :pair (if (contains? (take 10 powers-of-two) next-node)
                       (validate next-node context)
