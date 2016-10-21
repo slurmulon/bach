@@ -2,7 +2,7 @@
   (:require [warble.lexer :as lexer]))
 
 (def default-tempo 120)
-(def default-time-signature (4/4))
+(def default-time-signature (/ 4 4))
 (def default-scale "C2 Major")
 
 (def powers-of-two (iterate (partial * 2) 1))
@@ -14,24 +14,24 @@
   ; @context will contain meta information describing the current context of the AST traversal, such as the current TEMPO
   [ast context]
   (let [vars (get context :vars {})]
-    (fn track-variable [label, value] (assoc context :vars (conj vars [label value])))
-    (for [node ast] ; FIXME: consider using "reduce" instead as we can't return early in our for loop
-      (let [next-node (next ast)]
-        (case node
-          :assign
-            (validate next-node (track-variable next-node (next next-node)))
-          :identifier
-            (let [has-var (contains? vars next-node)]
-              (cond (has-var) (validate next-node context) ; known variable, keep going
-                    (not has-var) (validate next-node (track-variable next-node nil)) ; register unknown variable
-                    (and (not (next ast)) (not (contains? context :vars))) (throw (Exception. "variable is never declared"))))
-          :pair (if (contains? (take 10 powers-of-two) next-node)
-                    (validate next-node context)
-                    (throw (Exception. "note divisors must be base 2 and no greater than 512")))
-          :tempo (if (<= 0 next-node 256)
-                    (validate next-node context)
-                    (throw (Exception. "tempos must be between 0 and 256 beats per minute")))
-          (validate next-node context))))
+    (fn track-variable [label, value] (assoc context :vars (conj vars [label value]))
+      (for [node ast] ; FIXME: consider using "reduce" instead as we can't return early in our for loop
+        (let [next-node (next ast)]
+          (case node
+            :assign
+              (validate next-node (track-variable next-node (next next-node)))
+            :identifier
+              (let [has-var (contains? vars next-node)]
+                (cond (has-var) (validate next-node context) ; known variable, keep going
+                      (not has-var) (validate next-node (track-variable next-node nil)) ; register unknown variable
+                      (and (not (next ast)) (not (contains? context :vars))) (throw (Exception. "variable is never declared"))))
+            :pair (if (contains? (take 10 powers-of-two) next-node)
+                      (validate next-node context)
+                      (throw (Exception. "note divisors must be base 2 and no greater than 512")))
+            :tempo (if (<= 0 next-node 256)
+                      (validate next-node context)
+                      (throw (Exception. "tempos must be between 0 and 256 beats per minute")))
+            (validate next-node context)))))
       true))
 
 (defn provision
