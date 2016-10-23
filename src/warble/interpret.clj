@@ -12,29 +12,31 @@
   ; determine if beats/pairs align with defined tempo (simple base/modulus comparison should do the trick)
   ; ensure that keywords are invoked with valid arguments
   ; @context will contain meta information describing the current context of the AST traversal, such as the current TEMPO
+  ; FIXME: ensure validate isn't getting recursively called too often (add a `print` under the first `let`)
+  ; FIXME: use htps://clojuredocs.org/clojure.walk/walk instead of doseq
   [ast context]
   (let [vars (get context :vars {})]
     (letfn [(track-variable [label, value] (assoc context :vars (conj vars [label value])))]
-      ; FIXME: use https://clojuredocs.org/clojure.walk/walk instead
-      ; FIXME: fails to dig into the deepest array for some reason
-      (doseq [node ast :when (vector? node)]
-        (let [next-node (-> ast next first)]
-          (case node
-            :assign
-              (validate next-node (track-variable next-node (next next-node)))
-            :identifier
-              (let [has-var (contains? vars next-node)]
-                (cond (has-var) (validate next-node context) ; known variable, keep going
-                      (not has-var) (validate next-node (track-variable next-node :empty)) ; register unknown variable
-                      (and (not (next ast)) (not (contains? context :vars))) (throw (Exception. "variable is never declared"))))
-            :pair (if (contains? (take 10 powers-of-two) next-node)
-                      (validate next-node context)
-                      (throw (Exception. "note divisors must be base 2 and no greater than 512")))
-            :tempo (if (<= 0 next-node 256)
-                      (validate next-node context)
-                      (throw (Exception. "tempos must be between 0 and 256 beats per minute")))
-            (validate next-node context)))))
+      (doseq [node ast]
+        (let [next-node (-> ast next first) go-next? (vector? next-node)]
+          (when go-next?
+            (case node
+              :assign
+                (validate next-node (track-variable next-node (next next-node)))
+              :identifier
+                (let [has-var (contains? vars next-node)]
+                  (cond (has-var) (validate next-node context) ; known variable, keep going
+                        (not has-var) (validate next-node (track-variable next-node :empty)) ; register unknown variable
+                        (and (not (next ast)) (not (contains? context :vars))) (throw (Exception. "variable is never declared"))))
+              :pair (if (contains? (take 10 powers-of-two) next-node)
+                        (validate next-node context)
+                        (throw (Exception. "note divisors must be base 2 and no greater than 512")))
+              :tempo (if (<= 0 next-node 256)
+                        (validate next-node context)
+                        (throw (Exception. "tempos must be between 0 and 256 beats per minute")))
+              (validate next-node context))))))
       true))
+
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
