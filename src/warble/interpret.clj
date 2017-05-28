@@ -19,6 +19,7 @@
             (println "--- token" token)
             (println "--- node" node)
             (println "--- next-node ->>>>> " next-node)
+            ; TODO: can brighten this up a bit (perhaps) with anonymous multi-methods (sweet pattern matching)
             (case token
               ; :statement ; FIXME: remove need for this, should just fall to case default
               ;   (println "STATEMENT" next-node)
