@@ -1,5 +1,12 @@
+; http://xahlee.info/clojure/clojure_instaparse.html
+; http://xahlee.info/clojure/clojure_instaparse_transform.html
+
+; (ns warble.interpret
+;   (:require [warble.lexer :as lexer]
+;             [instaparse.core :as insta]))
+
 (ns warble.interpret
-  (:require [warble.lexer :as lexer]))
+  (:require [instaparse.core :as insta]))
 
 (def default-tempo 120)
 (def default-time-signature (/ 4 4))
@@ -7,29 +14,68 @@
 
 (def powers-of-two (iterate (partial * 2) 1))
 
+; TODO: re-do this in a 3rd way using
+; instaparse.core/transform (http://xahlee.info/clojure/clojure_instaparse_transform.html 
+; so much easier, pattern matching. handles the loop crap
 (defn validate
   [ast context]
-  (println "AST" ast)
+  (let [vars (get context :vars {})]
+    (letfn [(track-variable [label value] (assoc context :vars (conj vars [label value])))]
+      (insta/transform
+        {:assign (fn [label value]
+                   (println "label, value" label value)
+                   (let [value-type (first value)]
+                     (println "value-type" value-type)
+                     (case value-type
+                       :identifier
+                         (when-let [unknown-var (not (contains? vars value))]
+                           (throw (Exception. "variable is not declared before it's used")))
+                        (track-variable label value)))) }
+      ast))))
+
+(defn validate-poop
+  ; [ast context]
+  ; (println "AST" ast)
+  [node context] ; TODO: accept root ast
   (let [vars (get context :vars {})]
     (letfn [(track-variable [label, value] (assoc context :vars (conj vars [label value])))]
-      (doseq [node ast]
-        (println "~node" node (vector? node))
-        (if (vector? node)
-          (let [token (first node) next-node (-> node rest first)]
-            (println "--- token" token)
-            (println "--- node" node)
-            (println "--- next-node ->>>>> " next-node)
+      ; (doseq [node ast] ; FIXME: replace this with loop/recur, allows us to just skip over stuff
+        (println "~node" node (vector? node) (seq? node))
+        (if (or (vector? node) (seq? node))
+          (let [left (first node) right (-> node rest first)]
+            (println "\t--- node" node)
+            (println "\t--- left" left)
+            (println "\t--- right ->>>>> " right)
+            (println "\t--- alt-right ->>>>> " (rest node)) ; TODO!!!!! - need to loop through each of these 
             ; TODO: can brighten this up a bit (perhaps) with anonymous multi-methods (sweet pattern matching)
-            (case token
+            (case left
               ; :statement ; FIXME: remove need for this, should just fall to case default
               ;   (println "STATEMENT" next-node)
               :assign
-                (println "ASSIGN" next-node)
+                (let [assign (rest node) assign-name (-> assign first last) assign-value (-> assign last last)]
+                  (println "ASSIGN value" assign)
+                  (println "--- name" assign-name)
+                  (println "--- val" assign-value)
+                  (println "-- contains?" (contains? vars assign-value))
+                  (println "-- boom? next?" (next node) (not (contains? vars assign-value)))
+                  (println "-- is-var?" (-> assign last first))
+                  ; TODO next! - track the variables
+                  (track-variable assign-name assign-value)
+
+                  ; INSTEAD: only care about has-var if it's a variable
+                  ; otherwise just track the variable and move on!
+                  ;  - test for :identifier
+                  (let [is-var (= :identifier (-> assign last first)) has-var (contains? vars assign-value)]
+                    (cond (and is-var (not has-var))
+                          (throw (Exception. "variable is not declared before it's used")))))
+
+                  ; TODO: determine what to do next here, maybe need a more complex example
+                  ; (validate value context)) ; TODO: instead parse [:identifier :A] [:identifier :B])
               ; (:statement ; FIXME: remove need for this, should just fall to case default
               ;   (println "STATEMENT" next-node))
               ; (:assign
               ;   (println "ASSIGN" next-node))
-              (validate next-node context))))))
+              (validate right context)))))
         ; (cond
         ;   (seq? node) ()
 
