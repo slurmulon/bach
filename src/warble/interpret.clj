@@ -14,9 +14,9 @@
 
 (def powers-of-two (iterate (partial * 2) 1))
 
-; @see: instaparse.core/transform (http://xahlee.info/clojure/clojure_instaparse_transform.html 
+; @see: instaparse.core/transform (http://xahlee.info/clojure/clojure_instaparse_transform.html
 (defn validate
-  [ast]
+  [tree]
   (let [context (atom {})]
     (letfn [(variables [] (get @context :vars {}))
             (track-variable [label value] (swap! context assoc :vars (conj (variables) [label value])))]
@@ -31,16 +31,19 @@
                          (when-let [unknown-var (not (contains? (variables) value))]
                            (throw (Exception. "variable is not declared before it's used")))
                         (track-variable label value))))
-         ; TODO: :div (I think pair should be :div)
+         ; TODO: :pair
          ; TODO: :add
-         :pair (fn [& value] ; AKA "tuple"
-                 (when (not (contains? (take 10 powers-of-two) (last value))) ; FIXME: value here doesn't make sense
-                   (throw (Exception. "note divisors must be base 2 and no greater than 512"))))
+         :div (fn [left right] ; AKA "tuple"
+                (let [top    (-> left  last read-string)
+                      bottom (-> right last read-string)]
+                 ; (println "!!!div" top bottom (type top) (type bottom)) ))
+                 (when (not (some #{bottom} (take 10 powers-of-two))) ; FIXME: value here doesn't make sense
+                   (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
          :tempo (fn [& value]
                   (let [tempo (last value)]
                     (when (not (<= 0 tempo 256))
                       (throw (Exception. "tempos must be between 0 and 256 beats per minute"))))) }
-      ast))
+      tree))
     true))
 
 (defn provision
