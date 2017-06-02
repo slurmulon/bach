@@ -14,9 +14,7 @@
 
 (def powers-of-two (iterate (partial * 2) 1))
 
-; TODO: re-do this in a 3rd way using
-; instaparse.core/transform (http://xahlee.info/clojure/clojure_instaparse_transform.html 
-; so much easier, pattern matching. handles the loop crap
+; @see: instaparse.core/transform (http://xahlee.info/clojure/clojure_instaparse_transform.html 
 (defn validate
   [ast]
   (let [context (atom {})]
@@ -33,8 +31,10 @@
                          (when-let [unknown-var (not (contains? (variables) value))]
                            (throw (Exception. "variable is not declared before it's used")))
                         (track-variable label value))))
-         :pair (fn [& value]
-                 (when (not (contains? (take 10 powers-of-two) (last value)))
+         ; TODO: :div (I think pair should be :div)
+         ; TODO: :add
+         :pair (fn [& value] ; AKA "tuple"
+                 (when (not (contains? (take 10 powers-of-two) (last value))) ; FIXME: value here doesn't make sense
                    (throw (Exception. "note divisors must be base 2 and no greater than 512"))))
          :tempo (fn [& value]
                   (let [tempo (last value)]
