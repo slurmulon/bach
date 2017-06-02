@@ -19,12 +19,9 @@
 ; so much easier, pattern matching. handles the loop crap
 (defn validate
   [ast nothing]
-  (let [context (atom {})
-        vars (get @context :vars {})]
-    ; (letfn [(track-variable [label value] (do (println "SAVING VARIABLE" label value)
-    ;                                           (assoc @context :vars (conj vars [label value]))))]
-    (letfn [(track-variable [label value] (do (println "SAVING VARIABLE" label value)
-                                              (swap! context assoc :vars (conj vars [label value]))))]
+  (let [context (atom {})]
+    (letfn [(variables [] (get @context :vars {}))
+            (track-variable [label value] (swap! context assoc :vars (conj (variables) [label value])))]
       (insta/transform
         {:assign (fn [left right]
                    (println "label, value" left right)
@@ -33,9 +30,8 @@
                          value-type (first right)]
                      (case value-type
                        :identifier
-                         (when-let [unknown-var (not (contains? (get @context :vars) value))]
-                           (do (println "UNKNOWN VARIABLE" value vars context)
-                               (throw (Exception. "variable is not declared before it's used"))))
+                         (when-let [unknown-var (not (contains? (variables) value))]
+                           (throw (Exception. "variable is not declared before it's used")))
                         (track-variable label value))))
          :pair (fn [& value]
                  (when (not (contains? (take 10 powers-of-two) (last value)))

@@ -15,7 +15,7 @@
   ; (testing "assignment"
   ;   (let [want [:track [:statement [:assign [:identifier ":Test"] [:number "1"]]]]]
   ;     (is (= (validate want {}) true))))
-  (testing "identifier (valid, known)"
+  (testing "identifier (valid, known variable)"
     (let [want [:track [:statement [:assign [:identifier ":A"] [:number "1"]]]
                        [:statement [:assign [:identifier ":B"] [:identifier ":A"]]]]]
       (is (= (validate want {}) true))))
