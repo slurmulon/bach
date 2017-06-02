@@ -20,18 +20,29 @@
 (defn validate
   [ast context]
   (let [vars (get context :vars {})]
-    (letfn [(track-variable [label value] (assoc context :vars (conj vars [label value])))]
+    (letfn [(track-variable [label value] (do (println "SAVING VARIABLE" label value)
+                                              (assoc context :vars (conj vars [label value]))))]
       (insta/transform
-        {:assign (fn [label value]
-                   (println "label, value" label value)
-                   (let [value-type (first value)]
-                     (println "value-type" value-type)
+        {:assign (fn [left right]
+                   (println "label, value" left right)
+                   (let [label (last left)
+                         value (last right)
+                         value-type (first right)]
                      (case value-type
                        :identifier
                          (when-let [unknown-var (not (contains? vars value))]
-                           (throw (Exception. "variable is not declared before it's used")))
-                        (track-variable label value)))) }
-      ast))))
+                           (do (println "UNKNOWN VARIABLE" value vars context)
+                               (throw (Exception. "variable is not declared before it's used"))))
+                        (track-variable label value))))
+         :pair (fn [& value]
+                 (when (not (contains? (take 10 powers-of-two) (last value)))
+                   (throw (Exception. "note divisors must be base 2 and no greater than 512"))))
+         :tempo (fn [& value]
+                  (let [tempo (last value)]
+                    (when (not (<= 0 tempo 256))
+                      (throw (Exception. "tempos must be between 0 and 256 beats per minute"))))) }
+      ast))
+    true))
 
 (defn validate-poop
   ; [ast context]
