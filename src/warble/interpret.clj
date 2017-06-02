@@ -18,10 +18,13 @@
 ; instaparse.core/transform (http://xahlee.info/clojure/clojure_instaparse_transform.html 
 ; so much easier, pattern matching. handles the loop crap
 (defn validate
-  [ast context]
-  (let [vars (get context :vars {})]
+  [ast nothing]
+  (let [context (atom {})
+        vars (get @context :vars {})]
+    ; (letfn [(track-variable [label value] (do (println "SAVING VARIABLE" label value)
+    ;                                           (assoc @context :vars (conj vars [label value]))))]
     (letfn [(track-variable [label value] (do (println "SAVING VARIABLE" label value)
-                                              (assoc context :vars (conj vars [label value]))))]
+                                              (swap! context assoc :vars (conj vars [label value]))))]
       (insta/transform
         {:assign (fn [left right]
                    (println "label, value" left right)
@@ -30,7 +33,7 @@
                          value-type (first right)]
                      (case value-type
                        :identifier
-                         (when-let [unknown-var (not (contains? vars value))]
+                         (when-let [unknown-var (not (contains? (get @context :vars) value))]
                            (do (println "UNKNOWN VARIABLE" value vars context)
                                (throw (Exception. "variable is not declared before it's used"))))
                         (track-variable label value))))
