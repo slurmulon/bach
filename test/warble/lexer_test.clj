@@ -44,7 +44,10 @@
     (let [want [:track [:statement [:list [:pair [:number "1"] [:list]]]]]]
       (is (= (parse "[1 -> []]")) want))))
 
-(deftest atoms
-  (testing "arbitrary"
-    (let [want [:track [:statement [:keyword "Note"] [:init [:arguments [:string [:word "C"] [:number "2"]]]]]]]
-      (is (= (parse "Note('C2')") want)))))
+(deftest atoms ; AKA instantiated keywords
+  (testing "note"
+    (let [want [:track [:statement [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]
+      (is (= (parse "Note('C2')") want))))
+  (testing "scale"
+    (let [want [:track [:statement [:keyword "Scale"] [:init [:arguments [:string "'C2 Major'"]]]]]]
+      (is (= (parse "Scale('C2 Major')") want)))))

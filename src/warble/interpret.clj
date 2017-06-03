@@ -18,29 +18,29 @@
 (defn validate
   [tree]
   (let [context (atom {})]
-    (letfn [(variables [] (get @context :vars {}))
-            (track-variable [label value] (swap! context assoc :vars (conj (variables) [label value])))]
+    (letfn [(variables []
+              (get @context :vars {}))
+            (track-variable [label value]
+              (swap! context assoc :vars (conj (variables) [label value])))]
       (insta/transform
         {:assign (fn [left right]
-                   ; (println "label, value" left right)
                    (let [label (last left)
                          value (last right)
                          value-type (first right)]
                      (case value-type
                        :identifier
-                         (when-let [unknown-var (not (contains? (variables) value))]
+                         (when (not (contains? (variables) value))
                            (throw (Exception. "variable is not declared before it's used")))
-                        (track-variable label value))))
-         ; TODO: :pair
-         ; TODO: :add
-         :div (fn [left right] ; AKA "tuple"
+                       (track-variable label value))))
+         ; TODO: :pair (tuple)
+         ; TODO: :add (not sure there's much to validate, really)
+         :div (fn [left right]
                 (let [top    (-> left  last read-string)
                       bottom (-> right last read-string)]
-                 ; (println "!!!div" top bottom (type top) (type bottom)) ))
                  (when (not (some #{bottom} (take 10 powers-of-two))) ; FIXME: value here doesn't make sense
                    (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
-         :tempo (fn [& value]
-                  (let [tempo (last value)]
+         :tempo (fn [& right]
+                  (let [tempo (-> right last read-string)]
                     (when (not (<= 0 tempo 256))
                       (throw (Exception. "tempos must be between 0 and 256 beats per minute"))))) }
       tree))
@@ -49,29 +49,30 @@
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
   ; TimeSig, Tempo, Scale (essentially used as Key)
-  [ast])
+  [tree context])
 
-(defn cyclic? [ast])
-(defn infinite? [ast])
+; (defn cyclic? [ast])
+; (defn infinite? [ast])
 
 (defn denormalize-variables
   ; replaces variable references with their associated data
   ; support hoisting!
-  [ast])
+  [tree context]
+  (insta/transform))
 
 (defn denormalize-beats
   ; replace any instance of a list (but not destructured list assignment) with beat tuples,
   ; where the beat equals the 1th element of the list
   ; warn on any beat list that exceeds a single measure per the time signature
-  [ast])
+  [tree context])
 
 (defn denormalize-measures
   ; given a slice size (number of measures per slice), returns a periodic sliced list of equaly sized measures that
   ; can be stepped through sequentially (adds a sense of 1st measure, 2nd measure, etc.)
-  [ast slice-size])
+  [tree slice-size])
 
 (defn denormalize
   ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
   ; normalize-variables
   ; normalize-beats
-  [ast])
+  [tree])

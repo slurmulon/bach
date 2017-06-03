@@ -28,3 +28,5 @@
   (testing "basic div (invalid base)"
     (let [want [:track [:statement [:div [:number "1"] [:number "3"]]]]]
       (is (thrown-with-msg? Exception #"note divisors must be base 2 and no greater than 512" (validate want))))))
+  ; (testing "keyword"
+  ;   (let [want [:track [:statement [:keyword "Scale"] [:init [:arguments [:string [:word "C2 Major")
