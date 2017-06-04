@@ -10,13 +10,14 @@ list       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
-arguments  = ((identifier | string) [<empty> <','> <empty>])*
+arguments  = ((identifier | string | color) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
 keyword    = #'\s*(Note|Scale|Chord|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)\s*'
 (*string     = <#"\"|\'"> (word | number)* <#"\"|\'">*)
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = letter+
 number     = digit+
+color      = #'#[a-fA-F0-9xX]{6}'
 <letter>   = #'[a-zA-Z]'
 <digit>    = #'[0-9]'
 <empty>    = #'\s*'
