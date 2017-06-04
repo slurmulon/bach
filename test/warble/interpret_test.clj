@@ -22,11 +22,14 @@
   (testing "identifier (invalid, unknown variable)"
     (let [want [:track [:statement [:assign [:identifier ":A"] [:number "1"]] [:assign [:identifier "B"] [:identifier "Z"]]]]]
       (is (thrown-with-msg? Exception #"variable is not declared before it's used" (validate want)))))
-  (testing "basic div (valid base)"
+  (testing "basic div (valid numerator and denominator)"
     (let [want [:track [:statement [:div [:number "1"] [:number "2"]]]]]
       (is (= (validate want) true))))
-  (testing "basic div (invalid base)"
+  (testing "basic div (valid numerator, invalid denominator)"
     (let [want [:track [:statement [:div [:number "1"] [:number "3"]]]]]
-      (is (thrown-with-msg? Exception #"note divisors must be base 2 and no greater than 512" (validate want))))))
+      (is (thrown-with-msg? Exception #"note divisors must be base 2 and no greater than 512" (validate want)))))
+  (testing "basic div (invalid numerator, valid denominator)"
+    (let [want [:track [:statement [:div [:number "5"] [:number "4"]]]]]
+      (is (thrown-with-msg? Exception #"numerator cannot be greater than denominator" (validate want))))))
   ; (testing "keyword"
   ;   (let [want [:track [:statement [:keyword "Scale"] [:init [:arguments [:string [:word "C2 Major")

@@ -37,14 +37,20 @@
          :div (fn [left right]
                 (let [top    (-> left  last read-string)
                       bottom (-> right last read-string)]
-                 (when (not (some #{bottom} (take 10 powers-of-two))) ; FIXME: value here doesn't make sense
-                   (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
+                  (cond
+                    (not (some #{bottom} (take 10 powers-of-two)))
+                      (throw (Exception. "note divisors must be base 2 and no greater than 512"))
+                    (> top bottom)
+                      (throw (Exception. "numerator cannot be greater than denominator")))))
          :tempo (fn [& right]
                   (let [tempo (-> right last read-string)]
                     (when (not (<= 0 tempo 256))
                       (throw (Exception. "tempos must be between 0 and 256 beats per minute"))))) }
       tree))
     true))
+
+(defn validate-assignment
+  [assignment context])
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
