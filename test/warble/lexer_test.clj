@@ -19,6 +19,11 @@
     (let [want [:track [:statement [:add [:number "1"] [:div [:number "2"] [:number "3"]]]]]]
       (is (= (parse "1 + 2/3") want)))))
 
+(deftest colors
+  (testing "hex"
+    (let [want [:track [:statement [:color "#FF0000"]]]]
+      (is (= (parse "#FF0000") want)))))
+
 (deftest pair
   (testing "term keys"
     (testing "valid"
