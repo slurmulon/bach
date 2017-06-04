@@ -10,7 +10,7 @@ list       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
-arguments  = ((identifier | string | color) [<empty> <','> <empty>])*
+arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
 keyword    = #'\s*(Note|Scale|Chord|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)\s*'
 (*string     = <#"\"|\'"> (word | number)* <#"\"|\'">*)
