@@ -50,4 +50,7 @@
       (is (= (parse "Note('C2')") want))))
   (testing "scale"
     (let [want [:track [:statement [:keyword "Scale"] [:init [:arguments [:string "'C2 Major'"]]]]]]
-      (is (= (parse "Scale('C2 Major')") want)))))
+      (is (= (parse "Scale('C2 Major')") want))))
+  (testing "multiple arguments"
+    (let [want [:track [:statement [:keyword "Scale"] [:init [:arguments [:string "'C2 Minor'"] [:div [:number "1"] [:number "4"]]]]]]]
+      (is (= (parse "Scale('C2 Minor', 1/4)"))))))
