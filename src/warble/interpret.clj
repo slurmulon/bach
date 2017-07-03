@@ -16,23 +16,6 @@
 
 (def powers-of-two (iterate (partial * 2) 1))
 
-; ZOMG PROGRESS
-; (defmacro variable-stack
-;   [& body]
-;   (let [context (gensym 'context)
-;         variables (gensym 'variables)
-;         track-variable (gensym 'track-variable)
-;         label (gensym 'label)
-;         value (gensym 'value)]
-;     `(let [~context (atom {})]
-;       (letfn [(~variables []
-;                 (get @~context :vars {}))
-;               (~track-variable [~label ~value]
-;                 (swap! ~context assoc :vars (conj (~variables) [~label ~value])))]
-;         ~@body) ;)))
-;         ; (~body variables track-variable))
-;       true))) ; default is to pass validation
-
 (defn variable-stack
   [body]
   (let [context (atom {})]
