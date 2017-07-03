@@ -6,8 +6,9 @@ statement = token (<empty> token)*
 <term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
 <atom>     = [<empty>] keyword [<empty>] init [<empty>]
 <elem>     = [<empty>] atom | term | pair | color | identifier | list [<empty>]
-list       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
-pair       = term <'->'> elem (*[<empty>,<empty>]*)
+(*list_OLD       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]*)
+list       = [<empty>] <'['> elem (<','> elem)* [<','>] <']'> [<empty>]
+pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
