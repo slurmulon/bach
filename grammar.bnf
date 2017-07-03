@@ -7,20 +7,19 @@ statement = token (<empty> token)*
 <atom>     = [<empty>] keyword [<empty>] init [<empty>]
 <elem>     = [<empty>] atom | term | pair | color | identifier | list [<empty>]
 list       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
-pair       = term <'->'> elem [<empty>,<empty>]
+pair       = term <'->'> elem (*[<empty>,<empty>]*)
 assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
-keyword    = #'\s*(Note|Scale|Chord|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)\s*'
-(*string     = <#"\"|\'"> (word | number)* <#"\"|\'">*)
+keyword    = [<empty>] #'(Note|Scale|Chord|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)' [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = letter+
 number     = digit+
 color      = #'#[a-fA-F0-9xX]{6}'
 <letter>   = #'[a-zA-Z]'
 <digit>    = #'[0-9]'
-<empty>    = #'\s*'
+<empty>    = #'(\r\n|\n|\r|\s)*'
 
 (* Math *)
 <add-sub>  = mul-div | add | sub
