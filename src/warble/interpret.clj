@@ -75,9 +75,9 @@
                       (case value-type
                         :identifier
                           (let [stack-value (get (get-variables) value)]
-                            [:assign [:identifier label] stack-value])
+                            [:assign label-token stack-value])
                         (do (track-variable label value-token)
-                          [:assign label-token value-token]))))}
+                            [:assign label-token value-token]))))}
         tree)))))
 
 (defn denormalize-beats
@@ -88,6 +88,7 @@
   (if (validate tree)
     (variable-stack (fn [get-variables track-variable]
       (insta/transform
+        ; TODO: look at each :pair in the list and use that to determine the lowest common beat
         {:list (fn [label-token value-token] [])})))))
 
 (defn denormalize-measures
