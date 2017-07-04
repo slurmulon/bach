@@ -29,10 +29,10 @@
   [tree]
     (variable-stack (fn [variables track-variable context]
       (insta/transform
-        {:assign (fn [left right]
-                   (let [label (last left)
-                         value (last right)
-                         value-type (first right)]
+        {:assign (fn [label-token value-token]
+                   (let [label (last label-token)
+                         value (last value-token)
+                         value-type (first value-token)]
                      (case value-type
                        :identifier
                          (when (not (contains? (variables) value))
@@ -40,9 +40,9 @@
                        (track-variable label value))))
          ; TODO: :pair (tuple)
          ; TODO: :add (not sure there's much to validate, really)
-         :div (fn [left right]
-                (let [top    (-> left  last read-string)
-                      bottom (-> right last read-string)]
+         :div (fn [top-token bottom-token]
+                (let [top    (-> top-token   last read-string)
+                      bottom (-> bottom-token last read-string)]
                   (cond
                     (not (some #{bottom} (take 10 powers-of-two)))
                       (throw (Exception. "note divisors must be base 2 and no greater than 512"))
@@ -54,9 +54,6 @@
                       (throw (Exception. "tempos must be between 0 and 256 beats per minute"))))) }
       tree)))
     true)
-
-(defn validate-assignment
-  [assignment context])
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
@@ -87,7 +84,11 @@
   ; replace any instance of a list (but not destructured list assignment) with beat tuples,
   ; where the beat equals the 1th element of the list
   ; warn on any beat list that exceeds a single measure per the time signature
-  [tree context])
+  [tree]
+  (if (validate tree)
+    (variable-stack (fn [get-variables track-variable context]
+      (insta/transform
+        {:list (fn [label-token value-token] [])})))))
 
 (defn denormalize-measures
   ; given a slice size (number of measures per slice), returns a periodic sliced list of equaly sized measures that
