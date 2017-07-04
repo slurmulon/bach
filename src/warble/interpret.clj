@@ -23,15 +23,11 @@
               (get @context :vars {}))
             (track-variable [label value]
               (swap! context assoc :vars (conj (variables) [label value])))]
-      (body variables track-variable))))
-
-; (variable-stack (println "pLEASE WORK")) ; variables doesn't work :(
-(variable-stack (fn [variables track-variable] (println ":D" (variables))))
-
+      (body variables track-variable context))))
 
 (defn validate
   [tree]
-    (variable-stack (fn [variables track-variable]
+    (variable-stack (fn [variables track-variable context]
       (insta/transform
         {:assign (fn [left right]
                    (let [label (last left)
@@ -109,14 +105,21 @@
 ; (defn infinite? [ast])
 
 (defn denormalize-variables
-  ; replaces variable references with their associated data
-  ; support hoisting!
   [tree]
-  ; (let [context (atom {})]
-  ;   (letfn [(variables []
-  ;             (get @context :vars {}))
-
-  (insta/transform))
+  (if (validate tree)
+    (variable-stack (fn [get-variables track-variable context]
+      (insta/transform
+        {:assign (fn [label-token value-token]
+                   (let [label (last label-token)
+                         value (last value-token)
+                         value-type (first value-token)]
+                     (case value-type
+                       :identifier
+                          (let [stack-value (get (get-variables) value)]
+                            [:assign [:identifier label] stack-value])
+                       (do (track-variable label value-token)
+                           [:assign label-token value-token]))))}
+        tree)))))
 
 (defn denormalize-beats
   ; replace any instance of a list (but not destructured list assignment) with beat tuples,
