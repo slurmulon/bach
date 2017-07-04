@@ -5,8 +5,8 @@ statement = token (<empty> token)*
 <token>    = elem | assign
 <term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
 <atom>     = [<empty>] keyword [<empty>] init [<empty>]
-<elem>     = [<empty>] atom | term | pair | list | identifier [<empty>]
-list       = [<empty>] <'['> elem (<','> elem)* [<','>] <']'> [<empty>]
+<elem>     = [<empty>] atom | term | pair | list | identifier | color [<empty>]
+list       = [<empty>] <'['> [elem (<','> elem)* [<','>]] <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
