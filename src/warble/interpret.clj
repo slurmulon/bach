@@ -69,15 +69,15 @@
     (variable-stack (fn [get-variables track-variable context]
       (insta/transform
         {:assign (fn [label-token value-token]
-                   (let [label (last label-token)
-                         value (last value-token)
-                         value-type (first value-token)]
-                     (case value-type
-                       :identifier
+                    (let [label (last label-token)
+                          value (last value-token)
+                          value-type (first value-token)]
+                      (case value-type
+                        :identifier
                           (let [stack-value (get (get-variables) value)]
                             [:assign [:identifier label] stack-value])
-                       (do (track-variable label value-token)
-                           [:assign label-token value-token]))))}
+                        (do (track-variable label value-token)
+                          [:assign label-token value-token]))))}
         tree)))))
 
 (defn denormalize-beats
