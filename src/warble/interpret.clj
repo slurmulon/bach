@@ -23,11 +23,11 @@
               (get @context :vars {}))
             (track-variable [label value]
               (swap! context assoc :vars (conj (variables) [label value])))]
-      (scope variables track-variable context))))
+      (scope variables track-variable))))
 
 (defn validate
   [tree]
-  (variable-stack (fn [variables track-variable context]
+  (variable-stack (fn [variables track-variable]
     (insta/transform
       {:assign (fn [label-token value-token]
                  (let [label (last label-token)
@@ -66,7 +66,7 @@
 (defn denormalize-variables
   [tree]
   (if (validate tree)
-    (variable-stack (fn [get-variables track-variable context]
+    (variable-stack (fn [get-variables track-variable]
       (insta/transform
         {:assign (fn [label-token value-token]
                     (let [label (last label-token)
@@ -86,7 +86,7 @@
   ; warn on any beat list that exceeds a single measure per the time signature
   [tree]
   (if (validate tree)
-    (variable-stack (fn [get-variables track-variable context]
+    (variable-stack (fn [get-variables track-variable]
       (insta/transform
         {:list (fn [label-token value-token] [])})))))
 
