@@ -55,44 +55,6 @@
       tree)))
     true)
 
-
-; @see: instaparse.core/transform (http://xahlee.info/clojure/clojure_instaparse_transform.html
-
-; WORKS
-; (defn validate
-;   [tree]
-;   (let [context (atom {})]
-;     (letfn [(variables []
-;               (get @context :vars {}))
-;             (track-variable [label value]
-;               (swap! context assoc :vars (conj (variables) [label value])))]
-;       (insta/transform
-;         {:assign (fn [left right]
-;                    (let [label (last left)
-;                          value (last right)
-;                          value-type (first right)]
-;                      (case value-type
-;                        :identifier
-;                          (when (not (contains? (variables) value))
-;                            (throw (Exception. "variable is not declared before it's used")))
-;                        (track-variable label value))))
-;          ; TODO: :pair (tuple)
-;          ; TODO: :add (not sure there's much to validate, really)
-;          :div (fn [left right]
-;                 (let [top    (-> left  last read-string)
-;                       bottom (-> right last read-string)]
-;                   (cond
-;                     (not (some #{bottom} (take 10 powers-of-two)))
-;                       (throw (Exception. "note divisors must be base 2 and no greater than 512"))
-;                     (> top bottom)
-;                       (throw (Exception. "numerator cannot be greater than denominator")))))
-;          :tempo (fn [& right]
-;                   (let [tempo (-> right last read-string)]
-;                     (when (not (<= 0 tempo 256))
-;                       (throw (Exception. "tempos must be between 0 and 256 beats per minute"))))) }
-;       tree))
-;     true)) ; default is to pass validation
-
 (defn validate-assignment
   [assignment context])
 
