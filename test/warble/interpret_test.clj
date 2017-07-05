@@ -35,10 +35,19 @@
   ; (testing "keyword"
   ;   (let [tree [:track [:statement [:keyword "Scale"] [:init [:arguments [:string [:word "C2 Major")
 
+; FIXME: nested transitive variables are broken (:A = 1, :B = :A, :C = :B)
 (deftest denormalization
-  (testing "variables - dynamic value"
+  (testing "variables (simple)"
     (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:identifier :A]]]]
           want [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:number 1]]]]]
       (is (= want (denormalize-variables tree))))))
+  ; (testing "variables (simple)"
+  ;   (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
+  ;                      [:statement [:assign [:identifier :B] [:identifier :A]]]
+  ;                      [:statement [:assign [:identifier :C] [:identifier :B]]]]
+  ;         want [:track [:statement [:assign [:identifier :A] [:number 1]]]
+  ;                      [:statement [:assign [:identifier :B] [:number 1]]]
+  ;                      [:statement [:assign [:identifier :C] [:number 1]]]]]
+  ;     (is (= want (denormalize-variables tree))))))

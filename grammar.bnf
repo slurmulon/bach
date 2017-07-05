@@ -4,21 +4,20 @@ statement = token (<empty> token)*
 
 <token>    = elem | assign
 <term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
-<atom>     = [<empty>] keyword [<empty>] init [<empty>]
 <elem>     = [<empty>] atom | term | pair | list | identifier | color [<empty>]
+atom     = [<empty>] keyword [<empty>] init [<empty>]
+(*item       = elem*)
 list       = [<empty>] <'['> [elem (<','> elem)* [<','>]] <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
-keyword    = [<empty>] #'(Note|Scale|Chord|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)' [<empty>]
+keyword    = [<empty>] #'(Note|Scale|Chord|KeySig|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)' [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
-word       = letter+
-(*number     = digit{digit}*)
+word       = #'[a-zA-Z]+'
 number     = #'[0-9]+'
 color      = #'#[a-fA-F0-9xX]{6}'
-<letter>   = #'[a-zA-Z]'
 <empty>    = #'(\r\n|\n|\r|\s)*'
 
 (* Math *)
