@@ -23,11 +23,11 @@
               (get @context :vars {}))
             (track-variable [label value]
               (swap! context assoc :vars (conj (variables) [label value])))]
-      (scope variables track-variable))))
+      (scope variables track-variable context))))
 
 (defn validate
   [tree]
-  (variable-stack (fn [variables track-variable]
+  (variable-stack (fn [variables track-variable context]
     (insta/transform
       {:assign (fn [label-token value-token]
                  (let [label (last label-token)
@@ -36,7 +36,7 @@
                    (case value-type
                      :identifier
                        (when (not (contains? (variables) value))
-                         (throw (Exception. "variable is not declared before it's used")))
+                         (throw (Exception. (str "variable is not declared before it's used: " value ", " (variables)))))
                      (track-variable label value))))
        ; TODO: :pair (tuple)
        ; TODO: :add (not sure there's much to validate, really)
@@ -48,8 +48,8 @@
                     (throw (Exception. "note divisors must be base 2 and no greater than 512"))
                   (> top bottom)
                     (throw (Exception. "numerator cannot be greater than denominator")))))
-       :tempo (fn [& right]
-                (let [tempo (-> right last read-string)]
+       :tempo (fn [& tempo-token]
+                (let [tempo (-> tempo-token last read-string)]
                   (when (not (<= 0 tempo 256))
                     (throw (Exception. "tempos must be between 0 and 256 beats per minute"))))) }
     tree)))
@@ -66,7 +66,7 @@
 (defn denormalize-variables
   [tree]
   (if (validate tree)
-    (variable-stack (fn [get-variables track-variable]
+    (variable-stack (fn [variables track-variable context]
       (insta/transform
         {:assign (fn [label-token value-token]
                     (let [label (last label-token)
@@ -74,22 +74,27 @@
                           value-type (first value-token)]
                       (case value-type
                         :identifier
-                          (let [stack-value (get (get-variables) value)]
+                          (let [stack-value (get (variables) value)]
                             [:assign label-token stack-value])
                         (do (track-variable label value-token)
                             [:assign label-token value-token]))))}
         tree)))))
 
 (defn denormalize-beats
+  ; this one is tricky
   ; replace any instance of a list (but not destructured list assignment) with beat tuples,
   ; where the beat equals the 1th element of the list
   ; warn on any beat list that exceeds a single measure per the time signature
+  ; ---
+  ; 1. compare each :pair in a :list with the :pair before it, determining how long the note is played
+  ; 2. replace the :list with 
   [tree]
   (if (validate tree)
-    (variable-stack (fn [get-variables track-variable]
+    (variable-stack (fn [get-variables track-variable context]
       (insta/transform
-        ; TODO: look at each :pair in the list and use that to determine the lowest common beat
-        {:list (fn [label-token value-token] [])})))))
+        ; TODO: recursively dig into each :pair in the list and use that to determine the lowest common beat
+        {}
+        tree)))))
 
 (defn denormalize-measures
   ; given a slice size (number of measures per slice), returns a periodic sliced list of equaly sized measures that
