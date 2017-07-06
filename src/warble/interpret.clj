@@ -27,12 +27,12 @@
 
 (defn validate
   [tree]
-  (variable-stack (fn [variables track-variable context]
+  (variable-stack (fn [variables track-variable _]
     (insta/transform
       {:assign (fn [label-token value-token]
-                 (let [label (last label-token)
-                       value (last value-token)
-                       value-type (first value-token)]
+                 (let [[& label] label-token
+                       [& value] value-token
+                       [value-type] value-token]
                    (case value-type
                      :identifier
                        (when (not (contains? (variables) value))
@@ -66,12 +66,12 @@
 (defn denormalize-variables
   [tree]
   (if (validate tree)
-    (variable-stack (fn [variables track-variable context]
+    (variable-stack (fn [variables track-variable _]
       (insta/transform
         {:assign (fn [label-token value-token]
-                    (let [label (last label-token)
-                          value (last value-token)
-                          value-type (first value-token)]
+                    (let [[& label] label-token
+                          [& value] value-token
+                          [value-type] value-token]
                       (case value-type
                         :identifier
                           (let [stack-value (get (variables) value)]
@@ -90,10 +90,11 @@
   ; 2. replace the :list with 
   [tree]
   (if (validate tree)
-    (variable-stack (fn [get-variables track-variable context]
+    (variable-stack (fn [variables track-variable context]
       (insta/transform
         ; TODO: recursively dig into each :pair in the list and use that to determine the lowest common beat
-        {}
+        {:list (fn []
+          )}
         tree)))))
 
 (defn denormalize-measures
