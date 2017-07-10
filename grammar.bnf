@@ -12,7 +12,7 @@ assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
-keyword    = [<empty>] #'(Note|Scale|Chord|KeySig|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)' [<empty>]
+keyword    = [<empty>] #'(Note|Scale|Chord|KeySig|Rest|Times|TimeSig|Tempo|Play|Stop|Forever|Comment)' [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
 number     = #'[0-9]+'
