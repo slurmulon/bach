@@ -4,21 +4,20 @@ statement = token (<empty> token)*
 
 <token>    = elem | assign
 <term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
-<atom>     = [<empty>] keyword [<empty>] init [<empty>]
-<elem>     = [<empty>] atom | term | pair | identifier | list [<empty>]
-list       = [<empty>] <'['>(elem [<','> elem])* <']'> [<empty>]
+<elem>     = [<empty>] atom | term | pair | list | identifier [<empty>]
+atom       = [<empty>] keyword [<empty>] init [<empty>]
+list       = [<empty>] <'['> [elem (<','> elem)* [<','>]] <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> (elem)
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
-arguments  = ((identifier | string) [<empty> <','> <empty>])*
+arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
-keyword    = #'\s*(Note|Scale|Chord|Rest|Times|TimeSig|Tempo|Play|Stop|Forever)\s*'
-string     = <#"\"|\'"> (word | number)* <#"\"|\'">
-word       = letter+
-number     = digit+
-<letter>   = #'[a-zA-Z]'
-<digit>    = #'[0-9]'
-<empty>    = #'\s*'
+keyword    = [<empty>] #'(#|Note|Scale|Chord|KeySig|Rest|Times|TimeSig|Tempo|Play|Stop|Forever|Comment)' [<empty>]
+string     = #'[\'|\"](.*?)[\"|\']'
+word       = #'[a-zA-Z]+'
+number     = #'[0-9]+'
+color      = #'#[a-fA-F0-9xX]{6}'
+<empty>    = #'(\r\n|\n|\r|\s)*'
 
 (* Math *)
 <add-sub>  = mul-div | add | sub

@@ -19,6 +19,11 @@
     (let [want [:track [:statement [:add [:number "1"] [:div [:number "2"] [:number "3"]]]]]]
       (is (= (parse "1 + 2/3") want)))))
 
+; (deftest colors
+;   (testing "hex"
+;     (let [want [:track [:statement [:color "#FF0000"]]]]
+;       (is (= (parse "#FF0000") want)))))
+
 (deftest pair
   (testing "term keys"
     (testing "valid"
@@ -44,7 +49,13 @@
     (let [want [:track [:statement [:list [:pair [:number "1"] [:list]]]]]]
       (is (= (parse "[1 -> []]")) want))))
 
-(deftest atoms
-  (testing "arbitrary"
-    (let [want [:track [:statement [:keyword "Note"] [:init [:arguments [:string [:word "C"] [:number "2"]]]]]]]
-      (is (= (parse "Note('C2')") want)))))
+(deftest atoms ; AKA instantiated keywords
+  (testing "note"
+    (let [want [:track [:statement [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]
+      (is (= (parse "Note('C2')") want))))
+  (testing "scale"
+    (let [want [:track [:statement [:atom [:keyword "Scale"] [:init [:arguments [:string "'C2 Major'"]]]]]]]
+      (is (= (parse "Scale('C2 Major')") want))))
+  (testing "multiple arguments"
+    (let [want [:track [:statement [:atom [:keyword "Scale"] [:init [:arguments [:string "'C2 Minor'"] [:div [:number "1"] [:number "4"]] [:color "#FF0000"]]]]]]]
+      (is (= (parse "Scale('C2 Minor', 1/4, #FF0000)") want)))))
