@@ -60,11 +60,13 @@
 (defn convert-values
   [track]
   (insta/transform
-    {:number (fn [number] [:number (read-string number)])} track))
+    {:number (fn [number] [:number (read-string number)])
+     :string (fn [string] [:string (clojure.string/replace string #"^(\"|\')|(\"|\')$" "")])} track))
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
   ; TimeSig, Tempo, Scale (essentially used as Key)
+  ; Also ensure `ms-per-beat` is easily available at a high level
   [track])
 
 (defn get-tempo
@@ -104,6 +106,8 @@
   [track]
   (numerator (get-time-signature)))
 
+; TODO: integrate this into `provision`, that way it's easy for the high-level engine to
+; iterate using `setInterval` or the like
 (defn get-ms-per-beat
   [track]
   (let [beats-per-measure (get-beats-per-measure)

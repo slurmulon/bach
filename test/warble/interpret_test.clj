@@ -39,6 +39,10 @@
   (testing "number"
     (let [tree [:track [:statement [:div [:number "1"] [:number "4"]]]]
           want [:track [:statement [:div [:number 1] [:number 4]]]]]
+      (is (= want (convert-values tree)))))
+  (testing "string"
+    (let [tree [:track [:statement [:string "'Text'"]]]
+          want [:track [:statement [:string "Text"]]]]
       (is (= want (convert-values tree))))))
 
 ; (deftest lowest-beat
