@@ -9,11 +9,11 @@ atom       = [<empty>] keyword [<empty>] init [<empty>]
 set        = [<empty>] <'{'> [elem (<','|' '> elem)* [<','>]] <'}'> [<empty>]
 list       = [<empty>] <'['> [elem (<','|' '> elem)* [<','>]] <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
-assign     = identifier <'='> (elem | meta)
+assign     = (identifier | meta) <'='> elem
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
-meta       = [<empty>] #'(Title|Time|Tempo|Tags|Key)' [<empty>]
+meta       = [<empty>] #'@(Title|Time|Tempo|Tags|Key)' [<empty>]
 keyword    = [<empty>] #'(`|~|Note|Scale|Chord|Play|Stop|Wait|Forever)' [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
