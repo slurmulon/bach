@@ -25,6 +25,7 @@
               (swap! context assoc :vars (conj (variables) [label value])))]
       (scope variables create-variable context))))
 
+; TODO: integreate convert-values
 (defn validate
   [track]
   (variable-stack (fn [variables create-variable _]
@@ -55,50 +56,51 @@
 
 (def validate-memo (memoize validate))
 
+(defn convert-values
+  [track]
+  (insta/transform
+    {:number (fn [number] [:number (read-string number)])} track))
+  ; (insta/transform {:number #(read-string %)} track))
+
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
   ; TimeSig, Tempo, Scale (essentially used as Key)
   [track])
 
-; (defn cyclic? [ast])
-; (defn infinite? [ast])
-
 (defn get-tempo
   [track]
-  (variable-stack (fn [& context]
+  (let [tempo (atom (default-tempo))]
     (insta/transform
-      {:meta (fn [meta-token]
-               (if (= meta-token "Tempo")
-                 (swap! context assoc :tempo meta-token)))}
+      {:meta (fn [kind value]
+               (if (= kind "Tempo")
+                 (reset! tempo value)))}
       track)
-    (get @context :tempo (default-tempo)))))
+    @tempo))
 
 (defn get-time-signature
   [track]
-  (variable-stack (fn [& context]
+  (let [time-signature (atom (default-time-signature))]
     (insta/transform
-      {:meta (fn [meta-token]
-               (if (= meta-token "Time")
-                 (swap! context assoc :time-signature meta-token)))}
+      {:meta (fn [kind value]
+               (if (= kind "Time")
+                 (reset! time-signature value)))}
       track)
-    (get @context :time-signature (default-time-signature)))))
+    @time-signature))
 
 (defn get-lowest-beat
   [track]
-  (variable-stack (fn [& context]
+  (let [lowest-duration (atom 1)]
     (insta/transform
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`
       {:pair (fn [duration]
-               (let [lowest-duration (get @context :lowest-duration 1)]
-                 (if (duration < lowest-duration)
-                   (swap! context assoc :lowest-duration duration))))}
+               (if (duration < @lowest-duration)
+                 (reset! lowest-duration duration)))}
       track)
-    (get @context :lowest-duration 1))))
+    @lowest-duration))
 
-(defn get-beats-per-measure [track] (numerator (get-time-signature)))
-
-; TODO: convert-values
-; replaces "1" with 1, "'string'" with "string", etc.
+(defn get-beats-per-measure
+  [track]
+  (numerator (get-time-signature)))
 
 (defn dereference-variables
   [track]
@@ -123,11 +125,11 @@
   ; warn on any beat list that exceeds a single measure per the time signature
   ; ---
   ; 1. compare each :pair in a :list with the :pair before it, determining how long the note is played
-  ; 2. replace each :list with an equal number of elements that can be easily iterated through at a constant rate
+  ; 2. replace each :list with an equal number of elements that can be easily iterated through at a constant rate.
+  ;    also modify each :note to include durations
   [track]
   (if (validate track)
     (variable-stack (fn [& context]
-      ; first find the lowest common beat
       (let [lowest-beat (get-lowest-beat track)
             beats-per-measure 4
             beat-type (/ 1 lowest-beat)
@@ -152,10 +154,10 @@
 (defn denormalize-measures
   ; given a slice size (number of measures per slice), returns a periodic sliced list of equaly sized measures that
   ; can be stepped through sequentially (adds a sense of 1st measure, 2nd measure, etc.)
-  [tree slice-size])
+  [track slice-size])
 
 (defn denormalize
   ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
   ; normalize-variables
   ; normalize-beats
-  [tree])
+  [track])

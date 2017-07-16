@@ -35,14 +35,25 @@
   ; (testing "keyword"
   ;   (let [tree [:track [:statement [:keyword "Scale"] [:init [:arguments [:string [:word "C2 Major")
 
+(deftest conversion
+  (testing "number"
+    (let [tree [:track [:statement [:div [:number "1"] [:number "4"]]]]
+          want [:track [:statement [:div [:number 1] [:number 4]]]]]
+      (is (= want (convert-values tree))))))
+
+; (deftest lowest-beat
+;   (testing "finds the lowest beat amongst all of the pairs"
+;     (let [tree [:track [:statement [:list [:pair [:number "4"]] [:pair [:number "2"]
+;     )
+
 ; FIXME: nested transitive variables are broken (:A = 1, :B = :A, :C = :B)
-(deftest denormalization
+(deftest dereferencing
   (testing "variables (simple)"
     (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:identifier :A]]]]
           want [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:number 1]]]]]
-      (is (= want (denormalize-variables tree)))))
+      (is (= want (dereference-variables tree)))))
   ; (testing "variables (simple)"
   ;   (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
   ;                      [:statement [:assign [:identifier :B] [:identifier :A]]]
