@@ -21,6 +21,7 @@
   (let [context (atom {})]
     (letfn [(variables []
               (get @context :vars {}))
+            ; TODO: might just want to move this into `dereference-variables`
             (create-variable [label value]
               (swap! context assoc :vars (conj (variables) [label value])))]
       (scope variables create-variable context))))
@@ -50,7 +51,7 @@
       :tempo (fn [& tempo-token]
                 (let [tempo (-> tempo-token last read-string)]
                   (when (not (<= 0 tempo 256))
-                    (throw (Exception. "tempos must be between 0 and 256 beats per minute"))))) }
+                    (throw (Exception. "tempos must be between 0 and 256 beats per minute")))))}
       track)))
   true)
 
@@ -60,7 +61,6 @@
   [track]
   (insta/transform
     {:number (fn [number] [:number (read-string number)])} track))
-  ; (insta/transform {:number #(read-string %)} track))
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
@@ -98,9 +98,19 @@
       track)
     @lowest-duration))
 
+; TODO: (defn get-number-of-beats)
+
 (defn get-beats-per-measure
   [track]
   (numerator (get-time-signature)))
+
+(defn get-ms-per-beat
+  [track]
+  (let [beats-per-measure (get-beats-per-measure)
+        lowest-beat-size (get-lowest-beat)
+        tempo (get-tempo)
+        ms-per-measure (/ tempo beats-per-measure)]
+    (/ ms-per-measure lowest-beat-size)))
 
 (defn dereference-variables
   [track]
@@ -127,6 +137,7 @@
   ; 1. compare each :pair in a :list with the :pair before it, determining how long the note is played
   ; 2. replace each :list with an equal number of elements that can be easily iterated through at a constant rate.
   ;    also modify each :note to include durations
+  ;    return as [:measure [...]]
   [track]
   (if (validate track)
     (variable-stack (fn [& context]
