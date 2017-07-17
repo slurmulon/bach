@@ -45,15 +45,22 @@
           want [:track [:statement "Text"]]]
       (is (= want (reduce-values tree))))))
 
+; FIXME: handle notes that aren't % 2
 (deftest lowest-beat
-  ; (testing "whole number"
-  ;   (let [tree [:track [:statement [:list [:pair [:number "4"] [:list]] [:pair [:number "2"] [:list]] [:pair [:number "1"] [:list]]]]]
-  ;         want 1]
-  ;     (is (= want (get-lowest-beat tree)))))
+  (testing "whole number"
+    (let [tree [:track [:statement [:list [:pair [:number "4"] [:list]] [:pair [:number "2"] [:list]] [:pair [:number "1"] [:list]]]]]
+          want 1]
+      (is (= want (get-lowest-beat tree)))))
   (testing "ratio"
     (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
           want (/ 1 8)]
       (is (= want (get-lowest-beat tree))))))
+
+(deftest beats-in-track
+  (testing "general"
+    (let [tree [:track [:statement [:list [:pair [:number "1"] [:list]] [:pair [:number "4"] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
+          want (rationalize 7.5)]
+      (is (= want (get-beats-in-track tree))))))
 
 (deftest milliseconds-per-beat
   (testing "whole note"

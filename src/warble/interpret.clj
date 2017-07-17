@@ -68,9 +68,6 @@
     {:add +, :sub -, :mul *, :div /
     :number clojure.edn/read-string
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
-    ; :number clojure.edn/read-string :statement identity
-    ; :number (fn [number] [:number (read-string number)])
-    ; :string (fn [string] [:string (clojure.string/replace string #"^(\"|\')|(\"|\')$" "")])} track))
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
@@ -102,7 +99,6 @@
   [track]
   (let [lowest-duration (atom 1)
         reduced-track (reduce-values track)]
-    (println "----------------- REDUCE TRAK" reduced-track)
     (insta/transform
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`
       {:pair (fn [duration _]
@@ -113,6 +109,16 @@
 
 ; TODO: (defn get-number-of-beats)
 
+(defn get-beats-in-track
+  [track]
+  (let [total-beats (atom 0)
+        reduced-track (reduce-values track)]
+    (insta/transform
+      {:pair (fn [duration _]
+               (swap! total-beats + duration))}
+      reduced-track)
+    @total-beats))
+
 (defn get-beats-per-measure [track] (first (get-time-signature track))) ; AKA numerator
 
 ; TODO: integrate this into `provision`, that way it's easy for the high-level engine to
@@ -122,7 +128,7 @@
   (let [beats-per-measure (get-beats-per-measure track)
         lowest-beat-size (get-lowest-beat track)
         tempo (get-tempo track)
-        ms-per-measure (/ tempo beats-per-measure)]
+        ms-per-measure (/ tempo beats-per-measure)] ; FIXME: this isn't right. needs to consider beats-in-track
     (println "!!!!! lowest beat size" lowest-beat-size)
     (println "!!!!! ms-per-measure" ms-per-measure)
     (float (* ms-per-measure lowest-beat-size)))) ; TODO: might need to normalize this, divide by fraction vs multiply by rational num
