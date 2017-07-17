@@ -7,7 +7,7 @@
   (testing "tempo"
     (is (= 120 default-tempo)))
   (testing "time-signature"
-    (is (= 1 default-time-signature)))
+    (is (= [4 4] default-time-signature)))
   (testing "scale"
     (is (= "C2 Major" default-scale))))
 
@@ -35,15 +35,47 @@
   ; (testing "keyword"
   ;   (let [tree [:track [:statement [:keyword "Scale"] [:init [:arguments [:string [:word "C2 Major")
 
-(deftest conversion
+(deftest reduction
   (testing "number"
     (let [tree [:track [:statement [:div [:number "1"] [:number "4"]]]]
-          want [:track [:statement [:div [:number 1] [:number 4]]]]]
-      (is (= want (convert-values tree)))))
+          want [:track [:statement 1/4]]]
+      (is (= want (reduce-values tree)))))
   (testing "string"
     (let [tree [:track [:statement [:string "'Text'"]]]
-          want [:track [:statement [:string "Text"]]]]
-      (is (= want (convert-values tree))))))
+          want [:track [:statement "Text"]]]
+      (is (= want (reduce-values tree))))))
+
+(deftest lowest-beat
+  ; (testing "whole number"
+  ;   (let [tree [:track [:statement [:list [:pair [:number "4"] [:list]] [:pair [:number "2"] [:list]] [:pair [:number "1"] [:list]]]]]
+  ;         want 1]
+  ;     (is (= want (get-lowest-beat tree)))))
+  (testing "ratio"
+    (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+          want (/ 1 8)]
+      (is (= want (get-lowest-beat tree))))))
+
+(deftest milliseconds-per-beat
+  (testing "whole note"
+    ; FIXME: test data is off, needs to use :div
+    (let [tree [:track [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+          want 30.0]
+      (is (= want (get-ms-per-beat tree)))))
+  (testing "half note"
+    (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+          want 15.0]
+      (is (= want (get-ms-per-beat tree)))))
+
+  (testing "quarter note"
+    (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+          want 7.5]
+      (is (= want (get-ms-per-beat tree)))))
+
+  (testing "eigth note"
+    (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+          want 3.75]
+      (is (= want (get-ms-per-beat tree)))))
+)
 
 ; (deftest lowest-beat
 ;   (testing "finds the lowest beat amongst all of the pairs"

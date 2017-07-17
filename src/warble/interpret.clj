@@ -10,9 +10,14 @@
 (ns warble.interpret
   (:require [instaparse.core :as insta]))
 
+(defn ratio-to-vector [ratio]
+  ((juxt numerator denominator) ratio))
+
 (def default-tempo 120)
-(def default-time-signature (/ 4 4))
 (def default-scale "C2 Major")
+(def default-time-signature [4 4])
+; (def default-time-signature (ratio-to-vector (/ 4 4))
+; (def default-time-signature {:numerator 4 :denominator 4})
 
 (def powers-of-two (iterate (partial * 2) 1))
 
@@ -26,7 +31,7 @@
               (swap! context assoc :vars (conj (variables) [label value])))]
       (scope variables create-variable context))))
 
-; TODO: integreate convert-values
+; TODO: integreate reduce-values
 (defn validate
   [track]
   (variable-stack (fn [variables create-variable _]
@@ -57,11 +62,15 @@
 
 (def validate-memo (memoize validate))
 
-(defn convert-values
+(defn reduce-values
   [track]
   (insta/transform
-    {:number (fn [number] [:number (read-string number)])
-     :string (fn [string] [:string (clojure.string/replace string #"^(\"|\')|(\"|\')$" "")])} track))
+    {:add +, :sub -, :mul *, :div /
+    :number clojure.edn/read-string
+    :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
+    ; :number clojure.edn/read-string :statement identity
+    ; :number (fn [number] [:number (read-string number)])
+    ; :string (fn [string] [:string (clojure.string/replace string #"^(\"|\')|(\"|\')$" "")])} track))
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
@@ -71,7 +80,7 @@
 
 (defn get-tempo
   [track]
-  (let [tempo (atom (default-tempo))]
+  (let [tempo (atom default-tempo)]
     (insta/transform
       {:meta (fn [kind value]
                (if (= kind "Tempo")
@@ -81,40 +90,42 @@
 
 (defn get-time-signature
   [track]
-  (let [time-signature (atom (default-time-signature))]
+  (let [time-signature (atom default-time-signature)]
     (insta/transform
       {:meta (fn [kind value]
                (if (= kind "Time")
-                 (reset! time-signature value)))}
+                 (reset! time-signature value)))} ; TODO: need to ensure this ends up as a list instead of a ratio [num, denom]
       track)
     @time-signature))
 
 (defn get-lowest-beat
   [track]
-  (let [lowest-duration (atom 1)]
+  (let [lowest-duration (atom 1)
+        reduced-track (reduce-values track)]
+    (println "----------------- REDUCE TRAK" reduced-track)
     (insta/transform
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`
-      {:pair (fn [duration]
-               (if (duration < @lowest-duration)
+      {:pair (fn [duration _]
+               (if (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
-      track)
-    @lowest-duration))
+      reduced-track)
+    (min 1 @lowest-duration)))
 
 ; TODO: (defn get-number-of-beats)
 
-(defn get-beats-per-measure
-  [track]
-  (numerator (get-time-signature)))
+(defn get-beats-per-measure [track] (first (get-time-signature track))) ; AKA numerator
 
 ; TODO: integrate this into `provision`, that way it's easy for the high-level engine to
 ; iterate using `setInterval` or the like
 (defn get-ms-per-beat
   [track]
-  (let [beats-per-measure (get-beats-per-measure)
-        lowest-beat-size (get-lowest-beat)
-        tempo (get-tempo)
+  (let [beats-per-measure (get-beats-per-measure track)
+        lowest-beat-size (get-lowest-beat track)
+        tempo (get-tempo track)
         ms-per-measure (/ tempo beats-per-measure)]
-    (/ ms-per-measure lowest-beat-size)))
+    (println "!!!!! lowest beat size" lowest-beat-size)
+    (println "!!!!! ms-per-measure" ms-per-measure)
+    (float (* ms-per-measure lowest-beat-size)))) ; TODO: might need to normalize this, divide by fraction vs multiply by rational num
 
 (defn dereference-variables
   [track]
@@ -147,7 +158,7 @@
     (variable-stack (fn [& context]
       (let [lowest-beat (get-lowest-beat track)
             beats-per-measure 4
-            beat-type (/ 1 lowest-beat)
+            beat-type (/ 1 lowest-beat) ; greatest is a whole note
             time-sig (get-time-signature)
             deref-track (dereference-variables track)]
         (insta/transform
