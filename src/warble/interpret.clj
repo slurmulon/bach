@@ -1,4 +1,4 @@
-; TODO: rename to `parse`
+; TODO: rename to `parse`, or even `track`
 
 ; http://xahlee.info/clojure/clojure_instaparse.html
 ; http://xahlee.info/clojure/clojure_instaparse_transform.html
@@ -10,8 +10,8 @@
 (ns warble.interpret
   (:require [instaparse.core :as insta]))
 
-(defn ratio-to-vector [ratio]
-  ((juxt numerator denominator) ratio))
+; (defn ratio-to-vector [ratio]
+;   ((juxt numerator denominator) ratio))
 
 (def default-tempo 120)
 (def default-scale "C2 Major")
@@ -66,8 +66,8 @@
   [track]
   (insta/transform
     {:add +, :sub -, :mul *, :div /
-    :number clojure.edn/read-string
-    :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
+     :number clojure.edn/read-string
+     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
@@ -107,9 +107,7 @@
       reduced-track)
     (min 1 @lowest-duration)))
 
-; TODO: (defn get-number-of-beats)
-
-(defn get-beats-in-track
+(defn get-total-beats
   [track]
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
@@ -119,7 +117,29 @@
       reduced-track)
     @total-beats))
 
-(defn get-beats-per-measure [track] (first (get-time-signature track))) ; AKA numerator
+(defn get-beats-per-measure
+  [track]
+  (first (get-time-signature track))) ; AKA numerator
+
+(defn get-total-measures
+  [track]
+  (let [total-beats (get-total-beats track)
+        beats-per-measure (get-beats-per-measure track)
+        adjusted-total-beats (max total-beats beats-per-measure)]
+    (/ adjusted-total-beats beats-per-measure)))
+
+; NOTE: this really belongs at a higher-level, in the track engine, but can be useful for providing default durations
+(defn get-total-duration
+  [track unit]
+  (let [total-beats (get-total-beats track)
+        tempo-bpm (get-tempo track)
+        duration-minutes (/ total-beats tempo-bpm)
+        duration-seconds (* duration-minutes 60)
+        duration-milliseconds (* duration-seconds 1000)]
+    (case unit
+      :milliseconds duration-milliseconds
+      :seconds duration-seconds
+      :minutes duration-minutes)))
 
 ; TODO: integrate this into `provision`, that way it's easy for the high-level engine to
 ; iterate using `setInterval` or the like
@@ -128,7 +148,12 @@
   (let [beats-per-measure (get-beats-per-measure track)
         lowest-beat-size (get-lowest-beat track)
         tempo (get-tempo track)
-        ms-per-measure (/ tempo beats-per-measure)] ; FIXME: this isn't right. needs to consider beats-in-track
+        total-measures (get-total-measures track)
+        total-duration-ms (get-total-duration track :milliseconds)
+        ms-per-measure (/ total-duration-ms total-measures)]
+        ; ms-per-measure (/ tempo beats-per-measure)] ; FIXME: this isn't right. needs to consider beats-in-track
+    (println "\n!!! total measures" total-measures)
+    (println "!!! total-duration-ms" total-duration-ms)
     (println "!!!!! lowest beat size" lowest-beat-size)
     (println "!!!!! ms-per-measure" ms-per-measure)
     (float (* ms-per-measure lowest-beat-size)))) ; TODO: might need to normalize this, divide by fraction vs multiply by rational num
