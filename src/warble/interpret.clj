@@ -107,6 +107,10 @@
       reduced-track)
     (min 1 @lowest-duration)))
 
+(defn get-beats-per-measure
+  [track]
+  (first (get-time-signature track))) ; AKA numerator
+
 (defn get-total-beats
   [track]
   (let [total-beats (atom 0)
@@ -116,12 +120,6 @@
                (swap! total-beats + duration))}
       reduced-track)
     @total-beats))
-
-(defn get-beats-per-measure
-  [track]
-  (first (get-time-signature track))) ; AKA numerator
-
-; (defn -measure
 
 (defn get-total-measures
   [track]
@@ -137,19 +135,31 @@
     (if (< 1 total-beats) (/ total-beats beats-per-measure) total-beats)))
     ; (/ total-beats (max 1 beats-per-measure)))
 
+(defn get-normalized-total-beats
+  ; based on total-measures, which is adjusted to ensure at least one measure is played
+  [track]
+  (let [beats-per-measure (get-beats-per-measure track)
+        total-measures (get-total-measures track)
+        total-beats (* total-measures beats-per-measure)]
+    total-beats))
+
+
+
 ; NOTE: this really belongs at a higher-level, in the track engine, but can be useful for providing default durations
 ; FIXME: make the minimum duration at least 1 measure (starts at total-beats, needs to be considered there as well
 ; - answer is likely in making this based on `get-totalmeasures` instead of `get-total-beats`
 (defn get-total-duration
   [track unit]
-  (let [total-beats (get-total-beats track)
+  (let [;total-beats (get-total-beats track) ; ORIG
         ; beats-per-measure (get-beats-per-measure track)
         ; total-measures (get-total-measures track)
-        ; total-beats (* total-measures beats-per-measure)
+        total-beats (get-normalized-total-beats track);(* total-measures beats-per-measure)
         tempo-bpm (get-tempo track)
         duration-minutes (/ total-beats tempo-bpm)
         duration-seconds (* duration-minutes 60)
         duration-milliseconds (* duration-seconds 1000)]
+    (println "total-duration ==> tempo" tempo-bpm)
+    (println "total-duration ==> duration-ms" duration-milliseconds)
     (println "total-duration ==> total-beats" total-beats)
     (case unit
       :milliseconds duration-milliseconds

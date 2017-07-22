@@ -83,23 +83,23 @@
   (testing "whole note"
     ; FIXME: test data is off, needs to use :div
     (let [tree [:track [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-          want 500.0]
+          want 2000.0] ; FIXME: I think that a quarter note should actually be 500. whole note should be 2000
       (is (= want (get-ms-per-beat tree)))))
 
   (testing "half note"
     (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-          want 250.0]
+          want 1000.0]
       (is (= want (get-ms-per-beat tree)))))
 
   (testing "quarter note"
     (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-          want 125.0]
+          want 500.0]
       (is (= want (get-ms-per-beat tree)))))
 
-  ; (testing "eigth note"
-  ;   (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-  ;         want 3.75]
-  ;     (is (= want (get-ms-per-beat tree)))))
+  (testing "eigth note"
+    (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+          want 250.0]
+      (is (= want (get-ms-per-beat tree)))))
 )
 
 ; (deftest lowest-beat
