@@ -78,7 +78,7 @@
       (is (= want (get-total-duration tree :milliseconds))))))
 
 ; FIXME: if the duration of the beats is less than a measure, it ends up breaking
-; the get-ms-per-beat calculation (stemming from total-duration-ms)
+; the get-ms-per-beat calculation (stemming from total-duration-ms). Need a test for this!
 (deftest milliseconds-per-beat
   (testing "whole note"
     ; FIXME: test data is off, needs to use :div
@@ -91,10 +91,10 @@
           want 250.0]
       (is (= want (get-ms-per-beat tree)))))
 
-  ; (testing "quarter note"
-  ;   (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-  ;         want 7.5]
-  ;     (is (= want (get-ms-per-beat tree)))))
+  (testing "quarter note"
+    (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+          want 125.0]
+      (is (= want (get-ms-per-beat tree)))))
 
   ; (testing "eigth note"
   ;   (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
