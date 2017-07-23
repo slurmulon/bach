@@ -174,22 +174,22 @@
     (float (* ms-per-measure lowest-beat-size))))
 
 ; NOTE: can probably just move this into denormalize-measures or denormalize-beats (probably don't need both)
-(defn explode-pair-into-measures
-  [track pair]
-  (let [;current-measure (atom [])
-        ;beat-cursor (atom 0)
-        lowest-beat (get-lowest-beat track)
-        num-beats-per-measure (get-beats-per-measure track) ; 4
-        num-measures-in-pair (first pair) ; AKA num-beats-in-pair AKA index-of-pair
-        ; TODO: indices-of-pair [measure-index, beat-index]
-        atoms-in-pair (last pair)
-        exploded-measures (make-array Void/TYPE num-measures-in-pair num-beats-per-measure)] ; essentially the same as beats-in-pair
-        ; beats-in-pair (first pair) ; 2 (measures, so 8 beats)
-        ; measures-in-pair (if (> beats-in-pair 1) () 1)]
-    ; for each atom in pair, add the duration (aka `beats-in-pair`) to it's list of `:arguments` ([:duration beats-in-pair])
-    ; (if (< 1 num-measures-in-pair)
-    ;   (
-    ))
+; (defn explode-pair-into-measures
+;   [track pair]
+;   (let [;current-measure (atom [])
+;         ;beat-cursor (atom 0)
+;         lowest-beat (get-lowest-beat track)
+;         num-beats-per-measure (get-beats-per-measure track) ; 4
+;         num-measures-in-pair (first pair) ; AKA num-beats-in-pair AKA index-of-pair
+;         ; TODO: indices-of-pair [measure-index, beat-index]
+;         atoms-in-pair (last pair)
+;         exploded-measures (make-array Void/TYPE num-measures-in-pair num-beats-per-measure)] ; essentially the same as beats-in-pair
+;         ; beats-in-pair (first pair) ; 2 (measures, so 8 beats)
+;         ; measures-in-pair (if (> beats-in-pair 1) () 1)]
+;     ; for each atom in pair, add the duration (aka `beats-in-pair`) to it's list of `:arguments` ([:duration beats-in-pair])
+;     ; (if (< 1 num-measures-in-pair)
+;     ;   (
+;     ))
 
 (defn dereference-variables
   [track]
@@ -226,7 +226,7 @@
   ;    also modify each :note to include durations
   ;    return as [:measure [...]]
   [track]
-  (let [total-measures (get-total-measures track)
+  (let [total-measures (Math/ceil (get-total-measures track))
         total-beats (get-total-beats track)
         beat-cursor (atom 0) ; NOTE: measured in whole notes, not the lowest beat! (makes parsing easier)
         ; lowest-beat (get-lowest-beat track)
@@ -237,8 +237,12 @@
         ; measures (atom (vec (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
         reduced-track (reduce-track track)]
+    (println "\n\nSTARTING MEASURES" @measures)
+    (println "---- total measures" total-measures)
+    (println "---- beats-per-measure" beats-per-measure)
     (letfn [(update-measures [measure-index beat-index notes]
               (println "updating measures! (mi, bi, notes)" measure-index beat-index notes)
+              (println "current measures (about to update):" @measures)
               (swap! measures assoc-in [measure-index beat-index] notes))
               ; (swap! measures update-in [measure-index beat-index] notes))
             (beat-indices [beat]
@@ -256,7 +260,8 @@
                        measure-index (:measure indices)
                        beat-index (:beat indices)
                        compiled-notes {:duration beats :notes notes}]
-                  (println "--- current measures" @measures) 
+                  (println "--- current measures" @measures)
+                  (println "--- compiled notes" compiled-notes)
                   ; TODO: some other stuff, mostly building/filling the `measures` array
                   ; TODO: add duration to every element in `notes`
                   ; (swap! measures update-in [measure-index beat-index] notes)
