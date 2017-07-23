@@ -13,6 +13,8 @@
 ; (defn ratio-to-vector [ratio]
 ;   ((juxt numerator denominator) ratio))
 
+(declare dereference-variables reduce-track) ; TODO: mention every method here so they are hoisted and declaration order becomes irrelevant
+
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
@@ -68,6 +70,12 @@
     {:add +, :sub -, :mul *, :div /
      :number clojure.edn/read-string
      :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
+
+(defn reduce-track
+  [track]
+  (-> track
+     dereference-variables
+     reduce-values))
 
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
@@ -220,33 +228,43 @@
   [track]
   (let [total-measures (get-total-measures track)
         total-beats (get-total-beats track)
-        beat-cursor (atom 0)
+        beat-cursor (atom 0) ; NOTE: measured in whole notes, not the lowest beat! (makes parsing easier)
         ; lowest-beat (get-lowest-beat track)
         beats-per-measure (get-beats-per-measure track)
         ; beat-type (/ 1 lowest-beat) ; greatest is a whole note
         ; time-sig (get-time-signature)
-        measures (atom (vec (make-array Void/TYPE total-measures beats-per-measure)))
-        deref-track (dereference-variables track)]
+        ; measures (atom (vec (make-array Void/TYPE total-measures beats-per-measure)))
+        ; measures (atom (vec (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
+        measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
+        reduced-track (reduce-track track)]
     (letfn [(update-measures [measure-index beat-index notes]
-              (swap! measures update-in [measure-index beat-index] notes))
+              (println "updating measures! (mi, bi, notes)" measure-index beat-index notes)
+              (swap! measures assoc-in [measure-index beat-index] notes))
+              ; (swap! measures update-in [measure-index beat-index] notes))
             (beat-indices [beat]
+              (println "beat-indices [beat]" beat)
               (let [global-beat-index (+ @beat-cursor beat)
                     local-beat-index (mod global-beat-index beats-per-measure)
-                    measure-index (Math/floor (float (/ global-beat-index beats-per-measure)))]
+                    measure-index (int (Math/floor (float (/ global-beat-index beats-per-measure))))]
                     ; measure-index (Math/ceil (/ (+ beat-cursor beat) measures))]
                 {:measure measure-index :beat local-beat-index}))]
       (insta/transform
         {:pair (fn [beats notes]
+                 (println "denorm-beats beats" beats)
+                 (println "denorm-beats notes" notes)
                  (let [indices (beat-indices beats)
                        measure-index (:measure indices)
                        beat-index (:beat indices)
                        compiled-notes {:duration beats :notes notes}]
-                 ; TODO: some other stuff, mostly building/filling the `measures` array
-                 ; TODO: add duration to every element in `notes`
-                 ; (swap! measures update-in [measure-index beat-index] notes)
-                 (update-measures measure-index beat-index compiled-notes) ; TODO: ensure notes contain duration
-                 (swap! beat-cursor + beats)))}
-        deref-track));)
+                  (println "--- current measures" @measures) 
+                  ; TODO: some other stuff, mostly building/filling the `measures` array
+                  ; TODO: add duration to every element in `notes`
+                  ; (swap! measures update-in [measure-index beat-index] notes)
+                  (update-measures measure-index beat-index compiled-notes) ; TODO: ensure notes contain duration
+                  (println "!!! new measures (post update)" @measures)
+                  (swap! beat-cursor + beats)
+                  (println "!!! new beat cursor" @beat-cursor)))}
+        reduced-track));)
 
     ; then transform the :pairs into slices based on the lowest common beat
     ; NOTE: may also want to consider the tempo here, will help minimize the efforts
