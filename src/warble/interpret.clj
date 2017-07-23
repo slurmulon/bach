@@ -141,10 +141,7 @@
 ; - answer is likely in making this based on `get-totalmeasures` instead of `get-total-beats`
 (defn get-total-duration
   [track unit]
-  (let [;total-beats (get-total-beats track) ; ORIG
-        ; beats-per-measure (get-beats-per-measure track)
-        ; total-measures (get-total-measures track)
-        total-beats (get-normalized-total-beats track);(* total-measures beats-per-measure)
+  (let [total-beats (get-normalized-total-beats track)
         tempo-bpm (get-tempo track)
         duration-minutes (/ total-beats tempo-bpm)
         duration-seconds (* duration-minutes 60)
@@ -164,8 +161,7 @@
         total-measures (get-total-measures track)
         total-duration-ms (get-total-duration track :milliseconds)
         ms-per-measure (/ total-duration-ms total-measures)]
-        ; ms-per-measure (/ tempo beats-per-measure)] ; FIXME: this isn't right. needs to consider beats-in-track
-    (float (* ms-per-measure lowest-beat-size)))) ; TODO: might need to normalize this, divide by fraction vs multiply by rational num
+    (float (* ms-per-measure lowest-beat-size))))
 
 (defn dereference-variables
   [track]
