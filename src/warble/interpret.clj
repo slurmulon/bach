@@ -72,8 +72,10 @@
 (defn provision
   ; ensures that all required elements are called at the beginning of the track with default values
   ; TimeSig, Tempo, Scale (essentially used as Key)
-  ; Also ensure `ms-per-beat` is easily available at a high level
+  ; Also ensure `ms-per-beat`, `lowest-beat` and `total-beats` is easily available at a high level
   [track])
+
+; TODO: provision-meta
 
 (defn get-tempo
   [track]
@@ -163,6 +165,24 @@
         ms-per-measure (/ total-duration-ms total-measures)]
     (float (* ms-per-measure lowest-beat-size))))
 
+; NOTE: can probably just move this into denormalize-measures or denormalize-beats (probably don't need both)
+(defn explode-pair-into-measures
+  [track pair]
+  (let [;current-measure (atom [])
+        ;beat-cursor (atom 0)
+        lowest-beat (get-lowest-beat track)
+        num-beats-per-measure (get-beats-per-measure track) ; 4
+        num-measures-in-pair (first pair) ; AKA num-beats-in-pair AKA index-of-pair
+        ; TODO: indices-of-pair [measure-index, beat-index]
+        atoms-in-pair (last pair)
+        exploded-measures (make-array Void/TYPE num-measures-in-pair num-beats-per-measure)] ; essentially the same as beats-in-pair
+        ; beats-in-pair (first pair) ; 2 (measures, so 8 beats)
+        ; measures-in-pair (if (> beats-in-pair 1) () 1)]
+    ; for each atom in pair, add the duration (aka `beats-in-pair`) to it's list of `:arguments` ([:duration beats-in-pair])
+    ; (if (< 1 num-measures-in-pair)
+    ;   (
+    ))
+
 (defn dereference-variables
   [track]
   (variable-stack (fn [variables track-variable _]
@@ -179,6 +199,14 @@
                        [:assign label-token value-token]))))}
       track))))
 
+; (defn compile-notes
+;   [duration notes]
+;   {:duration duration :notes notes}) 
+
+; TODO: rename to either:
+; - reduce-beats
+; - compile-beats
+; - normalize-beats (it's really the opposite now that I've worked through it)
 (defn denormalize-beats
   ; this one is tricky
   ; replace any instance of a list (but not destructured list assignment) with beat tuples,
@@ -190,29 +218,47 @@
   ;    also modify each :note to include durations
   ;    return as [:measure [...]]
   [track]
-  (if (validate track)
-    (variable-stack (fn [& context]
-      (let [lowest-beat (get-lowest-beat track)
-            beats-per-measure 4
-            beat-type (/ 1 lowest-beat) ; greatest is a whole note
-            time-sig (get-time-signature)
-            deref-track (dereference-variables track)]
-        (insta/transform
-          {:pair (fn [duration notes]
-                    (let []
-                      ))}
-          deref-track)))
+  (let [total-measures (get-total-measures track)
+        total-beats (get-total-beats track)
+        beat-cursor (atom 0)
+        ; lowest-beat (get-lowest-beat track)
+        beats-per-measure (get-beats-per-measure track)
+        ; beat-type (/ 1 lowest-beat) ; greatest is a whole note
+        ; time-sig (get-time-signature)
+        measures (atom (vec (make-array Void/TYPE total-measures beats-per-measure)))
+        deref-track (dereference-variables track)]
+    (letfn [(update-measures [measure-index beat-index notes]
+              (swap! measures update-in [measure-index beat-index] notes))
+            (beat-indices [beat]
+              (let [global-beat-index (+ @beat-cursor beat)
+                    local-beat-index (mod global-beat-index beats-per-measure)
+                    measure-index (Math/floor (float (/ global-beat-index beats-per-measure)))]
+                    ; measure-index (Math/ceil (/ (+ beat-cursor beat) measures))]
+                {:measure measure-index :beat local-beat-index}))]
+      (insta/transform
+        {:pair (fn [beats notes]
+                 (let [indices (beat-indices beats)
+                       measure-index (:measure indices)
+                       beat-index (:beat indices)
+                       compiled-notes {:duration beats :notes notes}]
+                 ; TODO: some other stuff, mostly building/filling the `measures` array
+                 ; TODO: add duration to every element in `notes`
+                 ; (swap! measures update-in [measure-index beat-index] notes)
+                 (update-measures measure-index beat-index compiled-notes) ; TODO: ensure notes contain duration
+                 (swap! beat-cursor + beats)))}
+        deref-track));)
 
-      ; then transform the :pairs into slices based on the lowest common beat
-      ; NOTE: may also want to consider the tempo here, will help minimize the efforts
-      ; of the high-level player
-      ; Example: 4/4 timesig, lowest 1 (whole note) = 1 element per measure
-      ; Example: 4/4 timesig, lowest 1/2 (half note) = 2 elements per measure
-      ; Example: 4/4 timesig, lowest 1/4 (quarter note) = 4 elements per measure
-      ; Example: 3/4 timesig, lowest 1/2 (half note) = 1.5 elements per measure (?)
-      ; Example: 3/4 timesig, lowest 1/4 (quarter note) = 3 elements per measure
-      )))
+    ; then transform the :pairs into slices based on the lowest common beat
+    ; NOTE: may also want to consider the tempo here, will help minimize the efforts
+    ; of the high-level player
+    ; Example: 4/4 timesig, lowest 1 (whole note) = 1 element per measure
+    ; Example: 4/4 timesig, lowest 1/2 (half note) = 2 elements per measure
+    ; Example: 4/4 timesig, lowest 1/4 (quarter note) = 4 elements per measure
+    ; Example: 3/4 timesig, lowest 1/2 (half note) = 1.5 elements per measure (?)
+    ; Example: 3/4 timesig, lowest 1/4 (quarter note) = 3 elements per measure
+    @measures))
 
+; FIXME: remove this or just rename `denormalize-beats` to `denormalize-measures`, no point in having both (at least as far as I can tell right now)
 (defn denormalize-measures
   ; given a slice size (number of measures per slice), returns a periodic sliced list of equaly sized measures that
   ; can be stepped through sequentially (adds a sense of 1st measure, 2nd measure, etc.)
