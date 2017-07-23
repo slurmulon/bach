@@ -125,15 +125,8 @@
   [track]
   (let [total-beats (get-total-beats track)
         beats-per-measure (get-beats-per-measure track)
-        adjusted-total-beats (max total-beats beats-per-measure)]
-    (println "get-total-measures ---> total beats" total-beats)
-    (println "get-total-measures ---> beats-per-measure" beats-per-measure)
-    (println "get-total-measures ---> adjusted-total-beats" adjusted-total-beats)
-    ; (println "get-total-measeures ---> result!" (/ total-beats beats-per-measure))
-    ; (/ adjusted-total-beats beats-per-measure)))
-    ; (/ total-beats beats-per-measure)))
-    (if (< 1 total-beats) (/ total-beats beats-per-measure) total-beats)))
-    ; (/ total-beats (max 1 beats-per-measure)))
+        adjusted-total-measures (if (< 1 total-beats) (/ total-beats beats-per-measure) total-beats)]
+    adjusted-total-measures))
 
 (defn get-normalized-total-beats
   ; based on total-measures, which is adjusted to ensure at least one measure is played
@@ -142,8 +135,6 @@
         total-measures (get-total-measures track)
         total-beats (* total-measures beats-per-measure)]
     total-beats))
-
-
 
 ; NOTE: this really belongs at a higher-level, in the track engine, but can be useful for providing default durations
 ; FIXME: make the minimum duration at least 1 measure (starts at total-beats, needs to be considered there as well
@@ -158,9 +149,6 @@
         duration-minutes (/ total-beats tempo-bpm)
         duration-seconds (* duration-minutes 60)
         duration-milliseconds (* duration-seconds 1000)]
-    (println "total-duration ==> tempo" tempo-bpm)
-    (println "total-duration ==> duration-ms" duration-milliseconds)
-    (println "total-duration ==> total-beats" total-beats)
     (case unit
       :milliseconds duration-milliseconds
       :seconds duration-seconds
@@ -177,10 +165,6 @@
         total-duration-ms (get-total-duration track :milliseconds)
         ms-per-measure (/ total-duration-ms total-measures)]
         ; ms-per-measure (/ tempo beats-per-measure)] ; FIXME: this isn't right. needs to consider beats-in-track
-    (println "\n!!! total measures" total-measures)
-    (println "!!! total-duration-ms" total-duration-ms)
-    (println "!!!!! lowest beat size" lowest-beat-size)
-    (println "!!!!! ms-per-measure" ms-per-measure)
     (float (* ms-per-measure lowest-beat-size)))) ; TODO: might need to normalize this, divide by fraction vs multiply by rational num
 
 (defn dereference-variables
