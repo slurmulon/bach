@@ -65,15 +65,15 @@
 (deftest duration
   (testing "minutes"
     (testing "no extra seconds"
-      (let [tree [:track [:statement [:list [:pair [:number "120"] [:list]]]]]
+      (let [tree [:track [:statement [:list [:pair [:number "30"] [:list]]]]] ; 30 measures x 4 beats = 120 beats
             want 1]
         (is (= want (get-total-duration tree :minutes)))))
     (testing "with extra seconds"
-      (let [tree [:track [:statement [:list [:pair [:number "80"] [:list]] [:pair [:number "100"] [:list]]]]]
+      (let [tree [:track [:statement [:list [:pair [:number "20"] [:list]] [:pair [:number "25"] [:list]]]]] ; 20 measures x 4 beats = 80, 25 measures x 4 = 100 beats === 180 total beats
             want (rationalize 1.5)]
         (is (= want (get-total-duration tree :minutes))))))
   (testing "milliseconds"
-    (let [tree [:track [:statement [:list [:pair [:number "120"] [:list]]]]]
+    (let [tree [:track [:statement [:list [:pair [:number "30"] [:list]]]]] ; 30 measures x 4 beats = 120 beats
           want 60000]
       (is (= want (get-total-duration tree :milliseconds))))))
 

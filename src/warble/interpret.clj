@@ -190,7 +190,8 @@
   [track]
   (let [total-beats (get-total-beats track)
         beat-unit (get-beat-unit track)]
-    (float (/ total-beats beat-unit))))
+    (println "[gntb] total-beats" total-beats)
+    (/ total-beats beat-unit)))
 
 ; (defn get-normalized-total-beats
 ;   [track]
@@ -210,10 +211,12 @@
         total-beats (get-normalized-total-beats track)
         tempo-bpm (get-tempo track)
         duration-minutes (/ total-beats tempo-bpm)
+        ; duration-minutes ((if (< total-beats 1) * /) tempo-bpm total-beats)
         ; duration-minutes (/ tempo-bpm total-beats)
         duration-seconds (* duration-minutes 60)
         duration-milliseconds (* duration-seconds 1000)]
     (println "[total-duration] total-beats" total-beats)
+    (println "[total-duration] total-normalized-beats (unused)" (get-normalized-total-beats track))
     (println "[total-duration] tempo-bpm" tempo-bpm)
     (println "[total-duration] duration-minutes" duration-minutes)
     (println "[total-duration] duration-milliseconds" duration-milliseconds)
