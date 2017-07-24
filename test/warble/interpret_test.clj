@@ -82,7 +82,6 @@
 (deftest milliseconds-per-beat
   (testing "singleton"
     (testing "whole note"
-      ; FIXME: test data is off, needs to use :div
       (let [tree [:track [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 2000.0] ; FIXME: I think that a quarter note should actually be 500. whole note should be 2000
         (is (= want (get-ms-per-beat tree)))))

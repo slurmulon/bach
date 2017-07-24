@@ -129,17 +129,9 @@
   [track]
   (first (get-time-signature track))) ; AKA numerator
 
-; (defn get-normalized-beats-per-measure)
-;   [track]
-;   (let [beats-per-measure (get-beats-per-measure track) ; 4, 4
-;         lowest-beat (get-lowest-beat track)] ; 1/4, 1/8
-;     ()) ; 4, 8
-
 (defn get-normalized-beats-per-measure
   [track]
   (let [lowest-beat (get-lowest-beat track)]
-    ; (println "[nlzed-beats-per-measure] lowest-beat" lowest-beat)
-    ; (println "[nlzed-beats-per-measure] denominator" (< 1 lowest-beat) (denominator lowest-beat))
     (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
 
 (defn get-beat-unit
@@ -162,28 +154,10 @@
   (let [total-beats (get-total-beats track)
         beats-per-measure (get-beats-per-measure track)]
         ; total-measures (Math/ceil total-beats)] ; this works because 1/4 = quarter beat, so 1 = whole note
-        ; beat-unit (get-beat-unit track)
-        ; adjusted-total-measures (int (Math/ceil (/ total-beats beats-per-measure)))]
-        ; adjusted-total-measures (if (< 1 total-beats) (/ total-beats beats-per-measure) total-beats)]
-    ; (println "\n[get-total-measures] total-beats" total-beats)
-    ; (println "[get-total-measures] total-measures" adjusted-total-measures)
-    ; adjusted-total-measures))
     (println "\n\n[gtm] total-beats" total-beats)
     (println "[gtm] beats-per-measure" beats-per-measure)
     ; (int total-measures))) ; part of `this works`
     total-beats)) ; IF THIS WORKS THEN get-total-measures is identical to get-total-beats (need get-normalized-total-beats to separate, which is based on lowest common beat instead of the default via timesig)
-
-; TODO: deprecate this, most likely. not necessary since 1 = whole note, which = 1 measure
-; (defn get-normalized-total-beats
-;   ; based on total-measures, which is adjusted to ensure at least one measure is played
-;   [track]
-;   (let [beats-per-measure (get-beats-per-measure track)
-;         total-measures (get-total-measures track)
-;         total-beats (* total-measures beats-per-measure)]
-;     ; (println "[gntb] beats-per-measure" beats-per-measure)
-;     ; (println "[gntb] total-measures" total-measures)
-;     ; (println "[gntb] total-beats" total-beats)
-;     total-beats))
 
 ; SORT OF WORKS (but it goes against the grain of `normalized`, which everywhere else means divided by the lowest common beat. in this case it's divided by the beat defined in the time signature
 (defn get-normalized-total-beats
@@ -211,8 +185,6 @@
         total-beats (get-normalized-total-beats track)
         tempo-bpm (get-tempo track)
         duration-minutes (/ total-beats tempo-bpm)
-        ; duration-minutes ((if (< total-beats 1) * /) tempo-bpm total-beats)
-        ; duration-minutes (/ tempo-bpm total-beats)
         duration-seconds (* duration-minutes 60)
         duration-milliseconds (* duration-seconds 1000)]
     (println "[total-duration] total-beats" total-beats)
@@ -225,136 +197,14 @@
       :seconds duration-seconds
       :minutes duration-minutes)))
 
-; (defn get-ms-per-measure
-;   [track]
-;   (let [total-measures (get-total-measures track) ; FIXME: don't use total-measures anymore because it's ceil'd
-;         total-duration-ms (get-total-duration track :milliseconds)
-;         ms-per-measure (/ total-duration-ms total-measures)]
-;     (println "TOTAL MEASURES WUT" total-measures)
-;     ms-per-measure))
-
-; (defn get-ms-per-beat
-;   [track]
-;   (let [total-beats (get-normalized-total-beats track)
-;         total-duration-ms (get-total-duration track :milliseconds)
-;         lowest-beat (get-lowest-beat track)
-;         ms-per-beat (/ total-duration-ms total-beats)
-;         normalized-ms-per-beat (* ms-per-beat (get-lowest-beat track))]
-;     (println "TOTAL BEATSSSS WUT" total-beats)
-;     (println "LOWEST BEAT BRO" (get-lowest-beat track))
-;     (println "TOTAL NORMALIZED MS PER BEATS WUT" normalized-ms-per-beat)
-;     (println "FINAL MS-PER-BEAT" ms-per-beat)
-;     ms-per-beat))
-
-; TODO: consider making this `get-normalized-ms-per-beat`
-; (defn get-ms-per-beat
-;   [track]
-;   (let [beats-per-measure (get-normalized-beats-per-measure track)
-;         total-measures (get-total-measures track) ; FIXME: don't use total-measures anymore because it's ceil'd
-;         total-duration-ms (get-total-duration track :milliseconds)
-;         ms-per-measure (/ total-duration-ms total-measures)
-;         ms-per-beat (/ ms-per-measure beats-per-measure)]
-;     (println "[ms-beat] beats-per-measure" beats-per-measure)
-;     (println "[ms-beat] total-measures" total-measures)
-;     (println "[ms-beat] total-duration-ms" total-duration-ms)
-;     (println "[ms-beat] ms-per-measure" ms-per-measure)
-;     (println "[ms-beat] ms-per-beat" ms-per-beat)
-;     (float ms-per-beat)))
-
 (defn get-ms-per-beat
   [track]
   (let [beats-per-measure (get-normalized-beats-per-measure track)
-        total-measures (get-total-measures track) ; FIXME: don't use total-measures anymore because it's ceil'd
+        total-measures (get-total-measures track)
         total-duration-ms (get-total-duration track :milliseconds)
         ms-per-measure (/ total-duration-ms total-measures)
         ms-per-beat (/ ms-per-measure beats-per-measure)]
-    (println "[ms-beat] beats-per-measure" beats-per-measure)
-    (println "[ms-beat] total-measures" total-measures)
-    (println "[ms-beat] total-duration-ms" total-duration-ms)
-    (println "[ms-beat] ms-per-measure" ms-per-measure)
-    (println "[ms-beat] ms-per-beat" ms-per-beat)
     (float ms-per-beat)))
-
-
-
-; FIXME: actually, don't need to consider both total-beats and total-duration-ms
-; instead we can just do the following:
-; - :)
-; FIXME: base on lowest-beat instead, this way it's normalized based on the lowest common beat instead of the time signature. we could make something like `get-normalized-ms-per-beat` (which would be this one) and just `get-ms-per-beat`, which would always return a value independent of the lowest-beat and therefore duration (it's only based on time signature and tempo)
-; (defn get-ms-per-beat
-;   [track]
-;   (let [; beat-unit (get-beat-unit track)
-;         ; total-beats (get-total-beats track)
-;         total-beats (get-normalized-total-beats track)
-;         total-duration-ms (get-total-duration track :milliseconds)
-;         ms-per-beat (float (/ total-duration-ms total-beats))]
-;     (println "NEW get-ms-per-beat: total-beats" total-beats)
-;     (println "NEW get-ms-per-beat: total-duration-ms" total-duration-ms)
-;     (println "NEW get-ms-per-beat: ms-per-beat" ms-per-beat)
-;     ms-per-beat))
-
-;(defn get-ms-per-beat-NEW
-;  [track]
-;  (let [lowest-beat (get-lowest-beat track)
-;        beats-per-measure (denominator lowest-beat)
-;        ; beats-per-measure (get-beats-per-measure track)
-;        ; normalized-beats-per-measure (/ beats-per-measure lowest-beat)
-;        ; tempo (get-tempo track)
-;        ms-per-measure (get-ms-per-measure track)
-;        ms-per-beat (/ ms-per-measure beats-per-measure)]
-;    (println "!!! lowest-beat" lowest-beat)
-;    (println "!!! beats-per-measure" beats-per-measure)
-;    ; (println "!!! normalized beats per measure" normalized-beats-per-measure)
-;    (println "!!! ms-per-measure" ms-per-measure)
-;    ms-per-beat))
-;        ;total-measures (get-total-measures track)
-
-
-; TODO: integrate this into `provision`, that way it's easy for the high-level engine to
-; iterate using `setInterval` or the like
-(defn get-ms-per-beat-OLD
-  [track]
-  (let [beats-per-measure (get-beats-per-measure track)
-        lowest-beat-size (get-lowest-beat track) ; TODO: replace with beat-unit
-        tempo (get-tempo track)
-        total-measures (get-total-measures track) ; FIXME: don't use total-measures anymore because it's ceil'd
-        total-duration-ms (get-total-duration track :milliseconds)
-        ms-per-measure (/ total-duration-ms total-measures)
-        ms-per-beat (float (* ms-per-measure lowest-beat-size))]
-        ; total-beats (get-total-beats track)
-        ; total-beats (get-normalized-total-beats track)
-        ; ms-per-beat (float (/ total-duration-ms total-beats))]
-        ; scaled-total-beats (* total-beats lowest-beat-size)
-        ; ms-per-beat (float (/ total-duration-ms scaled-total-beats))]
-    (println "[ms-per-beat] beats-per-measure" beats-per-measure)
-    (println "[ms-per-beat] lowest-beat-size" lowest-beat-size)
-    (println "[ms-per-beat] tempo" tempo)
-    ; (println "[ms-per-beat] total-measures" total-measures)
-    (println "[ms-per-beat] total-duration-ms" total-duration-ms)
-    (println "1. [ms-per-beat] total-beats" (get-total-beats track))
-    (println "2. [ms-per-beat] unused - normalized-total-beats" (get-normalized-total-beats track))
-    ; (println "[ms-per-beat] scaled-total-beats" scaled-total-beats)
-    ; (println "[ms-per-beat] ms-per-measure" ms-per-measure)
-    (println "[ms-per-beat] ms-per-beat" ms-per-beat)
-    ms-per-beat))
-
-; NOTE: can probably just move this into denormalize-measures or denormalize-beats (probably don't need both)
-; (defn explode-pair-into-measures
-;   [track pair]
-;   (let [;current-measure (atom [])
-;         ;beat-cursor (atom 0)
-;         lowest-beat (get-lowest-beat track)
-;         num-beats-per-measure (get-beats-per-measure track) ; 4
-;         num-measures-in-pair (first pair) ; AKA num-beats-in-pair AKA index-of-pair
-;         ; TODO: indices-of-pair [measure-index, beat-index]
-;         atoms-in-pair (last pair)
-;         exploded-measures (make-array Void/TYPE num-measures-in-pair num-beats-per-measure)] ; essentially the same as beats-in-pair
-;         ; beats-in-pair (first pair) ; 2 (measures, so 8 beats)
-;         ; measures-in-pair (if (> beats-in-pair 1) () 1)]
-;     ; for each atom in pair, add the duration (aka `beats-in-pair`) to it's list of `:arguments` ([:duration beats-in-pair])
-;     ; (if (< 1 num-measures-in-pair)
-;     ;   (
-;     ))
 
 (defn dereference-variables
   [track]
@@ -372,15 +222,7 @@
                        [:assign label-token value-token]))))}
       track))))
 
-; (defn compile-notes
-;   [duration notes]
-;   {:duration duration :notes notes}) 
-
-; TODO: rename to either:
-; - reduce-beats
-; - compile-beats
-; - normalize-beats (it's really the opposite now that I've worked through it)
-(defn normalize-measures ;denormalize-beats
+(defn normalize-measures
   ; this one is tricky
   ; replace any instance of a list (but not destructured list assignment) with beat tuples,
   ; where the beat equals the 1th element of the list
