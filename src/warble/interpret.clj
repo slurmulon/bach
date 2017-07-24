@@ -110,7 +110,7 @@
   (let [lowest-duration (atom 1)
         reduced-track (reduce-values track)]
     (insta/transform
-      ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`
+      ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
       {:pair (fn [duration _]
                (if (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
@@ -121,8 +121,6 @@
   [track]
   (let [lowest-beat (get-lowest-beat track)
         beat-unit (get-beat-unit track)]
-    (println "[gnlb] lowest-beat" lowest-beat)
-    (println "[gnlb] beat-unit" beat-unit)
     (* lowest-beat beat-unit)))
 
 (defn get-beats-per-measure
@@ -138,6 +136,8 @@
   [track]
   (/ 1 (last (get-time-signature track)))) ; AKA 1/denominator
 
+; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
+; to the lowest common beat found in the track
 (defn get-total-beats
   [track]
   (let [total-beats (atom 0)
@@ -148,23 +148,17 @@
       reduced-track)
     @total-beats))
 
-; FIXME: use Math/ceil
+; TODO: create get-rounded-total-measures using Math/ceil
+
 (defn get-total-measures
   [track]
-  (let [total-beats (get-total-beats track)
-        beats-per-measure (get-beats-per-measure track)]
-        ; total-measures (Math/ceil total-beats)] ; this works because 1/4 = quarter beat, so 1 = whole note
-    (println "\n\n[gtm] total-beats" total-beats)
-    (println "[gtm] beats-per-measure" beats-per-measure)
-    ; (int total-measures))) ; part of `this works`
-    total-beats)) ; IF THIS WORKS THEN get-total-measures is identical to get-total-beats (need get-normalized-total-beats to separate, which is based on lowest common beat instead of the default via timesig)
+  (get-total-beats track)) ; NOTE: beats and measures are the same w/o lowest-common-beat normalization
 
-; SORT OF WORKS (but it goes against the grain of `normalized`, which everywhere else means divided by the lowest common beat. in this case it's divided by the beat defined in the time signature
+; SORT OF WORKS (but it goes against the grain of `normalized`, which everywhere else means divided by the lowest common beat. in this case it's divided by the beat defined in the time signature)
 (defn get-normalized-total-beats
   [track]
   (let [total-beats (get-total-beats track)
         beat-unit (get-beat-unit track)]
-    (println "[gntb] total-beats" total-beats)
     (/ total-beats beat-unit)))
 
 ; (defn get-normalized-total-beats
@@ -176,9 +170,6 @@
 ;     (/ total-beats lowest-beat)))
 
 ; NOTE: this really belongs at a higher-level, in the track engine, but can be useful for providing default durations
-; FIXME: make the minimum duration at least 1 measure (starts at total-beats, needs to be considered there as well
-; - answer is likely in making this based on `get-totalmeasures` instead of `get-total-beats`
-; OH! this is actually working. it will return the same amount regardless of duration or the notes played because **we are no longer basing things off of `lowest-beat`, and instead use `beat-unit` via `get-normalized-total-beats`!
 (defn get-total-duration
   [track unit]
   (let [;total-beats (get-total-beats track)
@@ -187,11 +178,6 @@
         duration-minutes (/ total-beats tempo-bpm)
         duration-seconds (* duration-minutes 60)
         duration-milliseconds (* duration-seconds 1000)]
-    (println "[total-duration] total-beats" total-beats)
-    (println "[total-duration] total-normalized-beats (unused)" (get-normalized-total-beats track))
-    (println "[total-duration] tempo-bpm" tempo-bpm)
-    (println "[total-duration] duration-minutes" duration-minutes)
-    (println "[total-duration] duration-milliseconds" duration-milliseconds)
     (case unit
       :milliseconds duration-milliseconds
       :seconds duration-seconds
@@ -200,7 +186,7 @@
 (defn get-ms-per-beat
   [track]
   (let [beats-per-measure (get-normalized-beats-per-measure track)
-        total-measures (get-total-measures track)
+        total-measures (get-total-beats track)
         total-duration-ms (get-total-duration track :milliseconds)
         ms-per-measure (/ total-duration-ms total-measures)
         ms-per-beat (/ ms-per-measure beats-per-measure)]
