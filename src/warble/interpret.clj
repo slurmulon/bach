@@ -3,15 +3,8 @@
 ; http://xahlee.info/clojure/clojure_instaparse.html
 ; http://xahlee.info/clojure/clojure_instaparse_transform.html
 
-; (ns warble.interpret
-;   (:require [warble.lexer :as lexer]
-;             [instaparse.core :as insta]))
-
 (ns warble.interpret
   (:require [instaparse.core :as insta]))
-
-; (defn ratio-to-vector [ratio]
-;   ((juxt numerator denominator) ratio))
 
 (declare get-beat-unit dereference-variables reduce-track) ; TODO: mention every method here so they are hoisted and declaration order becomes irrelevant
 
@@ -216,8 +209,7 @@
               (swap! measures assoc-in [measure-index beat-index] notes))
             (beat-indices [beat]
               (let [lowest-beat (get-lowest-beat track)
-                    normalized-beat-cursor (/ @beat-cursor lowest-beat)
-                    global-beat-index normalized-beat-cursor
+                    global-beat-index (/ @beat-cursor lowest-beat)
                     local-beat-index (mod global-beat-index beats-per-measure)
                     measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                 {:measure measure-index :beat local-beat-index}))]
