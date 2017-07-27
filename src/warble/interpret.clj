@@ -55,6 +55,22 @@
 
 (def validate-memo (memoize validate))
 
+(defn dereference-variables
+  [track]
+  (variable-stack (fn [variables track-variable _]
+    (insta/transform
+      {:assign (fn [label-token value-token]
+                 (let [[& label] label-token
+                       [& value] value-token
+                       [value-type] value-token]
+                   (case value-type
+                     :identifier
+                       (let [stack-value (get (variables) value)]
+                         [:assign label-token stack-value])
+                     (do (track-variable label value-token)
+                       [:assign label-token value-token]))))}
+      track))))
+
 (defn reduce-values
   [track]
   (insta/transform
@@ -182,22 +198,6 @@
         ms-per-beat (/ ms-per-measure beats-per-measure)]
     (float ms-per-beat)))
 
-(defn dereference-variables
-  [track]
-  (variable-stack (fn [variables track-variable _]
-    (insta/transform
-      {:assign (fn [label-token value-token]
-                 (let [[& label] label-token
-                       [& value] value-token
-                       [value-type] value-token]
-                   (case value-type
-                     :identifier
-                       (let [stack-value (get (variables) value)]
-                         [:assign label-token stack-value])
-                     (do (track-variable label value-token)
-                       [:assign label-token value-token]))))}
-      track))))
-
 (defn normalize-measures
   [track]
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, not the lowest beat! (makes parsing easier)
@@ -212,7 +212,7 @@
                     global-beat-index (/ @beat-cursor lowest-beat)
                     local-beat-index (mod global-beat-index beats-per-measure)
                     measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
-                {:measure measure-index :beat local-beat-index}))]
+                {:measure measure-index :beat local-beat-index}))] ; TODO; consider using normalized local beat index instead
       (insta/transform
         {:pair (fn [beats notes]
                  (let [indices (beat-indices beats)
