@@ -113,11 +113,8 @@
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
       {:pair (fn [duration _]
                (if (< duration @lowest-duration)
-                 (do (println "^^^^ setting lowest beat" duration)
-                  (println "^^^^ lowest duration" @lowest-duration)
-                  (reset! lowest-duration duration))))}
+                 (reset! lowest-duration duration)))}
       reduced-track)
-    (println "^^^^^ about to return lowest-duration" @lowest-duration)
     (min 1 @lowest-duration)))
 
 (defn get-normalized-lowest-beat
@@ -237,30 +234,32 @@
               (println "\tbeat-indices [beat]" beat)
               (let [;lowest-beat (get-normalized-lowest-beat track) ; SORT OF WORKS (but not really)
                     lowest-beat (get-lowest-beat track)
-                    normalized-cursor (/ @beat-cursor lowest-beat) ; TODO: next up, integrate this
-                    global-beat-index @beat-cursor ;(+ @beat-cursor beat)
-                    ; local-beat-index (mod global-beat-index beats-per-measure)
-                    local-beat-index (mod (* global-beat-index beats-per-measure) beats-per-measure)
+                    normalized-beat-cursor (/ @beat-cursor lowest-beat) ; TODO: next up, integrate this
+                    global-beat-index normalized-beat-cursor
+                    ; global-beat-index @beat-cursor ;(+ @beat-cursor beat)
+                    local-beat-index (mod global-beat-index beats-per-measure)
+                    ; local-beat-index (mod (* global-beat-index beats-per-measure) beats-per-measure) ; FIXME: always returns index 0
                     measure-index (int (Math/floor (float (/ global-beat-index beats-per-measure))))]
+                    ; measure-index (int (Math/floor (float (/ global-beat-index beats-per-measure))))] ; ALMOST WORKS
                     ; measure-index (Math/ceil (/ (+ beat-cursor beat) measures))]
                 (println "\t\t[bi] normalized lowest-beat" lowest-beat)
                 (println "\t\t[bi] lowest-beat" (get-lowest-beat track))
                 (println "\t\t[bi] beats-per-measure" beats-per-measure)
-                (println "\t\t[bi] normalized-cursor" normalized-cursor)
+                (println "\t\t[bi] normalized-beat-cursor" normalized-beat-cursor)
                 (println "\t\t[bi] global-beat-index" global-beat-index)
-                (println "\t\t[bi] local-beat-index" local-beat-index)
+                (println "\t\t[bi] local-beat-index" local-beat-index) ; FIXME: not perfect
                 (println "\t\t[bi] measure-index" measure-index)
                 {:measure measure-index :beat local-beat-index}))]
       (insta/transform
         {:pair (fn [beats notes]
-                 (println "~~~ denorm-beats beats" beats)
-                 (println "~~~ denorm-beats notes" notes)
+                 ; (println "~~~ denorm-beats beats" beats)
+                 ; (println "~~~ denorm-beats notes" notes)
                  (let [indices (beat-indices beats)
                        measure-index (:measure indices)
                        beat-index (:beat indices)
                        compiled-notes {:duration beats :notes notes}] ; TODO; consider adding: :indices [measure-index beat-index]
-                  (println "~~~ current measures" @measures)
-                  (println "~~~ compiled notes" compiled-notes)
+                  ; (println "~~~ current measures" @measures)
+                  ; (println "~~~ compiled notes" compiled-notes)
                   (update-measures measure-index beat-index compiled-notes) ; TODO: ensure notes contain duration
                   (println "!!! new measures (post update)" @measures)
                   (swap! beat-cursor + beats)

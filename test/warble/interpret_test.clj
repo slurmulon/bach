@@ -130,20 +130,26 @@
 
 ; FIXME: might need to consider the surrounding :statement, :assign, :track, etc.
 (deftest normalization
-  (testing "total beats"
-    (testing "using greater unit than denominator in time signature"
-      (testing "single measure"
-        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]]]]
-            want 4]
-        (is (= want (get-normalized-total-beats tree)))))
-      (testing "multiple measures"
-        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
-              want 8]
-          (is (= want (get-normalized-total-beats tree)))))))
+  ; (testing "total beats"
+  ;   (testing "using greater unit than denominator in time signature"
+  ;     (testing "single measure"
+  ;       (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]]]]
+  ;           want 4]
+  ;       (is (= want (get-normalized-total-beats tree)))))
+  ;     (testing "multiple measures"
+  ;       (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
+  ;             want 8]
+  ;         (is (= want (get-normalized-total-beats tree)))))))
   (testing "measures"
-    (testing "with whole notes"
-      (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]]]
-            want [[{:duration 1, :notes [:atom [:keyword "Chord"] [:init [:arguments "D2min7"]]]}] [{:duration 1, :notes [:atom [:keyword "Chord"] [:init [:arguments "G2Maj7"]]]}] [{:duration 1, :notes [:atom [:keyword "Chord"] [:init [:arguments "C2maj7"]]]}]]]
+    ; (testing "with whole notes"
+    ;   (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]]]
+    ;         want [[{:duration 1, :notes [:atom [:keyword "Chord"] [:init [:arguments "D2min7"]]]}] [{:duration 1, :notes [:atom [:keyword "Chord"] [:init [:arguments "G2Maj7"]]]}] [{:duration 1, :notes [:atom [:keyword "Chord"] [:init [:arguments "C2maj7"]]]}]]]
+    ;     (is (= want (normalize-measures tree)))))
+    (testing "with half notes"
+      (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]]]
+              ; want [[{:duration 1/2, :notes [:atom [:keyword "Chord"] [:init [:arguments "D2min7"]]]}] [{:duration 1/2, :notes [:atom [:keyword "Chord"] [:init [:arguments "G2Maj7"]]]}] [{:duration 1, :notes [:atom [:keyword "Chord"] [:init [:arguments "C2maj7"]]]}]]]
+            want [[{:duration 1/2, :notes [:atom [:keyword "Chord"] [:init [:arguments "D2min7"]]]} {:duration 1/2, :notes [:atom [:keyword "Chord"] [:init [:arguments "G2Maj7"]]]}] [{:duration 1, :notes [:atom [:keyword "Chord"] [:init [:arguments "C2maj7"]]]} nil]]]
         (is (= want (normalize-measures tree))))))
+
   )
 
