@@ -113,8 +113,11 @@
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
       {:pair (fn [duration _]
                (if (< duration @lowest-duration)
-                 (reset! lowest-duration duration)))}
+                 (do (println "^^^^ setting lowest beat" duration)
+                  (println "^^^^ lowest duration" @lowest-duration)
+                  (reset! lowest-duration duration))))}
       reduced-track)
+    (println "^^^^^ about to return lowest-duration" @lowest-duration)
     (min 1 @lowest-duration)))
 
 (defn get-normalized-lowest-beat
@@ -156,20 +159,10 @@
         beat-unit (get-beat-unit track)]
     (/ total-beats beat-unit)))
 
-; SORT OF WORKS (but it goes against the grain of `normalized`, which everywhere else means divided by the lowest common beat. in this case it's divided by the beat defined in the time signature)
-; (defn get-normalized-total-beats
-;   [track]
-;   (let [total-beats (get-total-beats track)
-;         beat-unit (get-beat-unit track)]
-;     (/ total-beats beat-unit)))
-
 (defn get-normalized-total-beats
   [track]
   (let [total-beats (get-total-beats track)
-        lowest-beat (get-normalized-lowest-beat track)];(get-lowest-beat track)]
-    (println "[gntb] total-beats" total-beats)
-    (println "[gntb] lowest-beat" lowest-beat)
-    (println "[gntb] normalized-total-beats (result)" (/ total-beats lowest-beat))
+        lowest-beat (get-normalized-lowest-beat track)]
     (/ total-beats lowest-beat)))
 
 (defn get-total-measures
@@ -180,11 +173,9 @@
   [track]
   (Math/ceil (get-total-beats track)))
 
-; NOTE: this really belongs at a higher-level, in the track engine, but can be useful for providing default durations
 (defn get-total-duration
   [track unit]
-  (let [;total-beats (get-total-beats track)
-        total-beats (get-scaled-total-beats track) ;(get-normalized-total-beats track)
+  (let [total-beats (get-scaled-total-beats track) ; using scaled because it's adjusted based on time signature, which is important for comparing against tempo
         tempo-bpm (get-tempo track)
         duration-minutes (/ total-beats tempo-bpm)
         duration-seconds (* duration-minutes 60)
@@ -220,15 +211,6 @@
       track))))
 
 (defn normalize-measures
-  ; this one is tricky
-  ; replace any instance of a list (but not destructured list assignment) with beat tuples,
-  ; where the beat equals the 1th element of the list
-  ; warn on any beat list that exceeds a single measure per the time signature
-  ; ---
-  ; 1. compare each :pair in a :list with the :pair before it, determining how long the note is played
-  ; 2. replace each :list with an equal number of elements that can be easily iterated through at a constant rate.
-  ;    also modify each :note to include durations
-  ;    return as [:measure [...]]
   [track]
   (let [total-measures (get-total-measures-ceiled track) ;(Math/ceil (get-total-measures track))
         ; total-beats (get-normalized-total-beats track) ;(get-total-beats track)
@@ -237,12 +219,12 @@
         beats-per-measure (get-normalized-beats-per-measure track) ;(get-beats-per-measure track)
         ; beat-type (/ 1 lowest-beat) ; greatest is a whole note
         ; time-sig (get-time-signature)
-        beat-unit (get-beat-unit track)
+        ; beat-unit (get-beat-unit track)
         ; measures (atom (vec (make-array Void/TYPE total-measures beats-per-measure)))
         ; measures (atom (vec (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
         reduced-track (reduce-track track)]
-    (println "\n\nSTARTING MEASURES" @measures)
+    (println "\n\nSTARTING MEASURES" track @measures)
     (println "---- total measures" total-measures)
     ; (println "---- total beats" total-beats)
     (println "---- beats-per-measure" beats-per-measure)
@@ -250,18 +232,24 @@
               (println "\tupdating measures! (mi, bi, notes)" measure-index beat-index notes)
               (println "\tcurrent measures (about to update):" @measures)
               (swap! measures assoc-in [measure-index beat-index] notes))
-              ; (swap! measures update-in [measure-index beat-index] notes))
             ; FIXME: needs to be based on normalized beats
             (beat-indices [beat]
               (println "\tbeat-indices [beat]" beat)
-              (let [lowest-beat (get-normalized-lowest-beat track)
-                    norm-cursor (/ @beat-cursor lowest-beat)
+              (let [;lowest-beat (get-normalized-lowest-beat track) ; SORT OF WORKS (but not really)
+                    lowest-beat (get-lowest-beat track)
+                    normalized-cursor (/ @beat-cursor lowest-beat) ; TODO: next up, integrate this
                     global-beat-index @beat-cursor ;(+ @beat-cursor beat)
-                    local-beat-index (mod global-beat-index beats-per-measure)
+                    ; local-beat-index (mod global-beat-index beats-per-measure)
+                    local-beat-index (mod (* global-beat-index beats-per-measure) beats-per-measure)
                     measure-index (int (Math/floor (float (/ global-beat-index beats-per-measure))))]
                     ; measure-index (Math/ceil (/ (+ beat-cursor beat) measures))]
-                (println "\t\t[bi] lowest beat" lowest-beat)
-                (println "\t\t[bi] norm cursor" norm-cursor)
+                (println "\t\t[bi] normalized lowest-beat" lowest-beat)
+                (println "\t\t[bi] lowest-beat" (get-lowest-beat track))
+                (println "\t\t[bi] beats-per-measure" beats-per-measure)
+                (println "\t\t[bi] normalized-cursor" normalized-cursor)
+                (println "\t\t[bi] global-beat-index" global-beat-index)
+                (println "\t\t[bi] local-beat-index" local-beat-index)
+                (println "\t\t[bi] measure-index" measure-index)
                 {:measure measure-index :beat local-beat-index}))]
       (insta/transform
         {:pair (fn [beats notes]
@@ -270,12 +258,9 @@
                  (let [indices (beat-indices beats)
                        measure-index (:measure indices)
                        beat-index (:beat indices)
-                       compiled-notes {:duration beats :notes notes}]
+                       compiled-notes {:duration beats :notes notes}] ; TODO; consider adding: :indices [measure-index beat-index]
                   (println "~~~ current measures" @measures)
                   (println "~~~ compiled notes" compiled-notes)
-                  ; TODO: some other stuff, mostly building/filling the `measures` array
-                  ; TODO: add duration to every element in `notes`
-                  ; (swap! measures update-in [measure-index beat-index] notes)
                   (update-measures measure-index beat-index compiled-notes) ; TODO: ensure notes contain duration
                   (println "!!! new measures (post update)" @measures)
                   (swap! beat-cursor + beats)
