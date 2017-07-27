@@ -18,8 +18,6 @@
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
-; (def default-time-signature (ratio-to-vector (/ 4 4))
-; (def default-time-signature {:numerator 4 :denominator 4})
 
 (def powers-of-two (iterate (partial * 2) 1))
 
@@ -101,7 +99,7 @@
     (insta/transform
       {:meta (fn [kind value]
                (if (= kind "Time")
-                 (reset! time-signature value)))} ; TODO: need to ensure this ends up as a list instead of a ratio [num, denom]
+                 (reset! time-signature value)))} ; TODO: need to ensure this ends up as a 2-element list instead of a ratio [num, denom]
       track)
     @time-signature))
 
@@ -209,78 +207,30 @@
 
 (defn normalize-measures
   [track]
-  (let [total-measures (get-total-measures-ceiled track) ;(Math/ceil (get-total-measures track))
-        ; total-beats (get-normalized-total-beats track) ;(get-total-beats track)
-        beat-cursor (atom 0) ; NOTE: measured in whole notes, not the lowest beat! (makes parsing easier)
-        ; lowest-beat (get-lowest-beat track)
-        beats-per-measure (get-normalized-beats-per-measure track) ;(get-beats-per-measure track)
-        ; beat-type (/ 1 lowest-beat) ; greatest is a whole note
-        ; time-sig (get-time-signature)
-        ; beat-unit (get-beat-unit track)
-        ; measures (atom (vec (make-array Void/TYPE total-measures beats-per-measure)))
-        ; measures (atom (vec (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
+  (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, not the lowest beat! (makes parsing easier)
+        beats-per-measure (get-normalized-beats-per-measure track)
+        total-measures (get-total-measures-ceiled track)
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
         reduced-track (reduce-track track)]
-    (println "\n\nSTARTING MEASURES" track @measures)
-    (println "---- total measures" total-measures)
-    ; (println "---- total beats" total-beats)
-    (println "---- beats-per-measure" beats-per-measure)
     (letfn [(update-measures [measure-index beat-index notes]
-              (println "\tupdating measures! (mi, bi, notes)" measure-index beat-index notes)
-              (println "\tcurrent measures (about to update):" @measures)
               (swap! measures assoc-in [measure-index beat-index] notes))
-            ; FIXME: needs to be based on normalized beats
             (beat-indices [beat]
-              (println "\tbeat-indices [beat]" beat)
-              (let [;lowest-beat (get-normalized-lowest-beat track) ; SORT OF WORKS (but not really)
-                    lowest-beat (get-lowest-beat track)
-                    normalized-beat-cursor (/ @beat-cursor lowest-beat) ; TODO: next up, integrate this
+              (let [lowest-beat (get-lowest-beat track)
+                    normalized-beat-cursor (/ @beat-cursor lowest-beat)
                     global-beat-index normalized-beat-cursor
-                    ; global-beat-index @beat-cursor ;(+ @beat-cursor beat)
                     local-beat-index (mod global-beat-index beats-per-measure)
-                    ; local-beat-index (mod (* global-beat-index beats-per-measure) beats-per-measure) ; FIXME: always returns index 0
-                    measure-index (int (Math/floor (float (/ global-beat-index beats-per-measure))))]
-                    ; measure-index (int (Math/floor (float (/ global-beat-index beats-per-measure))))] ; ALMOST WORKS
-                    ; measure-index (Math/ceil (/ (+ beat-cursor beat) measures))]
-                (println "\t\t[bi] normalized lowest-beat" lowest-beat)
-                (println "\t\t[bi] lowest-beat" (get-lowest-beat track))
-                (println "\t\t[bi] beats-per-measure" beats-per-measure)
-                (println "\t\t[bi] normalized-beat-cursor" normalized-beat-cursor)
-                (println "\t\t[bi] global-beat-index" global-beat-index)
-                (println "\t\t[bi] local-beat-index" local-beat-index) ; FIXME: not perfect
-                (println "\t\t[bi] measure-index" measure-index)
+                    measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                 {:measure measure-index :beat local-beat-index}))]
       (insta/transform
         {:pair (fn [beats notes]
-                 ; (println "~~~ denorm-beats beats" beats)
-                 ; (println "~~~ denorm-beats notes" notes)
                  (let [indices (beat-indices beats)
                        measure-index (:measure indices)
                        beat-index (:beat indices)
                        compiled-notes {:duration beats :notes notes}] ; TODO; consider adding: :indices [measure-index beat-index]
-                  ; (println "~~~ current measures" @measures)
-                  ; (println "~~~ compiled notes" compiled-notes)
-                  (update-measures measure-index beat-index compiled-notes) ; TODO: ensure notes contain duration
-                  (println "!!! new measures (post update)" @measures)
-                  (swap! beat-cursor + beats)
-                  (println "!!! new beat cursor" @beat-cursor)))}
-        reduced-track));)
-
-    ; then transform the :pairs into slices based on the lowest common beat
-    ; NOTE: may also want to consider the tempo here, will help minimize the efforts
-    ; of the high-level player
-    ; Example: 4/4 timesig, lowest 1 (whole note) = 1 element per measure
-    ; Example: 4/4 timesig, lowest 1/2 (half note) = 2 elements per measure
-    ; Example: 4/4 timesig, lowest 1/4 (quarter note) = 4 elements per measure
-    ; Example: 3/4 timesig, lowest 1/2 (half note) = 1.5 elements per measure (?)
-    ; Example: 3/4 timesig, lowest 1/4 (quarter note) = 3 elements per measure
+                  (update-measures measure-index beat-index compiled-notes)
+                  (swap! beat-cursor + beats)))}
+        reduced-track))
     @measures))
-
-; FIXME: remove this or just rename `denormalize-beats` to `denormalize-measures`, no point in having both (at least as far as I can tell right now)
-; (defn denormalize-measures
-;   ; given a slice size (number of measures per slice), returns a periodic sliced list of equaly sized measures that
-;   ; can be stepped through sequentially (adds a sense of 1st measure, 2nd measure, etc.)
-;   [track slice-size])
 
 (defn denormalize
   ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
