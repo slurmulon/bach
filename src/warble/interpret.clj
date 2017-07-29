@@ -198,6 +198,8 @@
         ms-per-beat (/ ms-per-measure beats-per-measure)]
     (float ms-per-beat)))
 
+; FIXME: one thing this should do differently is append the result the original track definition,
+; that way variables and such are retained properly. otherwise this works great.
 (defn normalize-measures
   [track]
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, not the lowest beat! (makes parsing easier)
@@ -205,7 +207,9 @@
         total-measures (get-total-measures-ceiled track)
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
         reduced-track (reduce-track track)]
-    (letfn [(update-measures [measure-index beat-index notes]
+    (letfn [(update-cursor [beats]
+              (swap! beat-cursor + beats))
+            (update-measures [measure-index beat-index notes]
               (swap! measures assoc-in [measure-index beat-index] notes))
             (beat-indices [beat]
               (let [lowest-beat (get-lowest-beat track)
@@ -220,7 +224,7 @@
                        beat-index (:beat indices)
                        compiled-notes {:duration beats :notes notes}] ; TODO; consider adding: :indices [measure-index beat-index]
                   (update-measures measure-index beat-index compiled-notes)
-                  (swap! beat-cursor + beats)))}
+                  (update-cursor beats)))}
         reduced-track))
     @measures))
 
