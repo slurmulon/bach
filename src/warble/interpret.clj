@@ -1,4 +1,5 @@
 ; TODO: rename to `parse`, or even `track`
+; TODO: create `flatten-lists`
 
 ; http://xahlee.info/clojure/clojure_instaparse.html
 ; http://xahlee.info/clojure/clojure_instaparse_transform.html
@@ -25,6 +26,8 @@
       (scope variables create-variable context))))
 
 ; TODO: integreate reduce-values
+; TODO: check for :play
+; TODO: validate any variables in :play
 (defn validate
   [track]
   (variable-stack (fn [variables create-variable _]
@@ -55,6 +58,8 @@
 
 (def validate-memo (memoize validate))
 
+; TODO variable-map (call dereference-variables, return (:vars context)
+
 (defn dereference-variables
   [track]
   (variable-stack (fn [variables track-variable _]
@@ -68,7 +73,15 @@
                        (let [stack-value (get (variables) value)]
                          [:assign label-token stack-value])
                      (do (track-variable label value-token)
-                       [:assign label-token value-token]))))}
+                       [:assign label-token value-token]))))
+       :play (fn [value-token]
+               (let [[& value] value-token
+                     [value-type] value-token]
+                 (case value-type
+                   :identifier
+                    (let [stack-value (get (variables) value)]
+                      [:play stack-value])
+                   [:play value-token])))}
       track))))
 
 (defn reduce-values
@@ -200,32 +213,36 @@
 
 ; FIXME: one thing this should do differently is append the result the original track definition,
 ; that way variables and such are retained properly. otherwise this works great.
+; FIXME: to achieve above, we could just extract dereferenced notes in :play (from the track) and pass that into insta/transform
 (defn normalize-measures
   [track]
-  (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, not the lowest beat! (makes parsing easier)
+  (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
         beats-per-measure (get-normalized-beats-per-measure track)
         total-measures (get-total-measures-ceiled track)
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
         reduced-track (reduce-track track)]
-    (letfn [(update-cursor [beats]
-              (swap! beat-cursor + beats))
-            (update-measures [measure-index beat-index notes]
-              (swap! measures assoc-in [measure-index beat-index] notes))
-            (beat-indices [beat]
-              (let [lowest-beat (get-lowest-beat track)
-                    global-beat-index (/ @beat-cursor lowest-beat)
-                    local-beat-index (mod global-beat-index beats-per-measure)
-                    measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
-                {:measure measure-index :beat local-beat-index}))] ; TODO; consider using normalized local beat index instead
-      (insta/transform
-        {:pair (fn [beats notes]
-                 (let [indices (beat-indices beats)
-                       measure-index (:measure indices)
-                       beat-index (:beat indices)
-                       compiled-notes {:duration beats :notes notes}] ; TODO; consider adding: :indices [measure-index beat-index]
-                  (update-measures measure-index beat-index compiled-notes)
-                  (update-cursor beats)))}
-        reduced-track))
+    (insta/transform
+      {:play (fn [play-track]
+        (letfn [(update-cursor [beats]
+                  (swap! beat-cursor + beats))
+                (update-measures [measure-index beat-index notes]
+                  (swap! measures assoc-in [measure-index beat-index] notes))
+                (beat-indices [beat]
+                  (let [lowest-beat (get-lowest-beat track)
+                        global-beat-index (/ @beat-cursor lowest-beat)
+                        local-beat-index (mod global-beat-index beats-per-measure)
+                        measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
+                    {:measure measure-index :beat local-beat-index}))] ; TODO; consider using normalized local beat index instead
+          (insta/transform
+            {:pair (fn [beats notes]
+                     (let [indices (beat-indices beats)
+                           measure-index (:measure indices)
+                           beat-index (:beat indices)
+                           compiled-notes {:duration beats :notes notes}] ; TODO; consider adding: :indices [measure-index beat-index]
+                       (update-measures measure-index beat-index compiled-notes)
+                       (update-cursor beats)))}
+          play-track)))}
+        reduced-track)
     @measures))
 
 (defn denormalize
