@@ -7,8 +7,6 @@
 (ns warble.interpret
   (:require [instaparse.core :as insta]))
 
-; (declare get-beat-unit dereference-variables reduce-track) ; TODO: mention every method here so they are hoisted and declaration order becomes irrelevant
-
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
