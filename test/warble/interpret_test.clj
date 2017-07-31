@@ -45,6 +45,14 @@
           want [:track [:statement "Text"]]]
       (is (= want (reduce-values tree))))))
 
+; FIXME
+; (deftest mapification
+;   (testing "general"
+;     (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]] [:statement [:play [:identifier ":ABC"]]]]
+;            want {}]
+;       (is (= want (mapify-track tree))))))
+
+
 ; FIXME: handle notes that aren't % 2
 (deftest lowest-beat
   (testing "whole number"

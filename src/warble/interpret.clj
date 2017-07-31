@@ -104,6 +104,12 @@
      deref-variables
      reduce-values))
 
+; FIXME/TODO
+; @see https://stackoverflow.com/questions/4328709/convert-an-array-of-tuples-into-a-hash-map-in-clojure
+; (defn mapify-track
+;   [track]
+;   (into {} (reduce-track track)))
+
 ; (defn provision
 ;   ; ensures that all required elements are called at the beginning of the track with default values
 ;   ; TimeSig, Tempo, Scale (essentially used as Key)
