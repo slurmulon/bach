@@ -4,7 +4,7 @@
 ; http://xahlee.info/clojure/clojure_instaparse.html
 ; http://xahlee.info/clojure/clojure_instaparse_transform.html
 
-(ns warble.interpret
+(ns warble.track
   (:require [instaparse.core :as insta]))
 
 (defstruct compiled-track :headers :data)
@@ -109,14 +109,6 @@
 ; (defn mapify-track
 ;   [track]
 ;   (into {} (reduce-track track)))
-
-; (defn provision
-;   ; ensures that all required elements are called at the beginning of the track with default values
-;   ; TimeSig, Tempo, Scale (essentially used as Key)
-;   ; Also ensure `ms-per-beat`, `lowest-beat` and `total-beats` is easily available at a high level
-;   [track])
-
-; TODO: provision-meta
 
 (defn get-headers
   [track]

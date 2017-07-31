@@ -1,7 +1,7 @@
-(ns warble.interpret-test
+(ns warble.track-test
   (:require [clojure.test :refer :all]
             [warble.lexer :refer :all]
-            [warble.interpret :refer :all]))
+            [warble.track :refer :all]))
 
 (deftest defaults
   (testing "tempo"
