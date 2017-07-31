@@ -281,17 +281,13 @@
                    :ms-per-beat ms-per-beat,
                    :lowest-beat lowest-beat)))
 
-; (defn provision-track
-;   [track]
-;   (let )
-
 (defn compile-track
   ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
   ; validate
   ; provision
   ; normalize-measures
   [track]
-  (if (validate track)
+  (when (validate track)
     (let [headers (provision-headers track)
           data (normalize-measures track)]
       (struct compiled-track headers data))))
