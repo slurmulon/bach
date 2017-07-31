@@ -162,5 +162,11 @@
   ;   (let [tree [:track [:statement [:assign [:identifier ":A"] [:list [:pair [:number "1"] [:atom [:keyword "Scale"] [:init [:arguments [:string "'C2 Major'"]]]]]]]] [:statement [:assign [:identifier ":B"] [:identifier ":A"]]] [:statement [:play [:identifier ":B"]]]]
   ;         want [[{:duration 1, :notes [:atom [:keyword "Scale"] [:init [:arguments [:string "C2 Major"]]]]}]]]
   ;     (is (= want (normalize-measures tree)))))
-  )
+)
+
+(deftest provisioning
+  (testing "headers"
+    (let [tree [:track [:statement [:header [:meta "Tempo"] [:number "90"]]]]
+          want 90]
+      (is (= (:tempo (provision-headers tree)) want)))))
 

@@ -102,49 +102,51 @@
      deref-variables
      reduce-values))
 
-(defn provision
-  ; ensures that all required elements are called at the beginning of the track with default values
-  ; TimeSig, Tempo, Scale (essentially used as Key)
-  ; Also ensure `ms-per-beat`, `lowest-beat` and `total-beats` is easily available at a high level
-  [track])
+; (defn provision
+;   ; ensures that all required elements are called at the beginning of the track with default values
+;   ; TimeSig, Tempo, Scale (essentially used as Key)
+;   ; Also ensure `ms-per-beat`, `lowest-beat` and `total-beats` is easily available at a high level
+;   [track])
 
 ; TODO: provision-meta
 
-(defn get-normalized-meta
+(defn get-headers
   [track]
-  (let [normalized-meta (atom default-meta)]
+  (let [headers (atom default-meta)
+        reduced-track (reduce-track track)] ; TODO: might not want this at this level, should probably be called higher up
     (insta/transform
-      {:meta (fn [kind value]
-                (let [meta-key (keyword (clojure.string/lower-case kind))]
-                  (swap! normalized-meta assoc meta-key value)))}
-      track)
-    @normalized-meta))
+      {:header (fn [kind-token value]
+                 (let [kind (last kind-token)] ; TODO: figure out why destructuring doesn't work here ([& kind] kind-token)
+                   (let [header-key (keyword (clojure.string/lower-case kind))]
+                     (swap! headers assoc header-key value))))}
+      reduced-track)
+    @headers))
 
-(defn find-meta
+(defn find-header
   [track label default]
   (let [result (atom default)]
     (insta/transform
-      {:meta (fn [kind value]
-               (if (= kind label)
-                 (reset! result value)))}
+      {:header (fn [kind value]
+                 (if (= kind label)
+                   (reset! result value)))}
       track)
     @result))
 
 (defn get-tempo
   [track]
-  (find-meta track "Tempo" default-tempo))
+  (find-header track "Tempo" default-tempo))
 
 (defn get-time-signature
   [track]
-  (find-meta track "Time" default-time-signature))
+  (find-header track "Time" default-time-signature))
 
 (defn get-tags
   [track]
-  (find-meta track "Tags" []))
+  (find-header track "Tags" []))
 
 (defn get-title
   [track]
-  (find-meta track "Title" "Untitled"))
+  (find-header track "Title" "Untitled"))
 
 (defn get-beat-unit
   [track]
@@ -227,8 +229,9 @@
   [track]
   (let [beats-per-measure (get-normalized-beats-per-measure track)
         total-measures (get-total-beats track)
+        total-measures-safe-denom (if (= 0 total-measures) 1 total-measures) ; avoids divide by 0 when denominator
         total-duration-ms (get-total-duration track :milliseconds)
-        ms-per-measure (/ total-duration-ms total-measures)
+        ms-per-measure (/ total-duration-ms total-measures-safe-denom)
         ms-per-beat (/ ms-per-measure beats-per-measure)]
     (float ms-per-beat)))
 
@@ -243,6 +246,7 @@
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
         reduced-track (reduce-track track)]
     (insta/transform
+      ; we only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
       {:play (fn [play-track]
         (letfn [(update-cursor [beats]
                   (swap! beat-cursor + beats))
@@ -266,11 +270,16 @@
         reduced-track)
     @measures))
 
-; (defn provision-headers
-;   [track]
-;   (let [tempo (get-tempo track)
-;         time-sig (get-time-signature track)
-;         scale (
+(defn provision-headers
+  ; combines default static meta information with dynamic meta information
+  [track]
+  (let [headers (get-headers track)
+        total-beats (get-total-beats track)
+        ms-per-beat (get-ms-per-beat track)
+        lowest-beat (get-lowest-beat track)]
+    (assoc headers :total-beats total-beats,
+                   :ms-per-beat ms-per-beat,
+                   :lowest-beat lowest-beat)))
 
 (defn provision-track
   [track])
