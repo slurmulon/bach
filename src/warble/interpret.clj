@@ -11,7 +11,7 @@
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
 (def default-meta {:tempo default-tempo
-                   :scale default-scale
+                   ; :scale default-scale
                    :time default-time-signature
                    :total-beats 0
                    :ms-per-beat 0
@@ -120,25 +120,51 @@
       track)
     @normalized-meta))
 
-(defn get-tempo
-  [track]
-  (let [tempo (atom default-tempo)]
+(defn find-meta
+  [track label default]
+  (let [result (atom default)]
     (insta/transform
       {:meta (fn [kind value]
-               (if (= kind "Tempo")
-                 (reset! tempo value)))}
+               (if (= kind label)
+                 (reset! result value)))}
       track)
-    @tempo))
+    @result))
+
+(defn get-tempo
+  [track]
+  (find-meta track "Tempo" default-tempo))
+
+; (defn get-tempo
+;   [track]
+;   (let [tempo (atom default-tempo)]
+;     (insta/transform
+;       {:meta (fn [kind value]
+;                (if (= kind "Tempo")
+;                  (reset! tempo value)))}
+;       track)
+;     @tempo))
 
 (defn get-time-signature
   [track]
-  (let [time-signature (atom default-time-signature)]
-    (insta/transform
-      {:meta (fn [kind value]
-               (if (= kind "Time")
-                 (reset! time-signature value)))} ; TODO: need to ensure this ends up as a 2-element list instead of a ratio [num, denom]
-      track)
-    @time-signature))
+  (find-meta track "Time" default-time-signature))
+
+; (defn get-time-signature
+;   [track]
+;   (let [time-signature (atom default-time-signature)]
+;     (insta/transform
+;       {:meta (fn [kind value]
+;                (if (= kind "Time")
+;                  (reset! time-signature value)))} ; TODO: need to ensure this ends up as a 2-element list instead of a ratio [num, denom]
+;       track)
+;     @time-signature))
+
+(defn get-tags
+  [track]
+  (find-meta track "Tags" []))
+
+(defn get-title
+  [track]
+  (find-meta track "Title" "Untitled"))
 
 (defn get-beat-unit
   [track]
@@ -259,6 +285,15 @@
           play-track)))}
         reduced-track)
     @measures))
+
+; (defn provision-headers
+;   [track]
+;   (let [tempo (get-tempo track)
+;         time-sig (get-time-signature track)
+;         scale (
+
+(defn provision-track
+  [track])
 
 (defn compile-track
   ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
