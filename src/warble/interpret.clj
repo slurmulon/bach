@@ -7,16 +7,18 @@
 (ns warble.interpret
   (:require [instaparse.core :as insta]))
 
+(defstruct compiled-track :headers :data)
+
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
-(def default-meta {:tempo default-tempo
-                   ; :scale default-scale
-                   :time default-time-signature
-                   :total-beats 0
-                   :ms-per-beat 0
-                   :lowest-beat [1 4]
-                   :tags []})
+(def default-headers {:title "Untitled"
+                      :tempo default-tempo
+                      :time default-time-signature
+                      :total-beats 0
+                      :ms-per-beat 0
+                      :lowest-beat [1 4]
+                      :tags []})
 
 (def powers-of-two (iterate (partial * 2) 1))
 
@@ -112,7 +114,7 @@
 
 (defn get-headers
   [track]
-  (let [headers (atom default-meta)
+  (let [headers (atom default-headers)
         reduced-track (reduce-track track)] ; TODO: might not want this at this level, should probably be called higher up
     (insta/transform
       {:header (fn [kind-token value]
@@ -281,12 +283,18 @@
                    :ms-per-beat ms-per-beat,
                    :lowest-beat lowest-beat)))
 
-(defn provision-track
-  [track])
+; (defn provision-track
+;   [track]
+;   (let )
 
 (defn compile-track
   ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
   ; validate
   ; provision
   ; normalize-measures
-  [track])
+  [track]
+  (if (validate track)
+    (let [headers (provision-headers track)
+          data (normalize-measures track)]
+      (struct compiled-track headers data))))
+
