@@ -9,7 +9,8 @@ atom       = [<empty>] keyword [<empty>] init [<empty>]
 set        = [<empty>] <'{'> [elem (<','|' '> elem)* [<','>]] <'}'> [<empty>]
 list       = [<empty>] <'['> [elem (<','|' '> elem)* [<','>]] <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
-assign     = (identifier | meta) <'='> elem
+assign     = (identifier) <'='> elem
+header     = (meta) <'='> elem
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
