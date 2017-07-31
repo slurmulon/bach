@@ -13,6 +13,7 @@
 (def default-meta {:tempo default-tempo
                    :scale default-scale
                    :time default-time-signature
+                   :total-beats 0
                    :ms-per-beat 0
                    :lowest-beat [1 4]
                    :tags []})
@@ -45,7 +46,7 @@
                        (when (not (contains? (variables) value))
                          (throw (Exception. (str "variable is not declared before it's used: " value ", " (variables)))))
                      (create-variable label value))))
-      :div (fn [top-token bottom-token]
+       :div (fn [top-token bottom-token]
               (let [top    (-> top-token    last read-string)
                     bottom (-> bottom-token last read-string)]
                 (cond
@@ -53,7 +54,7 @@
                     (throw (Exception. "note divisors must be base 2 and no greater than 512"))
                   (> top bottom)
                     (throw (Exception. "numerator cannot be greater than denominator")))))
-      :tempo (fn [& tempo-token]
+       :tempo (fn [& tempo-token]
                 (let [tempo (-> tempo-token last read-string)]
                   (when (not (<= 0 tempo 256))
                     (throw (Exception. "tempos must be between 0 and 256 beats per minute")))))}
@@ -62,9 +63,9 @@
 
 (def validate-memo (memoize validate))
 
-; TODO variable-map (call dereference-variables, return (:vars context)
+; TODO variable-map (call deref-variables, return (:vars context)
 
-(defn dereference-variables
+(defn deref-variables
   [track]
   (variable-stack (fn [variables track-variable _]
     (insta/transform
@@ -86,7 +87,7 @@
                     (let [stack-value (get (variables) value)]
                       [:play stack-value])
                    [:play value-token])))}
-      track))))
+    track))))
 
 (defn reduce-values
   [track]
@@ -98,7 +99,7 @@
 (defn reduce-track
   [track]
   (-> track
-     dereference-variables
+     deref-variables
      reduce-values))
 
 (defn provision
@@ -109,8 +110,6 @@
 
 ; TODO: provision-meta
 
-; TODO; get-normalized-meta (extracts out each meta tag or defaults for the tag if it's undefined)
-
 (defn get-normalized-meta
   [track]
   (let [normalized-meta (atom default-meta)]
@@ -118,7 +117,8 @@
       {:meta (fn [kind value]
                 (let [meta-key (keyword (clojure.string/lower-case kind))]
                   (swap! normalized-meta assoc meta-key value)))}
-      track)))
+      track)
+    @normalized-meta))
 
 (defn get-tempo
   [track]
@@ -262,6 +262,7 @@
 
 (defn compile-track
   ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
-  ; normalize-variables
-  ; normalize-beats
+  ; validate
+  ; provision
+  ; normalize-measures
   [track])

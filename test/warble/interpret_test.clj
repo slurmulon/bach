@@ -108,13 +108,13 @@
 ;     )
 
 ; FIXME: nested transitive variables are broken (:A = 1, :B = :A, :C = :B)
-(deftest dereferencing
+(deftest dereference
   (testing "variables (simple)"
     (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:identifier :A]]]]
           want [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:number 1]]]]]
-      (is (= want (dereference-variables tree)))))
+      (is (= want (deref-variables tree)))))
   ; (testing "variables (simple)"
   ;   (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
   ;                      [:statement [:assign [:identifier :B] [:identifier :A]]]
@@ -132,16 +132,16 @@
 ; - eh, maybe not
 ; TODO: also test with derefrenced variables, need to make sure it doesn't go the same measure value N times (where N is the number of references)
 (deftest normalization
-  ; (testing "total beats"
-  ;   (testing "using greater unit than denominator in time signature"
-  ;     (testing "single measure"
-  ;       (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]]]]
-  ;           want 4]
-  ;       (is (= want (get-normalized-total-beats tree)))))
-  ;     (testing "multiple measures"
-  ;       (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
-  ;             want 8]
-  ;         (is (= want (get-normalized-total-beats tree)))))))
+  (testing "total beats"
+    (testing "using greater unit than denominator in time signature"
+      (testing "single measure"
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]]]]
+            want 4]
+        (is (= want (get-normalized-total-beats tree)))))
+      (testing "multiple measures"
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
+              want 8]
+          (is (= want (get-normalized-total-beats tree)))))))
   ; TODO: "with greater than whole notes"
   (testing "measures"
     (testing "with whole notes"
