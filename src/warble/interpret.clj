@@ -20,7 +20,7 @@
 
 (def powers-of-two (iterate (partial * 2) 1))
 
-(defn variable-stack
+(defn variable-scope
   [scope]
   (let [context (atom {})]
     (letfn [(variables []
@@ -35,7 +35,7 @@
 ; TODO: validate any variables in :play
 (defn validate
   [track]
-  (variable-stack (fn [variables create-variable _]
+  (variable-scope (fn [variables create-variable _]
     (insta/transform
       {:assign (fn [label-token value-token]
                  (let [[& label] label-token
@@ -67,7 +67,7 @@
 
 (defn deref-variables
   [track]
-  (variable-stack (fn [variables track-variable _]
+  (variable-scope (fn [variables track-variable _]
     (insta/transform
       {:assign (fn [label-token value-token]
                  (let [[& label] label-token
@@ -134,29 +134,9 @@
   [track]
   (find-meta track "Tempo" default-tempo))
 
-; (defn get-tempo
-;   [track]
-;   (let [tempo (atom default-tempo)]
-;     (insta/transform
-;       {:meta (fn [kind value]
-;                (if (= kind "Tempo")
-;                  (reset! tempo value)))}
-;       track)
-;     @tempo))
-
 (defn get-time-signature
   [track]
   (find-meta track "Time" default-time-signature))
-
-; (defn get-time-signature
-;   [track]
-;   (let [time-signature (atom default-time-signature)]
-;     (insta/transform
-;       {:meta (fn [kind value]
-;                (if (= kind "Time")
-;                  (reset! time-signature value)))} ; TODO: need to ensure this ends up as a 2-element list instead of a ratio [num, denom]
-;       track)
-;     @time-signature))
 
 (defn get-tags
   [track]
