@@ -229,9 +229,9 @@
   [track]
   (let [beats-per-measure (get-normalized-beats-per-measure track)
         total-measures (get-total-beats track)
-        total-measures-safe-denom (if (= 0 total-measures) 1 total-measures) ; avoids divide by 0 when denominator
+        total-measures-denom (if (= 0 total-measures) 1 total-measures) ; avoids divide by 0 when denominator
         total-duration-ms (get-total-duration track :milliseconds)
-        ms-per-measure (/ total-duration-ms total-measures-safe-denom)
+        ms-per-measure (/ total-duration-ms total-measures-denom)
         ms-per-beat (/ ms-per-measure beats-per-measure)]
     (float ms-per-beat)))
 

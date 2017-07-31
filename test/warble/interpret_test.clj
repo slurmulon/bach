@@ -166,7 +166,21 @@
 
 (deftest provisioning
   (testing "headers"
-    (let [tree [:track [:statement [:header [:meta "Tempo"] [:number "90"]]]]
-          want 90]
-      (is (= (:tempo (provision-headers tree)) want)))))
+    (testing "static"
+      (let [tree [:track [:statement [:header [:meta "Tempo"] [:number "90"]]]]
+            want 90]
+        (is (= (:tempo (provision-headers tree)) want))))
+    (testing "dynamic"
+      (testing "total beats"
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:list]] [:pair [:number "3"] [:list]]]]]]
+              want 4]
+          (is (= (:total-beats (provision-headers tree)) want))))
+      (testing "ms per beat"
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:list]] [:pair [:number "3"] [:list]]]]]]
+              want 2000.0]
+          (is (= (:ms-per-beat (provision-headers tree)) want))))
+      (testing "lowest beat"
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:number "1"] [:list]]]]]]
+              want 1/4]
+          (is (= (:lowest-beat (provision-headers tree)) want)))))))
 
