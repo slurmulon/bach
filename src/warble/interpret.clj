@@ -7,11 +7,17 @@
 (ns warble.interpret
   (:require [instaparse.core :as insta]))
 
-(declare get-beat-unit dereference-variables reduce-track) ; TODO: mention every method here so they are hoisted and declaration order becomes irrelevant
+; (declare get-beat-unit dereference-variables reduce-track) ; TODO: mention every method here so they are hoisted and declaration order becomes irrelevant
 
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
+(def default-meta {:tempo default-tempo
+                   :scale default-scale
+                   :time default-time-signature
+                   :ms-per-beat 0
+                   :lowest-beat [1 4]
+                   :tags []})
 
 (def powers-of-two (iterate (partial * 2) 1))
 
@@ -105,6 +111,17 @@
 
 ; TODO: provision-meta
 
+; TODO; get-normalized-meta (extracts out each meta tag or defaults for the tag if it's undefined)
+
+(defn get-normalized-meta
+  [track]
+  (let [normalized-meta (atom default-meta)]
+    (insta/transform
+      {:meta (fn [kind value]
+                (let [meta-key (keyword (clojure.string/lower-case kind))]
+                  (swap! normalized-meta assoc meta-key value)))}
+      track)))
+
 (defn get-tempo
   [track]
   (let [tempo (atom default-tempo)]
@@ -124,6 +141,10 @@
                  (reset! time-signature value)))} ; TODO: need to ensure this ends up as a 2-element list instead of a ratio [num, denom]
       track)
     @time-signature))
+
+(defn get-beat-unit
+  [track]
+  (/ 1 (last (get-time-signature track)))) ; AKA 1/denominator
 
 (defn get-lowest-beat
   [track]
@@ -152,10 +173,6 @@
   [track]
   (let [lowest-beat (get-lowest-beat track)]
     (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
-
-(defn get-beat-unit
-  [track]
-  (/ 1 (last (get-time-signature track)))) ; AKA 1/denominator
 
 ; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
 ; to the lowest common beat found in the track
@@ -245,7 +262,7 @@
         reduced-track)
     @measures))
 
-(defn denormalize
+(defn compile-track
   ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
   ; normalize-variables
   ; normalize-beats
