@@ -6,7 +6,7 @@
 
 (ns warble.track
   (:require [instaparse.core :as insta]
-            [warble.util :refer [mapify]]))
+            [warble.util :refer [to-hashmap]]))
 
 (defstruct compiled-track :headers :data)
 
@@ -239,7 +239,7 @@
         ms-per-beat (/ ms-per-measure beats-per-measure)]
     (float ms-per-beat)))
 
-; FIXME: one thing this should do differently is append the result the original track definition,
+; FIXME: one thing this should do differently is append the result of the original track definition,
 ; that way variables and such are retained properly. otherwise this works great.
 ; FIXME: to achieve above, we could just extract dereferenced notes in :play (from the track) and pass that into insta/transform
 (defn normalize-measures
@@ -267,7 +267,7 @@
                      (let [indices (beat-indices beats)
                            measure-index (:measure indices)
                            beat-index (:beat indices)
-                           compiled-notes {:duration beats :notes (mapify notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
+                           compiled-notes {:duration beats :notes (to-hashmap notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
                        (update-measures measure-index beat-index compiled-notes)
                        (update-cursor beats)))}
           play-track)))}
