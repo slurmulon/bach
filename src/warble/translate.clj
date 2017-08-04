@@ -1,13 +1,25 @@
-(ns warble.parser
-  (:require [warble.lexer :refer tokenize]))
+(ns warble.translate
+  (:require [instaparse.core :as insta]
+            [clojure.data.json :as json]))
 
-; responsible for consuming an AST of nodes and producing a linear stream of data
+(def to-json json/write-str)
 
-; TODO: should result with:
-; beat -> [notes]*
-; AKA sliced-stream..?
-(defn continous-stream [nodes stream]
-  (loop [node nodes] ; TODO: since pattern is "loop through arg1 and arg2 (node1 and node2), should prob use a reducer
-    (cond (or :root :statement) (recur [node] (conj stream node)))))
+(defn hiccup-to-hash-map
+  [tree]
+  (insta/transform
+    {:list (fn [& [:as all]] all)
+     :atom (fn [& [:as all]] {:atom (apply merge all)})
+     :header (fn [& [:as all]] {:header (apply merge all)})
+     :meta (fn [el] {:meta el})
+     :init (fn [el] {:init el})
+     :arguments (fn [el] {:arguments el})
+     :keyword (fn [el] {:keyword el})
+     :play (fn [el] {:play el})}
+   tree))
 
-; TODO: fastest-beat (lowest-common-beat)
+(defn hiccup-to-json
+  [tree]
+  (-> tree
+      hiccup-to-hash-map
+      to-json))
+

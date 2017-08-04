@@ -6,13 +6,17 @@ statement = token (<empty> token)*
 <term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
 <elem>     = [<empty>] atom | term | pair | list | identifier [<empty>]
 atom       = [<empty>] keyword [<empty>] init [<empty>]
-list       = [<empty>] <'['> [elem (<','> elem)* [<','>]] <']'> [<empty>]
+set        = [<empty>] <'{'> [elem (<','|' '> elem)* [<','>]] <'}'> [<empty>]
+list       = [<empty>] <'['> [elem (<','|' '> elem)* [<','>]] <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
-assign     = identifier <'='> (elem)
+assign     = identifier <'='> elem
+header     = meta <'='> elem
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
-keyword    = [<empty>] #'(#|Note|Scale|Chord|KeySig|Rest|Times|TimeSig|Tempo|Play|Stop|Forever|Comment)' [<empty>]
+meta       = [<empty>] #'@(Instrument|Title|Time|Tempo|Tags|Key)' [<empty>]
+keyword    = [<empty>] #'(`|~|Note|Scale|Chord)' [<empty>]
+play       = [<empty>] 'Play' [<empty>] elem
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
 number     = #'[0-9]+'
