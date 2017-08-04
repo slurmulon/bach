@@ -5,7 +5,8 @@
 ; http://xahlee.info/clojure/clojure_instaparse_transform.html
 
 (ns warble.track
-  (:require [instaparse.core :as insta]))
+  (:require [instaparse.core :as insta]
+            [warble.util :refer [mapify]]))
 
 (defstruct compiled-track :headers :data)
 
@@ -106,6 +107,9 @@
 
 ; FIXME/TODO
 ; @see https://stackoverflow.com/questions/4328709/convert-an-array-of-tuples-into-a-hash-map-in-clojure
+; @see https://github.com/Engelberg/instaparse/issues/109
+; @see https://gist.github.com/Jared314/5606912
+; @see https://github.com/Engelberg/instaparse#output-format (use the :enlive format)
 ; (defn mapify-track
 ;   [track]
 ;   (into {} (reduce-track track)))
@@ -243,7 +247,7 @@
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
         beats-per-measure (get-normalized-beats-per-measure track)
         total-measures (get-total-measures-ceiled track)
-        measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure)))
+        measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
         reduced-track (reduce-track track)]
     (insta/transform
       ; we only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
@@ -263,7 +267,7 @@
                      (let [indices (beat-indices beats)
                            measure-index (:measure indices)
                            beat-index (:beat indices)
-                           compiled-notes {:duration beats :notes notes}] ; TODO; consider adding: :indices [measure-index beat-index]
+                           compiled-notes {:duration beats :notes (mapify notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
                        (update-measures measure-index beat-index compiled-notes)
                        (update-cursor beats)))}
           play-track)))}
@@ -282,10 +286,7 @@
                    :lowest-beat lowest-beat)))
 
 (defn compile-track
-  ; processes an AST and returns a denormalized version of it that contains all the information necessary to interpet a track in a single stream of data (no references, all resolved values).
-  ; validate
-  ; provision
-  ; normalize-measures
+  ; processes an AST and returns a compiled version of it that contains all the information necessary to easily interpet a track in a single stream of data (no references, all resolved values).
   [track]
   (when (validate track)
     (let [headers (provision-headers track)
