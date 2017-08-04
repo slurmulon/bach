@@ -1,9 +1,3 @@
-; TODO: rename to `parse`, or even `track`
-; TODO: create `flatten-lists`
-
-; http://xahlee.info/clojure/clojure_instaparse.html
-; http://xahlee.info/clojure/clojure_instaparse_transform.html
-
 (ns warble.track
   (:require [instaparse.core :as insta]
             [warble.translate :refer [hiccup-to-hash-map]]))

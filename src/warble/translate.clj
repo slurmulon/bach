@@ -17,16 +17,9 @@
      :play (fn [el] {:play el})}
    tree))
 
-; FIXME: not quite - doesn't handle [:a [:b 1] [:c 2]] properly
-; (defn hiccup-to-map
-;   [tree]
-;   (let [[k & v] tree]
-;     (cond
-;       (and (keyword? k) (vector? v))
-;       {k (hiccup-to-map v)}
+(defn hiccup-to-json
+  [tree]
+  (-> tree
+      hiccup-to-hash-map
+      to-json))
 
-;       (and (keyword? k) (seq? v) (= 1 (count v)))
-;       {k (hiccup-to-map v)}
-
-;       :else
-;       {k v})))
