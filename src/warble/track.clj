@@ -6,7 +6,7 @@
 
 (ns warble.track
   (:require [instaparse.core :as insta]
-            [warble.util :refer [to-hashmap]]))
+            [warble.translate :refer [hiccup-to-hash-map]]))
 
 (defstruct compiled-track :headers :data)
 
@@ -267,7 +267,7 @@
                      (let [indices (beat-indices beats)
                            measure-index (:measure indices)
                            beat-index (:beat indices)
-                           compiled-notes {:duration beats :notes (to-hashmap notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
+                           compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
                        (update-measures measure-index beat-index compiled-notes)
                        (update-cursor beats)))}
           play-track)))}
