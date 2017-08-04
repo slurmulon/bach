@@ -33,6 +33,7 @@ More formally:
 N   = N measures or whole notes
 1   = Whole note (one entire measure)
 1/2 = Half note
+1/4 = Quarter note
 1/8 = Eight note
 ```
 
