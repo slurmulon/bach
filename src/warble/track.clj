@@ -99,15 +99,6 @@
      deref-variables
      reduce-values))
 
-; FIXME/TODO
-; @see https://stackoverflow.com/questions/4328709/convert-an-array-of-tuples-into-a-hash-map-in-clojure
-; @see https://github.com/Engelberg/instaparse/issues/109
-; @see https://gist.github.com/Jared314/5606912
-; @see https://github.com/Engelberg/instaparse#output-format (use the :enlive format)
-; (defn mapify-track
-;   [track]
-;   (into {} (reduce-track track)))
-
 (defn get-headers
   [track]
   (let [headers (atom default-headers)
