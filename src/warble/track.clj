@@ -111,9 +111,9 @@
         reduced-track (reduce-track track)] ; TODO: might not want this at this level, should probably be called higher up
     (insta/transform
       {:header (fn [kind-token value]
-                 (let [kind (last kind-token)] ; TODO: figure out why destructuring doesn't work here ([& kind] kind-token)
-                   (let [header-key (keyword (clojure.string/lower-case kind))]
-                     (swap! headers assoc header-key value))))}
+                 (let [kind (last kind-token)
+                       header-key (keyword (clojure.string/lower-case kind))] ; TODO: figure out why destructuring doesn't work here ([& kind] kind-token)
+                    (swap! headers assoc header-key value)))}
       reduced-track)
     @headers))
 
