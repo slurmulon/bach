@@ -2,9 +2,10 @@
 track = statement*
 statement = token (<empty> token)*
 
-<token>    = elem | assign
+<token>    = elem | assign | header
 <term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
-<elem>     = [<empty>] atom | term | pair | list | identifier [<empty>]
+<elem>     = [<empty>] atom | prim | term | pair | list | identifier [<empty>]
+<prim>     = [<empty>] string | word | number | color [<empty>]
 atom       = [<empty>] keyword [<empty>] init [<empty>]
 set        = [<empty>] <'{'> [elem (<','|' '> elem)* [<','>]] <'}'> [<empty>]
 list       = [<empty>] <'['> [elem (<','|' '> elem)* [<','>]] <']'> [<empty>]
@@ -14,7 +15,7 @@ header     = meta <'='> elem
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
-meta       = [<empty>] #'@(Instrument|Title|Time|Tempo|Tags|Key)' [<empty>]
+meta       = [<empty>] <'@'> #'(Instrument|Title|Time|Tempo|Tags|Key|Link)' [<empty>]
 keyword    = [<empty>] #'(`|~|Note|Scale|Chord)' [<empty>]
 play       = [<empty>] 'Play' [<empty>] elem
 string     = #'[\'|\"](.*?)[\"|\']'

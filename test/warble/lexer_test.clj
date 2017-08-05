@@ -26,17 +26,17 @@
 
 (deftest meta-data
   (testing "tempo"
-    (let [want [:track [:statement [:assign [:meta "Tempo"] [:number "90"]]]]]
-     (is (= (parse "@Tempo = 90")))))
+    (let [want [:track [:statement [:header [:meta "Tempo"] [:number "90"]]]]]
+     (is (= want (parse "@Tempo = 90")))))
   (testing "title"
     (let [want [:track [:statement [:header [:meta "Title"] [:string "'Test Track'"]]]]]
-      (is (= (parse "@Title = 'Test Track'")))))
+      (is (= want (parse "@Title = 'Test Track'")))))
   (testing "time"
     (let [want [:track [:statement [:header [:meta "Time"] [:div [:number "6"] [:number "8"]]]]]]
-      (is (= (parse "@Time = 6/8")))))
+      (is (= want (parse "@Time = 6/8")))))
   (testing "tags"
     (let [want [:track [:statement [:header [:meta "Tags"] [:list [:string "'rock'"] [:string "'funk'"]]]]]]
-      (is (= (parse "@Tags = ['rock', 'funk']"))))))
+      (is (= want (parse "@Tags = ['rock', 'funk']"))))))
 
 (deftest pair
   (testing "term keys"
