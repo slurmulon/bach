@@ -24,4 +24,3 @@
   (-> tree
       hiccup-to-hash-map
       to-json))
-
