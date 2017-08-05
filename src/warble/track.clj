@@ -301,4 +301,3 @@
     (let [headers (provision-headers track)
           data (normalize-measures track)]
       (struct compiled-track headers data))))
-

@@ -4,15 +4,17 @@
 
 (def to-json json/write-str)
 
+; TODO: make sure this returns an array when appropriate
+; @see warble.track-test/compilation
 (defn hiccup-to-hash-map
   [tree]
   (insta/transform
     {:list (fn [& [:as all]] all)
      :atom (fn [& [:as all]] {:atom (apply merge all)})
+     :arguments (fn [& [:as all]] {:arguments (vec all)})
      :header (fn [& [:as all]] {:header (apply merge all)})
      :meta (fn [el] {:meta el})
      :init (fn [el] {:init el})
-     :arguments (fn [el] {:arguments el})
      :keyword (fn [el] {:keyword el})
      :play (fn [el] {:play el})}
    tree))
