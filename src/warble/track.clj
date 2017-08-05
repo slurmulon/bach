@@ -123,7 +123,7 @@
   (let [result (atom default)]
     (insta/transform
       {:header (fn [kind value]
-                 (if (= kind label)
+                 (when (= kind label)
                    (reset! result value)))}
       track)
     @result))
@@ -158,7 +158,7 @@
     (insta/transform
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
       {:pair (fn [duration _]
-               (if (< duration @lowest-duration)
+               (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
     (min 1 @lowest-duration)))
