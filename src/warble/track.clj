@@ -70,34 +70,18 @@
   (variable-scope (fn [variables track-variable _]
     (insta/transform
       {:assign (fn [label-token value-token]
-                 (let [;[& label] label-token
-                       ;[& value] value-token
-                       label (last label-token)
+                 (let [label (last label-token)
                        value (last value-token)
                        [value-type] value-token]
-                   (println "\n--- label" label)
-                   (println "--- value" value)
-                   (println "--- value-type" value-type)
                    (case value-type
-                     ; FIXME: support :list (and add tests)
-                     ; FIXME: this needs to be broken out of the surrounding :assign matcher
                      :identifier
                        (let [stack-value (get (variables) value)]
                          (track-variable label stack-value)
-                         (println "dereferincg variable" label stack-value)
                          [:assign label-token stack-value])
-                     ; :list
-                     ;   (println "--- FOUND list ZOMG" value)
-                     ;   ; (apply deref-variables (rest value))
-                     ;   (deref-variables (rest value))
                      (do (track-variable label value-token)
-                       (println "tracking variable" label value-token)
                        [:assign label-token value-token]))))
        :identifier (fn [label]
-                     (println "!!! identifier label" label)
                      (let [stack-value (get (variables) label)]
-                       (println "IDENTIFIER stack value" stack-value)
-                       (println "IDENTIFIER returning" (if stack-value stack-value label))
                        (if stack-value stack-value [:identifier label])))
        :play (fn [value-token]
                (let [[& value] value-token
