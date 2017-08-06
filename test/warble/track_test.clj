@@ -115,14 +115,14 @@
           want [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:number 1]]]]]
       (is (= want (deref-variables tree)))))
-  ; (testing "variables (simple)"
-  ;   (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
-  ;                      [:statement [:assign [:identifier :B] [:identifier :A]]]
-  ;                      [:statement [:assign [:identifier :C] [:identifier :B]]]]
-  ;         want [:track [:statement [:assign [:identifier :A] [:number 1]]]
-  ;                      [:statement [:assign [:identifier :B] [:number 1]]]
-  ;                      [:statement [:assign [:identifier :C] [:number 1]]]]]
-  ;     (is (= want (denormalize-variables tree))))))
+  (testing "variables (simple)"
+    (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
+                       [:statement [:assign [:identifier :B] [:identifier :A]]]
+                       [:statement [:assign [:identifier :C] [:identifier :B]]]]
+          want [:track [:statement [:assign [:identifier :A] [:number 1]]]
+                       [:statement [:assign [:identifier :B] [:number 1]]]
+                       [:statement [:assign [:identifier :C] [:number 1]]]]]
+      (is (= want (deref-variables tree)))))
   (testing "beats"
     (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "3"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'B2Maj7'"]]]]]]]]]
           want [:track [:statement [:assign [:identifier ":ABC"] [:list [:beat [:list [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]] [:beat []] [:beat [:atom [:keyword "Chord"] [:init [:arguments [:string "'B2Maj7'"]]]]]]]]]]

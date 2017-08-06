@@ -64,6 +64,7 @@
 
 ; TODO variable-map (call deref-variables, return (:vars context)
 
+; FIXME: seems to be broken using the example in juke/test/fixtures (TODO: create test for this scenario)
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)"
   [track]
@@ -76,6 +77,7 @@
                    (case value-type
                      :identifier
                        (let [stack-value (get (variables) value)]
+                         (track-variable label stack-value)
                          [:assign label-token stack-value])
                      (do (track-variable label value-token)
                        [:assign label-token value-token]))))
