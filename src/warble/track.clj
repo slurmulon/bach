@@ -261,7 +261,6 @@
         total-measures (get-total-measures-ceiled track)
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
         reduced-track (reduce-track track)]
-    (println "reduced track" reduced-track)
     (insta/transform
       ; we only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
       {:play (fn [play-track]
