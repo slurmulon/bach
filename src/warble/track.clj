@@ -64,7 +64,6 @@
 
 ; TODO variable-map (call deref-variables, return (:vars context)
 
-; FIXME: seems to be broken using the example in juke/test/fixtures (TODO: create test for this scenario)
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)"
   [track]
