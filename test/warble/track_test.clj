@@ -115,7 +115,7 @@
           want [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:number 1]]]]]
       (is (= want (deref-variables tree)))))
-  (testing "variables (simple)"
+  (testing "variables (nested)"
     (let [tree [:track [:statement [:assign [:identifier :A] [:number 1]]]
                        [:statement [:assign [:identifier :B] [:identifier :A]]]
                        [:statement [:assign [:identifier :C] [:identifier :B]]]]
@@ -123,10 +123,23 @@
                        [:statement [:assign [:identifier :B] [:number 1]]]
                        [:statement [:assign [:identifier :C] [:number 1]]]]]
       (is (= want (deref-variables tree)))))
-  (testing "beats"
-    (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "3"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'B2Maj7'"]]]]]]]]]
-          want [:track [:statement [:assign [:identifier ":ABC"] [:list [:beat [:list [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]] [:beat []] [:beat [:atom [:keyword "Chord"] [:init [:arguments [:string "'B2Maj7'"]]]]]]]]]]
-      (is (= true true))))) ; FIXME/TODO
+  (testing "variables (list/array)"
+    (let [tree [:track [:statement [:assign [:identifier :A] [:list [:number 1] [:number 2]]]]
+                       [:statement [:assign [:identifier :B] [:identifier :A]]]]
+          want [:track [:statement [:assign [:identifier :A] [:list [:number 1] [:number 2]]]]
+                       [:statement [:assign [:identifier :B] [:list [:number 1] [:number 2]]]]]]
+      (is (= want (deref-variables tree)))))
+  (testing "variables (nested list/array)"
+    (let [tree [:track [:statement [:assign [:identifier :A] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]
+                       [:statement [:assign [:identifier :B] [:list [:pair [:number "1"] [:identifier :A]]]]]]
+          want [:track [:statement [:assign [:identifier :A] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]
+                       [:statement [:assign [:identifier :B] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]]]]]
+      (is (= want (deref-variables tree)))))
+  ; (testing "beats"
+  ;   (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "3"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'B2Maj7'"]]]]]]]]]
+  ;         want [:track [:statement [:assign [:identifier ":ABC"] [:list [:beat [:list [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]] [:beat []] [:beat [:atom [:keyword "Chord"] [:init [:arguments [:string "'B2Maj7'"]]]]]]]]]]
+  ;     (is (= true true))))) ; FIXME/TODO
+)
 
 ; FIXME: might need to consider the surrounding :statement, :assign, :track, etc.
 ; - eh, maybe not
