@@ -240,6 +240,8 @@
 
 ; @see https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te
 (defn get-ms-per-beat
+  "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
+   Mostly exists to make parsing easier for the high-level interpreter / player"
   [track]
   (let [reduced-track (reduce-track track)
         norm-beats-per-measure (get-normalized-beats-per-measure reduced-track)
@@ -249,18 +251,6 @@
         ms-per-beat (* (/ 60 tempo) 1000)
         norm-ms-per-beat (/ ms-per-beat divisor)]
     (float norm-ms-per-beat)))
-
-; (defn get-ms-per-beat
-;   "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
-;    Mostly exists to make parsing easier for the high-level interpreter / player"
-;   [track]
-;   (let [beats-per-measure (get-normalized-beats-per-measure track)
-;         total-measures (get-total-beats track)
-;         total-measures-denom (if (= 0 total-measures) 1 total-measures) ; avoids divide by 0 when denominator
-;         total-duration-ms (get-total-duration track :milliseconds)
-;         ms-per-measure (/ total-duration-ms total-measures-denom)
-;         ms-per-beat (/ ms-per-measure beats-per-measure)]
-;     (float ms-per-beat)))
 
 ; FIXME: one thing this should do differently is append the result of the original track definition,
 ; that way variables and such are retained properly. otherwise this works great.
