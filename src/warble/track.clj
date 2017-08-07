@@ -126,9 +126,10 @@
   [track label default]
   (let [result (atom default)]
     (insta/transform
-      {:header (fn [kind value]
-                 (when (= kind label)
-                   (reset! result value)))}
+      {:header (fn [meta-key value]
+                 (let [kind (last meta-key)]
+                   (when (= kind label)
+                     (reset! result value))))}
       track)
     @result))
 
@@ -146,7 +147,7 @@
 
 (defn get-title
   [track]
-  (find-header track "Title" "Untitled"))
+  (find-header track "Title" [:string "Untitled"]))
 
 (defn get-beat-unit
   "Determines the reference unit to use for beats, based on time signature"
@@ -237,17 +238,29 @@
       :seconds duration-seconds
       :minutes duration-minutes)))
 
+; @see https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te
 (defn get-ms-per-beat
-  "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
-   Mostly exists to make parsing easier for the high-level interpreter / player"
   [track]
-  (let [beats-per-measure (get-normalized-beats-per-measure track)
-        total-measures (get-total-beats track)
-        total-measures-denom (if (= 0 total-measures) 1 total-measures) ; avoids divide by 0 when denominator
-        total-duration-ms (get-total-duration track :milliseconds)
-        ms-per-measure (/ total-duration-ms total-measures-denom)
-        ms-per-beat (/ ms-per-measure beats-per-measure)]
-    (float ms-per-beat)))
+  (let [reduced-track (reduce-track track)
+        norm-beats-per-measure (get-normalized-beats-per-measure reduced-track)
+        beats-per-measure (get-beats-per-measure reduced-track)
+        divisor (/ norm-beats-per-measure beats-per-measure)
+        tempo (get-tempo reduced-track)
+        ms-per-beat (* (/ 60 tempo) 1000)
+        norm-ms-per-beat (/ ms-per-beat divisor)]
+    (float norm-ms-per-beat)))
+
+; (defn get-ms-per-beat
+;   "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
+;    Mostly exists to make parsing easier for the high-level interpreter / player"
+;   [track]
+;   (let [beats-per-measure (get-normalized-beats-per-measure track)
+;         total-measures (get-total-beats track)
+;         total-measures-denom (if (= 0 total-measures) 1 total-measures) ; avoids divide by 0 when denominator
+;         total-duration-ms (get-total-duration track :milliseconds)
+;         ms-per-measure (/ total-duration-ms total-measures-denom)
+;         ms-per-beat (/ ms-per-measure beats-per-measure)]
+;     (float ms-per-beat)))
 
 ; FIXME: one thing this should do differently is append the result of the original track definition,
 ; that way variables and such are retained properly. otherwise this works great.

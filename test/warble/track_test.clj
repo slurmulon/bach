@@ -197,6 +197,7 @@
               want 1/4]
           (is (= (:lowest-beat (provision-headers tree)) want)))))))
 
+; TODO: test with nested pair ([1 -> [Note('C'), Note('B')])
 (deftest compilation
   (testing "basic"
     (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]] [:statement [:play [:identifier ":ABC"]]]]
