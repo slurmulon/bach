@@ -4,11 +4,33 @@
 
 ---
 
+[![Clojars Project](https://img.shields.io/clojars/v/warble.svg)](https://clojars.org/warble)
+
 `warble` aims to establish a pragmatic and intuitive interface for representing musical loops and tracks. It assumes little about the interpreter and is founded upon traditional music theory concepts.
 
 It is a very new project and is looking for contributors and ideas. If you would like to contribute, feel free to message me@madhax.io.
 
 In the meantime please give the proposal a read and see if it piques your interest!
+
+## Install
+
+### Leinengen/Boot
+
+`[warble "0.1.0-SNAPSHOT"]`
+
+### Gradle
+
+`compile "warble:warble:0.1.0-SNAPSHOT"`
+
+### Maven
+
+```
+<dependency>
+  <groupId>warble</groupId>
+  <artifactId>warble</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
 
 ## Proposal
 
