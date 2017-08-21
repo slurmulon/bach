@@ -4,4 +4,4 @@
 (defn -main
   "Warble"
   [& args]
-  (println "Lexer and parser"))
+  (println "[warble] lexer and parser. start by importing the warble/lexer and warble/track modules into your namespace"))
