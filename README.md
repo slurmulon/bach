@@ -151,10 +151,10 @@ Colors are useful for succesfully expressing a variety of data to the user at on
 
 ```
 :ABC = [
-  1 -> [
+  1 -> {
     Scale('C2min',  #6CB359),
     Chord('D2min7', #AA5585)
-  ],
+  },
   1 -> Chord('G2Maj7', #D48B6A),
   2 -> Chord('C2Maj7', #FFDCAA)
 ]
