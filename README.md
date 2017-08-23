@@ -98,7 +98,7 @@ Multiple notes can be grouped together by hugging them in brackets `[ ]` and sep
 ]
 ```
 
-Elements may also be implicit, specified using a backtick or a pound:
+As a convenience, elements may also be implicit, specified using either a backtick or a pound:
 
 ```
 :Note  = `('C2')
@@ -157,8 +157,6 @@ Only the loops which are exported with the `!Play <identifier|element>` construc
 ```
 !Play :DasLoop
 ```
-
-Only one element may be exported per track. Try to think of it as a `main` function, the entry point of the track.
 
 ### Cadences
 
@@ -224,10 +222,10 @@ You can think of `Play` as your main method or default export.
 ```
 :Song = [1 -> Chord('C2Maj7'), 1 -> Chord('A2Maj7')]
 
-Play :Song
+!Play :Song
 ```
 
-Only one `Play` definition is allowed per track file.
+Only one `!Play` definition is allowed per track file.
 
 ## Documentation
 
@@ -237,7 +235,7 @@ Only one `Play` definition is allowed per track file.
  - `Scale` = Scale in scientific notation
  - `Chord` = Chord in scientific notation
  - `~` = Rest
- - `#` = Implicit (determines if it's scale, chord or note based on the notation itself)
+ - `#` = Implicit (the interpreter determines if it's scale, chord or note based on the notation itself)
  - `[]` = List (sequential / ordered)
  - `{}` = Set (parallel / unordered)
 
@@ -264,7 +262,6 @@ Only one `Play` definition is allowed per track file.
   (:require [warble.lexer :as lexer]))
 
 (lexer/parse ":Foo = []")
-
 ```
 
 ## Roadmap
