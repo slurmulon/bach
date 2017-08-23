@@ -259,9 +259,11 @@ Only one `!Play` definition is allowed per track file.
 
 ```clojure
 (ns my.namespace
-  (:require [warble.lexer :as lexer]))
+  (:require [warble.lexer :as lexer]
+            [warble.track :refer [compile-track]]))
 
-(lexer/parse ":Foo = []")
+; parses and compiles raw warble data into an interpretable hash-map
+(compile-track (lexer/parse ":Foo = []"))
 ```
 
 ## Roadmap
