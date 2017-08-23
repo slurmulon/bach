@@ -79,7 +79,7 @@ is the same as
 [Note('C2'), Note('F2')]
 ```
 
-All `Elements` must be instantiated in a `Beat` tuple (or implicitly marshalled into one), and the first parameter of every `Element` is a [`teoria`](https://github.com/saebekassebil/teoria)-supported string-like (surrounded with `'` or `"`) identifier such as `'C2'`, which is a second octave `C` note.
+All `Elements` must be instantiated in a `Beat` tuple (or implicitly converted into one), and the first parameter of every `Element` is a [`teoria`](https://github.com/saebekassebil/teoria)-supported string-like (surrounded with `'` or `"`) identifier such as `'C2'`, which is a second octave `C` note.
 
 `Beats` may be written where the left hand side represents the duration of the beat and the right hand side of `+` represents the additional number of beats to play for:
 
@@ -265,6 +265,10 @@ Only one `!Play` definition is allowed per track file.
 ; parses and compiles raw warble data into an interpretable hash-map
 (compile-track (lexer/parse ":Foo = []"))
 ```
+
+## Related
+
+[`juke`](https://github.com/slurmulon/juke) is the official JavaScript Warble interpreter library
 
 ## Roadmap
 
