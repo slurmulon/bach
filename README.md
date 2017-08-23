@@ -98,6 +98,24 @@ Multiple notes can be grouped together by hugging them in brackets `[ ]` and sep
 ]
 ```
 
+Elements may also be implicit, specified using a backtick or a pound:
+
+```
+:Note  = `('C2')
+:Chord = `('C2Maj7')
+:Scale = `('C2 Minor')
+```
+
+or
+
+```
+:Note  = #('C2')
+:Chord = #('C2Maj7')
+:Scale = #('C2 Minor')
+```
+
+Determining the value of implicit elements is the responsibility of the warble interpreter.
+
 ---
 
 `Elements` can also overlap the same `Beat` and will be played concurrently using sets (`{}`) (TODO: example)
@@ -134,19 +152,19 @@ Multiple `Elements` may be played on a single beat:
 ]
 ```
 
-Only the loops which are exported with the `Play` construct will end up being processed by the interpreter:
+Only the loops which are exported with the `!Play <identifier|element>` construct will end up being processed by the interpreter:
 
 ```
-Play :DasLoop
+!Play :DasLoop
 ```
+
+Only one element may be exported per track. Try to think of it as a `main` function, the entry point of the track.
 
 ### Cadences
 
 In music it's common to see cadence sections labeled as `A`, `B`, `C`, and so on. warble's syntax favors this nicely:
 
 ```
-Scale('C2 Major')
-
 :A = Chord('F2maj')
 :B = Chord('G2maj')
 :C = Chord('C2maj')
@@ -158,7 +176,7 @@ Scale('C2 Major')
   1 -> :A
 ]
 
-Play :Song
+!Play :Song
 ```
 
 Destructured list assignments will soon be supported and will also favor cadences (**currently unsupported**):
