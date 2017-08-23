@@ -12,7 +12,7 @@
     {:list (fn [& [:as all]] all)
      :atom (fn [& [:as all]] {:atom (apply merge all)})
      :arguments (fn [& [:as all]] {:arguments (vec all)})
-     :header (fn [& [:as all]] {:header (apply merge all)}) ; TODO: try out (apply cons all) instead
+     :header (fn [& [:as all]] {:header (apply merge all)})
      :meta (fn [el] {:meta el})
      :init (fn [el] {:init el})
      :keyword (fn [el] {:keyword el})
