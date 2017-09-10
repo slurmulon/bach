@@ -57,6 +57,8 @@ N   = N measures or whole notes
 1/2 = Half note
 1/4 = Quarter note
 1/8 = Eight note
+...
+1/256
 ```
 
 For instance, a loop playing a `Note(C2)` for an entire measure, starting at the first beat, would be specified like so:
@@ -241,11 +243,14 @@ Only one `!Play` definition is allowed per track file.
 
 ### Headers
 
+ - `Audio` (url)
  - `Instrument` (string, arbitrary)
  - `Title` (string, arbitrary)
+ - `Desc` (string, arbitrary)
  - `Tempo` (integer, beats per minute)
  - `Time` (ratio, time signature. ex: 4/4)
  - `Tags` (list or set of strings, arbitrary)
+ - `Link` (url)
 
 ## Setup
 
