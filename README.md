@@ -6,11 +6,23 @@
 
 [![Clojars Project](https://img.shields.io/clojars/v/warble.svg)](https://clojars.org/warble)
 
-`warble` aims to establish a pragmatic and intuitive interface for representing musical loops and tracks. It assumes little about the interpreter and is founded upon traditional music theory concepts.
+`warble` aims to establish a pragmatic, intuitive and highly readable syntax for representing musical loops and tracks.
 
-It is a very new project and is looking for contributors and ideas. If you would like to contribute, feel free to message me@madhax.io.
+It assumes little about its interpreter and is founded upon traditional music theory concepts.
 
-In the meantime please give the proposal a read and see if it piques your interest!
+The syntax will feel very familiar to developers who use dynamically typed languages.
+
+Of course, it is intuitive and easy to write for non-technical people as well!
+
+## Goals
+
+- Adhere to traditional music theory concepts
+- Low barrier of entry to learn (highly productive)
+- Simple, composable and scalable constructs
+- Trivial to interpret compiled output. Writing `warble` engines should be easy!
+- Allow for alternative representations of music (i.e. visual instead of just audio)
+- Seamless syncronization with associated audio tracks by minimizing the complexities around timing
+- Keep things DRY
 
 ## Install
 
@@ -102,7 +114,11 @@ Multiple notes can be grouped together by hugging them in brackets `[ ]` and sep
 ]
 ```
 
-As a convenience, elements may also be implicit, specified using `#`:
+You may also use `-`, `*` and `/`, although these operators, especially multiply and divide, are experimental and require more testing.
+
+---
+
+As a convenience, `Elements` may also be implicit, specified using `#`:
 
 ```
 :Note  = #('C2')
@@ -110,7 +126,7 @@ As a convenience, elements may also be implicit, specified using `#`:
 :Scale = #('C2 Minor')
 ```
 
-Determining the value of implicit elements is the responsibility of the `warble` interpreter.
+Determining the value of implicit `Elements` is the responsibility of the `warble` interpreter.
 
 ---
 
