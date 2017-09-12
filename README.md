@@ -36,21 +36,23 @@ In the meantime please give the proposal a read and see if it piques your intere
 
 A more formal proposal will eventually be written, but for now this is the canonical source of documentation and ideas.
 
-An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/grammar.bnf).
+An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/resources/grammar.bnf).
 
 ### Beats
 
-`Loops` (or bars) are simply nestable collections of either `Chords`, `Scales`, `Notes`, Rests (`~`), or other loops (`[]` or `{}`). For the sake of brevity, these will be combinationally referred to as `Elements` in this proposal and in the source code.
+`Loops` (or bars) are simply nestable collections of either `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Loops`.
+
+For the sake of brevity, these will be combinationally referred to as `Elements` in this proposal and potentially in the source code.
 
 The `Beat` at which any `Element` is played for (AKA its duration) is specified via the tuple-like `->` in a list (`[]`) or set (`{}`).
 
-Beat tuples defined in lists will be played sequentially in the natural order and will not overlap.
-Beat tuples defined in sets will be played in parallel and will overlap.
+`Beat` tuples defined in lists will be played sequentially in the natural order and will not overlap.
+`Beat` tuples defined in sets will be played in parallel and will overlap.
 
 More formally:
 
 ```
-[<duration> -> <set|list|element>]
+[<duration> -> <list|set|element>]
 
 N   = N measures or whole notes
 1   = Whole note (one entire measure)
@@ -58,7 +60,7 @@ N   = N measures or whole notes
 1/4 = Quarter note
 1/8 = Eight note
 ...
-1/256
+1/512
 ```
 
 For instance, a loop playing a `Note(C2)` for an entire measure, starting at the first beat, would be specified like so:
@@ -100,15 +102,7 @@ Multiple notes can be grouped together by hugging them in brackets `[ ]` and sep
 ]
 ```
 
-As a convenience, elements may also be implicit, specified using either a backtick or a pound:
-
-```
-:Note  = `('C2')
-:Chord = `('C2Maj7')
-:Scale = `('C2 Minor')
-```
-
-or
+As a convenience, elements may also be implicit, specified using `#`:
 
 ```
 :Note  = #('C2')
@@ -116,7 +110,7 @@ or
 :Scale = #('C2 Minor')
 ```
 
-Determining the value of implicit elements is the responsibility of the warble interpreter.
+Determining the value of implicit elements is the responsibility of the `warble` interpreter.
 
 ---
 
@@ -124,8 +118,7 @@ Determining the value of implicit elements is the responsibility of the warble i
 
 ### Loops
 
-
-To assign a loop a unique name, prefix the name with the `:` operator:
+To assign a `Loop` a unique name, prefix the name with the `:` operator:
 
 ```
 :DasLoop = [1 -> Note('C2'), 1 -> Note('E2')]
@@ -143,14 +136,16 @@ Once assigned a name, any `Element` may be dynamically referenced in other loops
 :Ordered = [:First, :Second, :Third]
 ```
 
-Multiple `Elements` may be played on a single beat:
+Multiple `Elements` may be played on a single beat.
+
+This example uses a nested set (`{}`). This means that the `Chord` and `Note` will be played simultaneously rather than sequentially:
 
 ```
 :DasLoop = [
-  1 -> [
+  1 -> {
     Chord('D2min'),
     Note('C2')
-  ]
+  }
 ]
 ```
 
@@ -162,7 +157,7 @@ Only the loops which are exported with the `!Play <identifier|element>` construc
 
 ### Cadences
 
-In music it's common to see cadence sections labeled as `A`, `B`, `C`, and so on. warble's syntax favors this nicely:
+In music it's common to see cadence sections labeled as `A`, `B`, `C`, and so on. `warble`'s syntax favors this nicely:
 
 ```
 :A = Chord('F2maj')
@@ -182,7 +177,7 @@ In music it's common to see cadence sections labeled as `A`, `B`, `C`, and so on
 Destructured list assignments will soon be supported and will also favor cadences (**currently unsupported**):
 
 ```
-[A, B, C, D] = [Chord('E7'), Chord('Emin7'), Chord('Cmaj7'), Chord('Dmaj7')]
+:[A, B, C, D] = [Chord('E7'), Chord('Emin7'), Chord('Cmaj7'), Chord('Dmaj7')]
 ```
 
 ### Color Labeling
@@ -217,7 +212,9 @@ Optional meta information about the track (aka "headers"), including the tempo a
 
 ### Play
 
-Because Warble supports referencing with variables, it requires a mechanism for specifying which list of measures should be used for playing the track.
+Because `warble` supports references, it requires a mechanism for specifying which list of measures or `Loops` should be used for playing the track.
+
+In other words, you need to tell it which values should be made available to the `warble` interpreter.
 
 You can think of `Play` as your main method or default export.
 
@@ -279,8 +276,9 @@ Only one `!Play` definition is allowed per track file.
 
  - [ ] Write technical specfiication
  - [ ] Destructured list assignments
+ - [ ] Allow user to define sections of a track that should loop forever (`!Loop`)
  - [X] General work towards making the tracks iterable in a normalized fashion
  - [ ] Allow track linking with Hypermedia
- - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress
+ - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress, or specify areas to loop
  - [ ] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
  - [ ] Note fitness / quality data (i.e. how well it fits a given scale or chord in the current context)
