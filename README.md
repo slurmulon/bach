@@ -21,7 +21,7 @@ Of course, it is intuitive and easy to write for non-technical people as well!
 - Simple, composable and scalable constructs
 - Trivial to interpret compiled output. Writing `warble` engines should be easy!
 - Allow for alternative representations of music (i.e. visual instead of just audio)
-- Seamless syncronization with associated audio tracks by minimizing the complexities around timing
+- Seamless synchronization with associated audio tracks by minimizing the complexities around timing
 - Keep things DRY
 
 ## Install
