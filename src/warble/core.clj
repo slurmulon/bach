@@ -1,7 +1,7 @@
 (ns warble.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as string]
-            [warble.lexer :as ast]
+            [warble.ast :as ast]
             [warble.track :refer [compile-track]]
             [warble.translate :refer [to-json]])
   (:gen-class))

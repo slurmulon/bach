@@ -1,6 +1,5 @@
 (ns warble.track-test
   (:require [clojure.test :refer :all]
-            [warble.lexer :refer :all]
             [warble.track :refer :all]))
 
 (deftest defaults

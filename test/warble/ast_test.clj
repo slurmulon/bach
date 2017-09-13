@@ -1,6 +1,6 @@
-(ns warble.lexer-test
+(ns warble.ast-test
   (:require [clojure.test :refer :all]
-            [warble.lexer :refer :all]
+            [warble.ast :refer :all]
             [instaparse.core :as insta]))
 
 (deftest variables

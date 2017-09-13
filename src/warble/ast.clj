@@ -1,4 +1,4 @@
-(ns warble.lexer
+(ns warble.ast
   (:require [instaparse.core :as insta]
             [clojure.java.io :as io]))
 
