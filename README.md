@@ -275,13 +275,36 @@ Only one `!Play` definition is allowed per track file.
 
 ## Usage
 
+### CLI
+
+First be sure that you have a binary executable (requires `lein` to be installed) available on your `PATH`:
+
+```sh
+$ cd warble
+$ lein bin
+```
+
+Then you can just execute the resulting binary like so:
+
+```sh
+$ target/warble -i /path/to/track.warb compile
+```
+
+Currently supports the following actions:
+
+- `parse`: creates an Abstract Syntax Tree (AST) from vanilla `warble` data
+- `compile`: parses and compiles vanilla `warble` data into `warble.json`, an intermediary JSON micro-format that allows for simple interpretation of tracks
+- `help`
+
+### Library
+
 ```clojure
 (ns my.namespace
-  (:require [warble.lexer :as lexer]
+  (:require [warble.lexer :as ast]
             [warble.track :refer [compile-track]]))
 
 ; parses and compiles raw warble data into an interpretable hash-map
-(compile-track (lexer/parse ":Foo = []"))
+(compile-track (ast/parse ":Foo = []"))
 ```
 
 ## Related
