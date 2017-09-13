@@ -9,4 +9,5 @@
                  [instaparse "1.4.3"]]
   :main ^:skip-aot warble.core
   :target-path "target/%s"
+  :plugins [[lein-bin "0.3.5"]]
   :profiles {:uberjar {:aot :all}})
