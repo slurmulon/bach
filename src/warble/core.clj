@@ -7,7 +7,7 @@
   (:gen-class))
 
 (def cli-options
-  [["-i" "--input FILE" "The file to use as input"
+  [["-i" "--input DATA" "The warble data to use as input"
     :id :input
     :default ""]
    ["-h" "--help"]])
