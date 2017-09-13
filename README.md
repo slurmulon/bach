@@ -300,7 +300,7 @@ Currently supports the following actions:
 
 ```clojure
 (ns my.namespace
-  (:require [warble.lexer :as ast]
+  (:require [warble.ast :as ast]
             [warble.track :refer [compile-track]]))
 
 ; parses and compiles raw warble data into an interpretable hash-map
