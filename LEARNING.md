@@ -16,3 +16,8 @@
  - https://github.com/Engelberg/instaparse/issues/109
  - https://gist.github.com/Jared314/5606912
  - https://github.com/Engelberg/instaparse#output-format (use the :enlive format)
+
+## CLI
+
+ - https://yobriefca.se/blog/2014/03/02/building-command-line-apps-with-clojure/
+ - http://markwoodhall.com/26-06-2014-command-line-applications-in-clojure/
