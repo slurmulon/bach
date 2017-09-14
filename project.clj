@@ -1,4 +1,4 @@
-(defproject warble "0.2.0"
+(defproject warble "0.2.0-SNAPSHOT"
   :description "Notation for musical loops and tracks with a focus on readability and productivity"
   :url "https://github.com/slurmulon/warble"
   :license {:name "MIT"
