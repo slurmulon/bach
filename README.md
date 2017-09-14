@@ -296,9 +296,11 @@ Currently supports the following actions:
 ## Roadmap
 
  - [ ] Write technical specfiication
- - [ ] Destructured list assignments
- - [ ] Allow user to define sections of a track that should loop forever (`!Loop`)
+ - [ ] Semantic `ref` values for any `Element`
  - [X] General work towards making the tracks iterable in a normalized fashion
+ - [ ] Destructured list assignments
+ - [ ] Application of collection variables (i.e. dereference and flatten value into surrounding list)
+ - [ ] Allow user to define sections of a track that should loop forever (`!Loop`)
  - [ ] Allow track linking with Hypermedia
  - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress, or specify areas to loop
  - [ ] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
