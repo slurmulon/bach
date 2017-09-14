@@ -310,6 +310,7 @@ Currently supports the following actions:
 ## Related
 
 - [`warble-json-schema`](https://github.com/slurmulon/warble-json-schema) contains the official JSON Schema definition for the `warble.json` format
+- [`warble-rest-api`](https://github.com/slurmulon/warble-rest-api) is a RESTful HTTP service that allows compilation of `warble` tracks into `warble.json`
 - [`juke`](https://github.com/slurmulon/juke) is the official NodeJS `warble` interpreter library
 
 ## Roadmap
