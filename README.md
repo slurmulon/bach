@@ -28,11 +28,11 @@ Of course, it is intuitive and easy to write for non-technical people as well!
 
 ### Leinengen/Boot
 
-`[warble "0.1.0-SNAPSHOT"]`
+`[warble "0.2.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "warble:warble:0.1.0-SNAPSHOT"`
+`compile "warble:warble:0.2.0-SNAPSHOT"`
 
 ### Maven
 
@@ -40,7 +40,7 @@ Of course, it is intuitive and easy to write for non-technical people as well!
 <dependency>
   <groupId>warble</groupId>
   <artifactId>warble</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.2.0-SNAPSHOT</version>
 </dependency>
 ```
 
