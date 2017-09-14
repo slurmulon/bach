@@ -309,7 +309,8 @@ Currently supports the following actions:
 
 ## Related
 
-[`juke`](https://github.com/slurmulon/juke) is the official JavaScript Warble interpreter library
+- [`warble-json-schema`](https://github.com/slurmulon/warble-json-schema) contains the official JSON Schema definition for the `warble.json` format
+- [`juke`](https://github.com/slurmulon/juke) is the official NodeJS `warble` interpreter library
 
 ## Roadmap
 
