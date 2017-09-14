@@ -52,7 +52,7 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 
 ### Beats
 
-`Loops` (or bars) are simply nestable collections of either `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Loops`.
+`Loops` are simply nestable collections of either `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Loops`.
 
 For the sake of brevity, these will be combinationally referred to as `Elements` in this proposal and potentially in the source code.
 
@@ -65,17 +65,21 @@ More formally:
 
 ```
 [<duration> -> <list|set|element>]
+```
 
+Where `<duration>` can be:
+
+```
 N   = N measures or whole notes
 1   = Whole note (one entire measure)
 1/2 = Half note
 1/4 = Quarter note
-1/8 = Eight note
+1/8 = Eighth note
 ...
 1/512
 ```
 
-For instance, a loop playing a `Note(C2)` for an entire measure, starting at the first beat, would be specified like so:
+For instance, a `Loop` playing a `Note('C2')` for an entire measure, starting at the first beat, would be specified like so:
 
 ```
 1 -> Note('C2')
@@ -132,43 +136,18 @@ Determining the value of implicit `Elements` is the responsibility of the `warbl
 
 `Elements` can also overlap the same `Beat` and will be played concurrently using sets (`{}`) (TODO: example)
 
-### Loops
+### Variables
 
-To assign a `Loop` a unique name, prefix the name with the `:` operator:
+To assign an variable, prefix a unique name with the `:` operator and provide a value (`<element|list|set>`):
 
 ```
 :DasLoop = [1 -> Note('C2'), 1 -> Note('E2')]
 ```
 
-Once assigned a name, any `Element` may be dynamically referenced in other loops:
+Once assigned a name, variables may be dynamically referenced anywhere else in the track:
 
 ```
-:CoolLooop = [:DasLoop]
-```
-
-`Elements` in collections will be played in sequential order:
-
-```
-:Ordered = [:First, :Second, :Third]
-```
-
-Multiple `Elements` may be played on a single beat.
-
-This example uses a nested set (`{}`). This means that the `Chord` and `Note` will be played simultaneously rather than sequentially:
-
-```
-:DasLoop = [
-  1 -> {
-    Chord('D2min'),
-    Note('C2')
-  }
-]
-```
-
-Only the loops which are exported with the `!Play <identifier|element>` construct will end up being processed by the interpreter:
-
-```
-!Play :DasLoop
+:CoolLooop = :DasLoop
 ```
 
 ### Cadences
@@ -228,16 +207,15 @@ Optional meta information about the track (aka "headers"), including the tempo a
 
 ### Play
 
-Because `warble` supports references, it requires a mechanism for specifying which list of measures or `Loops` should be used for playing the track.
+Because `warble` supports references, it requires a mechanism for specifying which data should be used for playing the track. You can think of `Play` as your main method or default export.
 
-In other words, you need to tell it which values should be made available to the `warble` interpreter.
-
-You can think of `Play` as your main method or default export.
+In other words, you need to tell it which values should be made available to the `warble` interpreter. Any `Elements` that aren't being referenced or used will be **ignored** during compilation.
 
 ```
-:Song = [1 -> Chord('C2Maj7'), 1 -> Chord('A2Maj7')]
+:Ignored  = [1 -> Chord('D2min6'), 1 -> Chord('A2min9')]
+:Utilized = [1 -> Chord('C2Maj7'), 1 -> Chord('A2Maj7')]
 
-!Play :Song
+!Play :Utilized
 ```
 
 Only one `!Play` definition is allowed per track file.
