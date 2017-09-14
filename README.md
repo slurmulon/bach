@@ -209,7 +209,9 @@ Optional meta information about the track (aka "headers"), including the tempo a
 
 Because `warble` supports references, it requires a mechanism for specifying which data should be used for playing the track. You can think of `Play` as your main method or default export.
 
-In other words, you need to tell it which values should be made available to the `warble` interpreter. Any `Elements` that aren't being referenced or used will be **ignored** during compilation.
+In other words, you need to tell it which values should be made available to the `warble` interpreter.
+
+Any `Elements` that aren't being referenced or used by the value exported with `!Play` will be **ignored** during compilation.
 
 ```
 :Ignored  = [1 -> Chord('D2min6'), 1 -> Chord('A2min9')]
