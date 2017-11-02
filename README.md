@@ -305,3 +305,6 @@ Currently supports the following actions:
  - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress, or specify areas to loop
  - [ ] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
  - [ ] Note fitness / quality data (i.e. how well it fits a given scale or chord in the current context)
+ - [ ] Support arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
+ - [ ] Support chord voicings/inversions (i.e. `Chord('C2maj7', inversion=1)`)
+ - [ ] Support traids (root, 1st, 2nd)
