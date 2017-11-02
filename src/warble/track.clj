@@ -1,18 +1,21 @@
 (ns warble.track
   (:require [instaparse.core :as insta]
-            [warble.translate :refer [hiccup-to-hash-map]]))
+            [warble.translate :refer [hiccup-to-hash-map ratio-to-vector]]))
 
 (defstruct compiled-track :headers :data)
 
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
-(def default-headers {:title "Untitled"
-                      :tempo default-tempo
+(def default-headers {:tempo default-tempo
                       :time default-time-signature
                       :total-beats 0
                       :ms-per-beat 0
                       :lowest-beat [1 4]
+                      :title "Untitled"
+                      :audio ""
+                      :desc ""
+                      :link ""
                       :tags []})
 
 (def powers-of-two (iterate (partial * 2) 1))
@@ -116,7 +119,7 @@
     (insta/transform
       {:header (fn [kind-token value]
                  (let [kind (last kind-token)
-                       header-key (keyword (clojure.string/lower-case kind))] ; TODO: figure out why destructuring doesn't work here ([& kind] kind-token)
+                       header-key (keyword (clojure.string/lower-case kind))]
                     (swap! headers assoc header-key value)))}
       reduced-track)
     @headers))
@@ -133,13 +136,15 @@
       track)
     @result))
 
+(defn get-time-signature
+  [track]
+  (let [reduced-track (reduce-values track)
+        header (find-header reduced-track "Time" default-time-signature)]
+    (ratio-to-vector header)))
+
 (defn get-tempo
   [track]
   (find-header track "Tempo" default-tempo))
-
-(defn get-time-signature
-  [track]
-  (find-header track "Time" default-time-signature))
 
 (defn get-tags
   [track]
@@ -293,10 +298,12 @@
   "Combines default static meta information with dynamic meta information to provide a provisioned set of headers"
   [track]
   (let [headers (get-headers track)
+        time-sig (get-time-signature track)
         total-beats (get-total-beats track)
         ms-per-beat (get-ms-per-beat track)
         lowest-beat (get-lowest-beat track)]
-    (assoc headers :total-beats total-beats,
+    (assoc headers :time time-sig,
+                   :total-beats total-beats,
                    :ms-per-beat ms-per-beat,
                    :lowest-beat lowest-beat)))
 
