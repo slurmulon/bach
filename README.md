@@ -181,18 +181,18 @@ Arbitrary attributes may be associated with `Elements` using the `<key>: <value>
 
 For instance, colors are useful for succesfully expressing a variety of data to the user at once.
 
+You might also want to specify the specific voicing of a chord.
+
 ```
 :ABC = [
   1 -> {
     Scale('C2min',  color: #6CB359)
-    Chord('D2min7', color: #AA5585)
+    Chord('D2min7', color: #AA5585, voicing: 1)
   },
-  1 -> Chord('G2Maj7', color: #D48B6A)
-  2 -> Chord('C2Maj7', color: #FFDCAA)
+  1 -> Chord('G2Maj7', color: #D48B6A, voicing: 2)
+  2 -> Chord('C2Maj7', color: #FFDCAA, voicing: 2)
 ]
 ```
-
-Color values must be hexadecimal (no `red`, `blue`, etc. for now).
 
 ### Meta
 
