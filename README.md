@@ -22,7 +22,7 @@ Of course, it is intuitive and easy to write for non-technical people as well!
 - Trivial to interpret compiled output. Writing `warble` engines should be easy!
 - Allow for alternative representations of music (i.e. visual instead of just audio)
 - Seamless synchronization with associated audio tracks by minimizing the complexities around timing
-- Keep things DRY
+- Keep your definitions DRY
 
 ## Install
 
@@ -235,6 +235,8 @@ Only one `!Play` definition is allowed per track file.
  - `Note` = Single note in scientific notation
  - `Scale` = Scale in scientific notation
  - `Chord` = Chord in scientific notation
+ - `Mode` = Mode in scientific notation
+ - `Triad` = Triad of notes in scientific notation
  - `~` = Rest
  - `#` = Implicit (the interpreter determines if it's scale, chord or note based on the notation itself)
  - `[]` = List (sequential / ordered)
