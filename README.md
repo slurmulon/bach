@@ -160,8 +160,8 @@ In music it's common to see cadence sections labeled as `A`, `B`, `C`, and so on
 :C = Chord('C2maj')
 
 :Song = [
-  1 -> :A,
-  1 -> :B,
+  1 -> :A
+  1 -> :B
   1 -> :C
   1 -> :A
 ]
@@ -175,22 +175,24 @@ Destructured list assignments will soon be supported and will also favor cadence
 :[A, B, C, D] = [Chord('E7'), Chord('Emin7'), Chord('Cmaj7'), Chord('Dmaj7')]
 ```
 
-### Color Labeling
+### Attributes
 
-Colors are useful for succesfully expressing a variety of data to the user at once:
+Arbitrary attributes may be associated with `Elements` using the `<key>: <value>` syntax.
+
+For instance, colors are useful for succesfully expressing a variety of data to the user at once.
+
+You might also want to specify the specific voicing of a chord.
 
 ```
 :ABC = [
   1 -> {
-    Scale('C2min',  #6CB359),
-    Chord('D2min7', #AA5585)
+    Scale('C2min',  color: #6CB359)
+    Chord('D2min7', color: #AA5585, voicing: 1)
   },
-  1 -> Chord('G2Maj7', #D48B6A),
-  2 -> Chord('C2Maj7', #FFDCAA)
+  1 -> Chord('G2Maj7', color: #D48B6A, voicing: 2)
+  2 -> Chord('C2Maj7', color: #FFDCAA, voicing: 2)
 ]
 ```
-
-Color values must be hexadecimal (no `red`, `blue`, etc. for now).
 
 ### Meta
 
@@ -202,7 +204,11 @@ Optional meta information about the track (aka "headers"), including the tempo a
 @Tempo = 90
 @Tags  = ['test', 'lullaby']
 
-:ABC = [1/2 -> Chord('D2Mmin7'), 1/2 -> Chord('G2Min7'), 1 -> Chord('C2Maj7')]
+:ABC = [
+  1/2 -> Chord('D2Mmin7')
+  1/2 -> Chord('G2Min7')
+  1 -> Chord('C2Maj7')
+]
 ```
 
 ### Play

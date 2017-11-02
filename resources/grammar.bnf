@@ -12,8 +12,9 @@ list       = [<empty>] <'['> [elem (<','|empty> elem)* [<','>]] <']'> [<empty>]
 pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> elem
 header     = meta <'='> elem
+attribute  = word [<empty>] <':'> [<empty>] prim
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
-arguments  = ((identifier | string | color | add-sub) [<empty> <','> <empty>])*
+arguments  = ((identifier | string | attribute | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
 meta       = [<empty>] <'@'> #'(Audio|Instrument|Time|Tempo|Key|Delay|Link|Title|Desc|Tags)' [<empty>]
 keyword    = [<empty>] #'(`|~|Note|Scale|Chord|Mode|Triad)' [<empty>]
