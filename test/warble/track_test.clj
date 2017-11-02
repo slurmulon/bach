@@ -12,9 +12,9 @@
 
 ; TODO: change the values from strings to keywords, naturally supported in clojure. derp.
 (deftest validatation
-  ; (testing "assignment"
-  ;   (let [tree [:track [:statement [:assign [:identifier ":Test"] [:number "1"]]]]]
-  ;     (is (= (validate tree) true))))
+  (testing "assignment"
+    (let [tree [:track [:statement [:assign [:identifier ":Test"] [:number "1"]]]]]
+      (is (= (validate tree) true))))
   (testing "identifier (valid, known variable)"
     (let [tree [:track [:statement [:assign [:identifier ":A"] [:number "1"]]]
                        [:statement [:assign [:identifier ":B"] [:identifier ":A"]]]]]
@@ -184,20 +184,20 @@
       ;   (is (= (:tempo (provision-headers tree)) want)))
       (let [tree [:track [:statement [:header [:meta "Time"] [:div [:number "3"] [:number "4"]]]]]
             want [3 4]]
-        (is (= (:time (provision-headers tree)) want))))))
-    ; (testing "dynamic"
-    ;   (testing "total beats"
-    ;     (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:list]] [:pair [:number "3"] [:list]]]]]]
-    ;           want 4]
-    ;       (is (= (:total-beats (provision-headers tree)) want))))
-    ;   (testing "ms per beat"
-    ;     (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:list]] [:pair [:number "3"] [:list]]]]]]
-    ;           want 2000.0]
-    ;       (is (= (:ms-per-beat (provision-headers tree)) want))))
-    ;   (testing "lowest beat"
-    ;     (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:number "1"] [:list]]]]]]
-    ;           want 1/4]
-    ;       (is (= (:lowest-beat (provision-headers tree)) want)))))))
+        (is (= (:time (provision-headers tree)) want)))))
+    (testing "dynamic"
+      (testing "total beats"
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:list]] [:pair [:number "3"] [:list]]]]]]
+              want 4]
+          (is (= (:total-beats (provision-headers tree)) want)))))
+      (testing "ms per beat"
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:list]] [:pair [:number "3"] [:list]]]]]]
+              want 2000.0]
+          (is (= (:ms-per-beat (provision-headers tree)) want))))
+      (testing "lowest beat"
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:number "1"] [:list]]]]]]
+              want 1/4]
+          (is (= (:lowest-beat (provision-headers tree)) want)))))
 
 ; TODO: test with nested pair ([1 -> [Note('C'), Note('B')])
 (deftest compilation
