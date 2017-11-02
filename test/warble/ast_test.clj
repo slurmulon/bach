@@ -71,5 +71,5 @@
     (let [want [:track [:statement [:atom [:keyword "Scale"] [:init [:arguments [:string "'C2 Major'"]]]]]]]
       (is (= (parse "Scale('C2 Major')") want))))
   (testing "multiple arguments"
-    (let [want [:track [:statement [:atom [:keyword "Scale"] [:init [:arguments [:string "'C2 Minor'"] [:div [:number "1"] [:number "4"]] [:color "#FF0000"]]]]]]]
-      (is (= (parse "Scale('C2 Minor', 1/4, #FF0000)") want)))))
+    (let [want [:track [:statement [:atom [:keyword "Scale"] [:init [:arguments [:string "'C2 Minor'"] [:div [:number "1"] [:number "4"]] [:attribute [:word "color"] [:color "#FF0000"]]]]]]]]
+      (is (= (parse "Scale('C2 Minor', 1/4, color: #FF0000)") want)))))
