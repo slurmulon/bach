@@ -179,7 +179,7 @@ Destructured list assignments will soon be supported and will also favor cadence
 
 Colors are useful for succesfully expressing a variety of data to the user at once.
 
-Colors are expresssed as `attributes` (i.e. `<key>: <value>`):
+Colors are expresssed as `attributes` (i.e. `<key>: <value>`), using the key `color`:
 
 ```
 :ABC = [
