@@ -175,11 +175,11 @@ Destructured list assignments will soon be supported and will also favor cadence
 :[A, B, C, D] = [Chord('E7'), Chord('Emin7'), Chord('Cmaj7'), Chord('Dmaj7')]
 ```
 
-### Color Labeling
+### Attributes
 
-Colors are useful for succesfully expressing a variety of data to the user at once.
+Arbitrary attributes may be associated with `Elements` using the `<key>: <value>` syntax.
 
-Colors are expresssed as `attributes` (i.e. `<key>: <value>`), using the key `color`:
+For instance, colors are useful for succesfully expressing a variety of data to the user at once.
 
 ```
 :ABC = [
