@@ -10,9 +10,9 @@
 
 It assumes little about its interpreter and is founded upon traditional music theory concepts.
 
-The syntax will feel very familiar to developers who use dynamically typed languages.
+The syntax will feel familiar to developers who use dynamically typed languages.
 
-Of course, it is intuitive and easy to write for non-technical people as well!
+Of course, it is intuitive to read and write for non-technical people as well!
 
 ## Goals
 
@@ -23,6 +23,16 @@ Of course, it is intuitive and easy to write for non-technical people as well!
 - Allow for alternative representations of music (i.e. visual instead of just audio)
 - Seamless synchronization with associated audio tracks by minimizing the complexities around timing
 - Keep your definitions DRY
+
+## Design
+
+`warble` is simply a notation for writing tracks that are ultimately interpreted by a `warble` **engine**.
+
+This module, by itself, can only parse and compile plaintext `warble` data into [`warble.json`](https://github.com/slurmulon/warble-json-schema).
+
+`warble.json` makes it trivial, especially for JavaScript engines, to sequentially process a `warble` music track and synchronize it in real-time with audio.
+
+warble allows people to create modules and/or applications that associate arbitrary data with music in real-time
 
 ## Install
 
@@ -44,9 +54,9 @@ Of course, it is intuitive and easy to write for non-technical people as well!
 </dependency>
 ```
 
-## Proposal
+## Notation
 
-A more formal proposal will eventually be written, but for now this is the canonical source of documentation and ideas.
+A more formal description of `warble`'s notation will eventually be written, but for now this is the canonical source of documentation.
 
 An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/resources/grammar.bnf).
 
@@ -56,7 +66,7 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 
 For the sake of brevity, these will be combinationally referred to as `Elements` in this proposal and potentially in the source code.
 
-The `Beat` at which any `Element` is played for (AKA its duration) is specified via the tuple-like `->` in a list (`[]`) or set (`{}`).
+The `Beat` at which any `Element` is played for (interpreted as its duration) is specified via the tuple-like `->` in a list (`[]`) or set (`{}`).
 
 `Beat` tuples defined in lists will be played sequentially in the natural order and will not overlap.
 `Beat` tuples defined in sets will be played in parallel and will overlap.
@@ -76,7 +86,7 @@ N   = N measures or whole notes
 1/4 = Quarter note
 1/8 = Eighth note
 ...
-1/512
+1/512 = Minimum duration
 ```
 
 For instance, a `Loop` playing a `Note('C2')` for an entire measure, starting at the first beat, would be specified like so:
@@ -177,11 +187,9 @@ Destructured list assignments will soon be supported and will also favor cadence
 
 ### Attributes
 
-Arbitrary attributes may be associated with `Elements` using the `<key>: <value>` syntax.
+Arbitrary attributes may be associated with `Elements` using the `<key>: <value>` syntax. These attributes allow you to cusotmize the representations and interpretations of your `Elements`.
 
-For instance, colors are useful for succesfully expressing a variety of data to the user at once.
-
-You might also want to specify the specific voicing of a chord.
+For instance, colors are useful for succesfully expressing a variety of data to the user at once. You might also want to specify the specific voicing of a chord.
 
 ```
 :ABC = [
@@ -313,6 +321,6 @@ Currently supports the following actions:
  - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress, or specify areas to loop
  - [ ] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
  - [ ] Note fitness / quality data (i.e. how well it fits a given scale or chord in the current context)
- - [ ] Support arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
- - [ ] Support chord voicings/inversions (i.e. `Chord('C2maj7', inversion=1)`)
- - [ ] Support traids (root, 1st, 2nd)
+ - [x] Support arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
+ - [x] Support chord voicings/inversions (i.e. `Chord('C2maj7', inversion: 1)`)
+ - [x] Support traids (root, 1st, 2nd)
