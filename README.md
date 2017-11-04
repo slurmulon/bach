@@ -32,7 +32,7 @@ This module, by itself, can only parse and compile plaintext `warble` data into 
 
 `warble.json` makes it trivial, especially for JavaScript engines, to sequentially process a `warble` music track and synchronize it in real-time with audio.
 
-warble allows people to create modules and/or applications that associate arbitrary data with music in real-time
+In general `warble` allows people to create modules and/or applications that need to associate arbitrary data with music in real-time.
 
 ## Install
 
