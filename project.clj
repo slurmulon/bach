@@ -7,7 +7,7 @@
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.cli "0.3.5"]
                  [instaparse "1.4.3"]]
-  :main ^:skip-aot warble.core
+  :main ^:skip-aot warble.cli
   :target-path "target/%s"
   :plugins [[lein-bin "0.3.5"]]
   :profiles {:uberjar {:aot :all}})
