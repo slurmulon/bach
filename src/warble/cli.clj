@@ -3,7 +3,7 @@
             [clojure.string :as string]
             [warble.ast :as ast]
             [warble.track :refer [compile-track]]
-            [warble.translate :refer [to-json]])
+            [warble.convert :refer [to-json]])
   (:gen-class))
 
 (def cli-options
