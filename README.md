@@ -8,16 +8,11 @@
 
 `warble` aims to establish a pragmatic, intuitive and highly readable syntax for representing musical loops and tracks.
 
-It assumes little about its interpreter and is founded upon traditional music theory concepts.
-
-The syntax will feel familiar to developers who use dynamically typed languages.
-
-Of course, it is intuitive to read and write for non-technical people as well!
-
 ## Goals
 
-- Adhere to traditional music theory concepts
-- Low barrier of entry to learn (highly productive)
+- Adhere to traditional Western music theory concepts
+- Small learning curve
+- Highly productive
 - Simple, composable and scalable constructs
 - Trivial to interpret compiled output. Writing `warble` engines should be easy!
 - Allow for alternative representations of music (i.e. visual instead of just audio)
@@ -26,7 +21,7 @@ Of course, it is intuitive to read and write for non-technical people as well!
 
 ## Design
 
-`warble` is simply a notation for writing tracks that are ultimately interpreted by a `warble` **engine**.
+`warble` is simply a notation for writing tracks that are ultimately interpreted by a `warble` engine.
 
 This module, by itself, can only parse and compile plaintext `warble` data into [`warble.json`](https://github.com/slurmulon/warble-json-schema).
 
