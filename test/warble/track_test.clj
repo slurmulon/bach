@@ -145,11 +145,11 @@
 
 (deftest scaled
   (testing "beats per measure"
-    (testing "3/4"
+    (testing "fully reduced ratio"
       (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]]]
             want 3]
         (is (= want (get-beats-per-measure tree)))))
-    (testing "6/8"
+    (testing "reduceable ratio (avoid reduction)"
       (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]]
             want 6]
         (is (= want (get-beats-per-measure tree)))))))
