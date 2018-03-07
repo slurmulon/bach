@@ -98,8 +98,11 @@
     (testing "eigth note"
       (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 250.0]
-        (is (= want (get-ms-per-beat tree)))))
-))
+        (is (= want (get-ms-per-beat tree))))))
+  (testing "non-default time signature"
+    (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]] [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+          want 1500.0]
+      (is (= want (get-ms-per-beat tree))))))
 
 ; (deftest lowest-beat
 ;   (testing "finds the lowest beat amongst all of the pairs"
@@ -139,6 +142,17 @@
   ;         want [:track [:statement [:assign [:identifier ":ABC"] [:list [:beat [:list [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]] [:beat []] [:beat [:atom [:keyword "Chord"] [:init [:arguments [:string "'B2Maj7'"]]]]]]]]]]
   ;     (is (= true true))))) ; FIXME/TODO
 )
+
+(deftest scaled
+  (testing "beats per measure"
+    (testing "3/4"
+      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]]]
+            want 3]
+        (is (= want (get-beats-per-measure tree)))))
+    (testing "6/8"
+      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]]
+            want 6]
+        (is (= want (get-beats-per-measure tree)))))))
 
 ; FIXME: might need to consider the surrounding :statement, :assign, :track, etc.
 ; - eh, maybe not
@@ -182,7 +196,7 @@
       ; (let [tree [:track [:statement [:header [:meta "Tempo"] [:number "90"]]]]
       ;       want 90]
       ;   (is (= (:tempo (provision-headers tree)) want)))
-      (let [tree [:track [:statement [:header [:meta "Time"] [:div [:number "3"] [:number "4"]]]]]
+      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]]]
             want [3 4]]
         (is (= (:time (provision-headers tree)) want)))))
     (testing "dynamic"

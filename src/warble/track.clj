@@ -96,11 +96,16 @@
                    [:play value-token])))}
     track))))
 
+; FIXME: remove ":div /" and replace with `identity`
 (defn reduce-values
   "Reduces any primitive values in a parsed track"
   [track]
   (insta/transform
-    {:add +, :sub -, :mul *, :div /
+    {:add +,
+     :sub -,
+     :mul *,
+     :div /,
+     :meter (fn [n d] [n d]),
      :number clojure.edn/read-string
      :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 
@@ -140,7 +145,8 @@
   [track]
   (let [reduced-track (reduce-values track)
         header (find-header reduced-track "Time" default-time-signature)]
-    (ratio-to-vector header)))
+    header))
+    ; (ratio-to-vector header)))
 
 (defn get-tempo
   [track]
@@ -190,7 +196,7 @@
   "Determines how many beats are in a measure, normalized against the lowest beat of the track"
   [track]
   (let [lowest-beat (get-lowest-beat track)]
-    (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
+    (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat))) ; FIXME: denominator is simplifying the ratio and breaking calculations (e.g. 6/8 -> 3/4)
 
 ; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
 ; to the lowest common beat found in the track
