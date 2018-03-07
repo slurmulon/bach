@@ -23,6 +23,7 @@
 - [Documentation](https://github.com/slurmulon/warble#documentation)
   * [Elements](https://github.com/slurmulon/warble#elements)
   * [Headers](https://github.com/slurmulon/warble#headers)
+  * [Operators](https://github.com/slurmulon/warble#operators)
 - [Setup](https://github.com/slurmulon/warble#setup)
 - [Testing](https://github.com/slurmulon/warble#testing)
 - [Usage](https://github.com/slurmulon/warble#usage)
