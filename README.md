@@ -13,6 +13,11 @@
 - [Goals](https://github.com/slurmulon/warble#goals)
 - [Design](https://github.com/slurmulon/warble#design)
 - [Install](https://github.com/slurmulon/warble#install)
+- [Setup](https://github.com/slurmulon/warble#setup)
+- [Testing](https://github.com/slurmulon/warble#testing)
+- [Usage](https://github.com/slurmulon/warble#usage)
+  * [CLI](https://github.com/slurmulon/warble#cli)
+  * [Library](https://github.com/slurmulon/warble#library)
 - [Notation](https://github.com/slurmulon/warble#notation)
   * [Beats](https://github.com/slurmulon/warble#beats)
   * [Variables](https://github.com/slurmulon/warble#variables)
@@ -24,11 +29,6 @@
   * [Elements](https://github.com/slurmulon/warble#elements)
   * [Headers](https://github.com/slurmulon/warble#headers)
   * [Operators](https://github.com/slurmulon/warble#operators)
-- [Setup](https://github.com/slurmulon/warble#setup)
-- [Testing](https://github.com/slurmulon/warble#testing)
-- [Usage](https://github.com/slurmulon/warble#usage)
-  * [CLI](https://github.com/slurmulon/warble#cli)
-  * [Library](https://github.com/slurmulon/warble#library)
 - [Related](https://github.com/slurmulon/warble#related)
 - [Roadmap](https://github.com/slurmulon/warble#roadmap)
 
@@ -72,6 +72,49 @@ In general `warble` allows people to create modules and/or applications that nee
   <version>0.2.0-SNAPSHOT</version>
 </dependency>
 ```
+
+## Setup
+
+`lein install`
+
+## Testing
+
+`lein test`
+
+## Usage
+
+### CLI
+
+First be sure that you have a binary executable (requires `lein` to be installed) available on your `PATH`:
+
+```sh
+$ cd warble
+$ lein bin
+```
+
+Then you can just execute the resulting binary like so:
+
+```sh
+$ target/warble -i /path/to/track.warb compile
+```
+
+Currently supports the following actions:
+
+- `parse`: creates an Abstract Syntax Tree (AST) from vanilla `warble` data
+- `compile`: parses and compiles vanilla `warble` data into `warble.json`, an intermediary JSON micro-format that allows for simple interpretation of tracks
+- `help`
+
+### Library
+
+```clojure
+(ns my.namespace
+  (:require [warble.ast :as ast]
+            [warble.track :refer [compile-track]]))
+
+; parses and compiles raw warble data into an interpretable hash-map
+(compile-track (ast/parse ":Foo = []"))
+```
+
 
 ## Notation
 
@@ -292,48 +335,6 @@ Only one `!Play` definition is allowed per track file.
  - `/` = Divide
  - `*` = Multiply
  - `|` = Meter (primarily for time signatures)
-
-## Setup
-
-`lein install`
-
-## Testing
-
-`lein test`
-
-## Usage
-
-### CLI
-
-First be sure that you have a binary executable (requires `lein` to be installed) available on your `PATH`:
-
-```sh
-$ cd warble
-$ lein bin
-```
-
-Then you can just execute the resulting binary like so:
-
-```sh
-$ target/warble -i /path/to/track.warb compile
-```
-
-Currently supports the following actions:
-
-- `parse`: creates an Abstract Syntax Tree (AST) from vanilla `warble` data
-- `compile`: parses and compiles vanilla `warble` data into `warble.json`, an intermediary JSON micro-format that allows for simple interpretation of tracks
-- `help`
-
-### Library
-
-```clojure
-(ns my.namespace
-  (:require [warble.ast :as ast]
-            [warble.track :refer [compile-track]]))
-
-; parses and compiles raw warble data into an interpretable hash-map
-(compile-track (ast/parse ":Foo = []"))
-```
 
 ## Related
 
