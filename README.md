@@ -8,6 +8,29 @@
 
 `warble` aims to establish a pragmatic, intuitive and highly readable syntax for representing musical loops and tracks.
 
+## Sections
+
+- [Goals](https://github.com/slurmulon/warble#goals)
+- [Design](https://github.com/slurmulon/warble#design)
+- [Install](https://github.com/slurmulon/warble#install)
+- [Notation](https://github.com/slurmulon/warble#notation)
+  * [Beats](https://github.com/slurmulon/warble#beats)
+  * [Variables](https://github.com/slurmulon/warble#variables)
+  * [Cadences](https://github.com/slurmulon/warble#cadences)
+  * [Attributes](https://github.com/slurmulon/warble#attributes)
+  * [Meta](https://github.com/slurmulon/warble#meta)
+  * [Play](https://github.com/slurmulon/warble#play)
+- [Documentation](https://github.com/slurmulon/warble#documentation)
+  * [Elements](https://github.com/slurmulon/warble#elements)
+  * [Headers](https://github.com/slurmulon/warble#headers)
+- [Setup](https://github.com/slurmulon/warble#setup)
+- [Testing](https://github.com/slurmulon/warble#testing)
+- [Usage](https://github.com/slurmulon/warble#usage)
+  * [CLI](https://github.com/slurmulon/warble#cli)
+  * [Library](https://github.com/slurmulon/warble#library)
+- [Related](https://github.com/slurmulon/warble#related)
+- [Roadmap](https://github.com/slurmulon/warble#roadmap)
+
 ## Goals
 
 - Adhere to traditional Western music theory concepts
@@ -21,7 +44,7 @@
 
 ## Design
 
-`warble` is simply a notation for writing tracks that are ultimately interpreted by a `warble` engine.
+`warble` is a notation for writing tracks that are ultimately interpreted by a `warble` engine.
 
 This module, by itself, can only parse and compile plaintext `warble` data into [`warble.json`](https://github.com/slurmulon/warble-json-schema).
 
@@ -51,8 +74,6 @@ In general `warble` allows people to create modules and/or applications that nee
 
 ## Notation
 
-A more formal description of `warble`'s notation will eventually be written, but for now this is the canonical source of documentation.
-
 An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/resources/grammar.bnf).
 
 ### Beats
@@ -64,12 +85,19 @@ For the sake of brevity, these will be combinationally referred to as `Elements`
 The `Beat` at which any `Element` is played for (interpreted as its duration) is specified via the tuple-like `->` in a list (`[]`) or set (`{}`).
 
 `Beat` tuples defined in lists will be played sequentially in the natural order and will not overlap.
+
 `Beat` tuples defined in sets will be played in parallel and will overlap.
 
-More formally:
+**Lists**
 
 ```
 [<duration> -> <list|set|element>]
+```
+
+**Sets**
+
+```
+{<duration -> <list|set|element>}
 ```
 
 Where `<duration>` can be:
@@ -84,7 +112,7 @@ N   = N measures or whole notes
 1/512 = Minimum duration
 ```
 
-For instance, a `Loop` playing a `Note('C2')` for an entire measure, starting at the first beat, would be specified like so:
+A `Loop` playing a `Note('C2')` for an entire measure, starting at the first beat, would be specified like so:
 
 ```
 1 -> Note('C2')
@@ -123,7 +151,7 @@ Multiple notes can be grouped together by hugging them in brackets `[ ]` and sep
 ]
 ```
 
-You may also use `-`, `*` and `/`, although these operators, especially multiply and divide, are experimental and require more testing.
+You may also use the `-`, `*` and `/` operators.
 
 ---
 
@@ -199,11 +227,11 @@ For instance, colors are useful for succesfully expressing a variety of data to 
 
 ### Meta
 
-Optional meta information about the track (aka "headers"), including the tempo and time signature, is specified with assignments at the top of the file and prefixed with the `@` operator:
+Optional meta information about the track (aka "headers"), including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
 
 ```
 @Title = 'My warble track'
-@Time  = 4/4
+@Time  = 4|4
 @Tempo = 90
 @Tags  = ['test', 'lullaby']
 
@@ -252,9 +280,17 @@ Only one `!Play` definition is allowed per track file.
  - `Title` (string, arbitrary)
  - `Desc` (string, arbitrary)
  - `Tempo` (integer, beats per minute)
- - `Time` (ratio, time signature. ex: 4/4)
+ - `Time` (meter, time signature. ex: `6|8`)
  - `Tags` (list or set of strings, arbitrary)
  - `Link` (url)
+
+### Operators
+
+ - `+` = Add
+ - `-` = Subtract
+ - `/` = Divide
+ - `*` = Multiply
+ - `|` = Meter (primarily for time signatures)
 
 ## Setup
 
