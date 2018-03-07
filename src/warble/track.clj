@@ -1,6 +1,6 @@
 (ns warble.track
   (:require [instaparse.core :as insta]
-            [warble.convert :refer [hiccup-to-hash-map ratio-to-vector]]))
+            [warble.data :refer [hiccup-to-hash-map ratio-to-vector]]))
 
 (defstruct compiled-track :headers :data)
 
