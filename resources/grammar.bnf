@@ -5,7 +5,7 @@ statement = token (<empty> token)*
 <token>    = elem | assign | header | play
 <term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
 <elem>     = [<empty>] atom | prim | term | pair | list | set | identifier [<empty>]
-<prim>     = [<empty>] string | number | color [<empty>]
+<prim>     = [<empty>] string | number | meter | color [<empty>]
 atom       = [<empty>] keyword [<empty>] init [<empty>]
 set        = [<empty>] <'{'> [elem (<','|empty> elem)* [<','>]] <'}'> [<empty>]
 list       = [<empty>] <'['> [elem (<','|empty> elem)* [<','>]] <']'> [<empty>]
@@ -22,6 +22,7 @@ play       = [<empty>] <'!Play'> [<empty>] elem
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
 number     = #'[0-9]+'
+meter      = [<empty>] number <'|'> number [<empty>]
 color      = #'#[a-fA-F0-9xX]{6}'
 <empty>    = #'(\r\n|\n|\r|\s)*'
 

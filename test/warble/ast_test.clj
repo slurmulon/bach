@@ -32,14 +32,14 @@
     (let [want [:track [:statement [:header [:meta "Title"] [:string "'Test Track'"]]]]]
       (is (= want (parse "@Title = 'Test Track'")))))
   (testing "time"
-    (let [want [:track [:statement [:header [:meta "Time"] [:div [:number "6"] [:number "8"]]]]]]
-      (is (= want (parse "@Time = 6/8")))))
+    (let [want [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]]]
+      (is (= want (parse "@Time = 6|8")))))
   (testing "tags"
     (let [want [:track [:statement [:header [:meta "Tags"] [:list [:string "'rock'"] [:string "'funk'"]]]]]]
       (is (= want (parse "@Tags = ['rock', 'funk']"))))))
 
 (deftest pair
-  (testing "term keys"
+  (testing "pairs"
     (testing "valid"
       (let [want [:track [:statement [:pair [:number "1"] [:list]]]]]
         (is (= (parse "1 -> []") want))))
