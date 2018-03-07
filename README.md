@@ -215,7 +215,7 @@ Determining the value of implicit `Elements` is the responsibility of the `warbl
 
 ### Variables
 
-To assign an variable, prefix a unique name with the `:` operator and provide a value (`<element|list|set>`):
+To assign a variable, prefix a unique name with the `:` operator and provide a value (`<element|list|set>`):
 
 ```
 :DasLoop = [1 -> Note('C2'), 1 -> Note('E2')]
