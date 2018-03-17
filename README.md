@@ -146,6 +146,8 @@ The `Beat` at which any `Element` is played for (interpreted as its duration) is
 {<duration -> <element>}
 ```
 
+---
+
 The value of a `<duration>` can be:
 
 ```
@@ -178,6 +180,8 @@ is the same as:
 ```
 [Note('C2'), Note('F2')]
 ```
+
+---
 
 All `Elements` must be instantiated in a `Beat` tuple (or implicitly converted into one), and the first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
@@ -339,8 +343,7 @@ Only one `!Play` definition is allowed per track file.
 
 ### Primitives
 
- - `'foo'` = string
- - `"bar"' = string
+ - `'foo'` or `"bar"` = string
  - `123` = number
  - `#000000` = color
 
