@@ -338,7 +338,7 @@ Only one `!Play` definition is allowed per track file.
 ### Primitives
 
  - `'foo'` = string
- - '"bar"' = string
+ - `"bar"' = string
  - `123` = number
  - `#000000` = color
 
