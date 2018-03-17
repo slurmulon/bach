@@ -27,9 +27,9 @@
   * [Play](https://github.com/slurmulon/warble#play)
 - [Glossary](https://github.com/slurmulon/warble#glossary)
   * [Elements](https://github.com/slurmulon/warble#elements)
-  * [Headers](https://github.com/slurmulon/warble#headers)
+  * [Headers](https://github.com/slurmulon/warble#headers-1)
   * [Operators](https://github.com/slurmulon/warble#operators)
-  * [Primitives(https://github.com/slurmulon/warble#primitives)
+  * [Primitives](https://github.com/slurmulon/warble#primitives)
 - [Related](https://github.com/slurmulon/warble#related)
 - [Roadmap](https://github.com/slurmulon/warble#roadmap)
 
