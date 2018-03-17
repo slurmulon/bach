@@ -35,13 +35,14 @@
 
 ## Goals
 
+- Allow for alternative real-time representations of music (e.g. visual instead of just audio)
+- Seamless synchronization with associated audio tracks by minimizing the complexities around timing
 - Adhere to traditional Western music theory concepts
+- Easy to translate from sheet music
 - Small learning curve
 - Highly productive
 - Simple, composable and scalable constructs
 - Trivial to interpret compiled output. Writing `warble` engines should be easy!
-- Allow for alternative representations of music (i.e. visual instead of just audio)
-- Seamless synchronization with associated audio tracks by minimizing the complexities around timing
 - Keep your definitions DRY
 
 ## Design
