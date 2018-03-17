@@ -18,29 +18,31 @@
 - [Usage](https://github.com/slurmulon/warble#usage)
   * [CLI](https://github.com/slurmulon/warble#cli)
   * [Library](https://github.com/slurmulon/warble#library)
-- [Notation](https://github.com/slurmulon/warble#notation)
+- [Documentation](https://github.com/slurmulon/warble#documentation)
   * [Beats](https://github.com/slurmulon/warble#beats)
   * [Variables](https://github.com/slurmulon/warble#variables)
   * [Cadences](https://github.com/slurmulon/warble#cadences)
   * [Attributes](https://github.com/slurmulon/warble#attributes)
-  * [Meta](https://github.com/slurmulon/warble#meta)
-  * [Play](https://github.com/slurmulon/warble#play)
-- [Documentation](https://github.com/slurmulon/warble#documentation)
-  * [Elements](https://github.com/slurmulon/warble#elements)
   * [Headers](https://github.com/slurmulon/warble#headers)
+  * [Play](https://github.com/slurmulon/warble#play)
+- [Glossary](https://github.com/slurmulon/warble#glossary)
+  * [Elements](https://github.com/slurmulon/warble#elements)
+  * [Headers](https://github.com/slurmulon/warble#headers-1)
   * [Operators](https://github.com/slurmulon/warble#operators)
+  * [Primitives](https://github.com/slurmulon/warble#primitives)
 - [Related](https://github.com/slurmulon/warble#related)
 - [Roadmap](https://github.com/slurmulon/warble#roadmap)
 
 ## Goals
 
+- Allow for alternative real-time representations of music (e.g. visual instead of just audio)
+- Seamless synchronization with associated audio tracks by minimizing the complexities around timing
 - Adhere to traditional Western music theory concepts
+- Easy to translate from sheet music
 - Small learning curve
 - Highly productive
 - Simple, composable and scalable constructs
 - Trivial to interpret compiled output. Writing `warble` engines should be easy!
-- Allow for alternative representations of music (i.e. visual instead of just audio)
-- Seamless synchronization with associated audio tracks by minimizing the complexities around timing
 - Keep your definitions DRY
 
 ## Design
@@ -116,42 +118,45 @@ Currently supports the following actions:
 ```
 
 
-## Notation
+## Documentation
 
 An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/resources/grammar.bnf).
 
 ### Beats
 
-`Loops` are simply nestable collections of either `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Loops`.
+`Loops` are simply nestable collections of `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Loops`.
 
-For the sake of brevity, these will be combinationally referred to as `Elements` in this proposal and potentially in the source code.
+For the sake of brevity, these entities will be combinationally referred to as `Elements` in this proposal and potentially in the source code.
 
-The `Beat` at which any `Element` is played for (interpreted as its duration) is specified via the tuple-like `->` in a list (`[]`) or set (`{}`).
-
-`Beat` tuples defined in lists will be played sequentially in the natural order and will not overlap.
-
-`Beat` tuples defined in sets will be played in parallel and will overlap.
-
-**Lists**
+The `Beat` at which any `Element` is played for (interpreted as its duration) is specified via the tuple-like `->` in a `ListLoop` (`[]`) or `SetLoop` (`{}`).
 
 ```
-[<duration> -> <list|set|element>]
+<duration> -> <element>
 ```
 
-**Sets**
+`Beat` tuples defined in `ListLoops`, or `Lists`, will be played sequentially in the natural order and will not overlap.
 
 ```
-{<duration -> <list|set|element>}
+[<duration> -> <element>]
 ```
 
-Where `<duration>` can be:
+`Beat` tuples defined in `SetLoops`, or `Sets`, will be played in parallel and will overlap.
 
 ```
-N   = N measures or whole notes
-1   = Whole note (one entire measure)
-1/2 = Half note
-1/4 = Quarter note
-1/8 = Eighth note
+{<duration -> <element>}
+```
+
+---
+
+The value of a `<duration>` can be:
+
+```
+N    = N measures or whole notes
+1    = Whole note (one entire measure)
+1/2  = Half note
+1/4  = Quarter note
+1/8  = Eighth note
+1/16 = Sixteenth note
 ...
 1/512 = Minimum duration
 ```
@@ -159,10 +164,10 @@ N   = N measures or whole notes
 A `Loop` playing a `Note('C2')` for an entire measure, starting at the first beat, would be specified like so:
 
 ```
-1 -> Note('C2')
+[1 -> Note('C2')]
 ```
 
-When a `Beat` identifier is not provided in an an assignment or list, it will be implied at run-time to be the index of each respective element as they are played, using the unit defined in the time signature (the default is common time, or `4/4`)
+When a `Beat` identifier is not provided in an an assignment or list it will be implied at run-time to be the index of each respective element as they are played, using the unit defined in the time signature (the default is common time, or `4|4`)
 
 For instance:
 
@@ -170,22 +175,23 @@ For instance:
 [1/4 -> Note('C2'), 1/4 -> Note('F2')]
 ```
 
-is the same as
+is the same as:
 
 ```
 [Note('C2'), Note('F2')]
 ```
 
+---
+
 All `Elements` must be instantiated in a `Beat` tuple (or implicitly converted into one), and the first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
-`Beats` may be written where the left hand side represents the duration of the beat and the right hand side of `+` represents the additional number of beats to play for:
+`Beat` durations can also use basic mathematical operators. This makes the translation between sheet music and `warble` an easy task.
 
 ```
 1 + 1/2 -> Chord'(C2min6')
 ```
 
-This is usefeul for specifying more complicated rhythms, like those seen in Jazz.
-Multiple notes can be grouped together by hugging them in brackets `[ ]` and separating each element in the collection with either a `,` or whitespace:
+This is usefeul for specifying more complicated rhythms, like those seen in jazz.
 
 ```
 :Mutliple = [
@@ -207,11 +213,7 @@ As a convenience, `Elements` may also be implicit, specified using `#`:
 :Scale = #('C2 Minor')
 ```
 
-Determining the value of implicit `Elements` is the responsibility of the `warble` interpreter.
-
----
-
-`Elements` can also overlap the same `Beat` and will be played concurrently using sets (`{}`) (TODO: example)
+Determining the semantic value of implicit `Elements` (i.e. whether it's a `Note`, `Chord`, etc.) is the responsibility of the `warble` interpreter.
 
 ### Variables
 
@@ -264,25 +266,28 @@ For instance, colors are useful for succesfully expressing a variety of data to 
     Scale('C2min',  color: #6CB359)
     Chord('D2min7', color: #AA5585, voicing: 1)
   },
-  1 -> Chord('G2Maj7', color: #D48B6A, voicing: 2)
-  2 -> Chord('C2Maj7', color: #FFDCAA, voicing: 2)
+  1 -> Chord('G2maj7', color: #D48B6A, voicing: 2)
+  2 -> Chord('C2maj7', color: #FFDCAA, voicing: 2)
 ]
 ```
 
-### Meta
+### Headers
 
-Optional meta information about the track (aka "headers"), including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
+Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
+
+Headers outside of those defined in the documentation are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any primitive type.
 
 ```
 @Title = 'My warble track'
 @Time  = 4|4
 @Tempo = 90
 @Tags  = ['test', 'lullaby']
+@CustomHeader = 'so special'
 
 :ABC = [
-  1/2 -> Chord('D2Mmin7')
-  1/2 -> Chord('G2Min7')
-  1 -> Chord('C2Maj7')
+  1/2 -> Chord('D2min7')
+  1/2 -> Chord('G2min7')
+  1 -> Chord('C2maj7')
 ]
 ```
 
@@ -290,7 +295,7 @@ Optional meta information about the track (aka "headers"), including the **tempo
 
 Because `warble` supports references, it requires a mechanism for specifying which data should be used for playing the track. You can think of `Play` as your main method or default export.
 
-In other words, you need to tell it which values should be made available to the `warble` interpreter.
+In other words, you need to tell it which values should ultimately be made available to the `warble` interpreter.
 
 Any `Elements` that aren't being referenced or used by the value exported with `!Play` will be **ignored** during compilation.
 
@@ -303,7 +308,7 @@ Any `Elements` that aren't being referenced or used by the value exported with `
 
 Only one `!Play` definition is allowed per track file.
 
-## Documentation
+## Glossary
 
 ### Elements
 
@@ -324,9 +329,9 @@ Only one `!Play` definition is allowed per track file.
  - `Title` (string, arbitrary)
  - `Desc` (string, arbitrary)
  - `Tempo` (integer, beats per minute)
- - `Time` (meter, time signature. ex: `6|8`)
+ - `Time` (meter, time signature. ex: `6|8`, `4|4`)
  - `Tags` (list or set of strings, arbitrary)
- - `Link` (url)
+ - `Link` (string, url)
 
 ### Operators
 
@@ -335,6 +340,12 @@ Only one `!Play` definition is allowed per track file.
  - `/` = Divide
  - `*` = Multiply
  - `|` = Meter (primarily for time signatures)
+
+### Primitives
+
+ - `'foo'` or `"bar"` = string
+ - `123` = number
+ - `#000000` = color
 
 ## Related
 
@@ -354,6 +365,6 @@ Only one `!Play` definition is allowed per track file.
  - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress, or specify areas to loop
  - [ ] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
  - [ ] Note fitness / quality data (i.e. how well it fits a given scale or chord in the current context)
- - [x] Support arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
- - [x] Support chord voicings/inversions (i.e. `Chord('C2maj7', inversion: 1)`)
- - [x] Support traids (root, 1st, 2nd)
+ - [x] Arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
+ - [x] Chord voicings/inversions (i.e. `Chord('C2maj7', inversion: 1)`)
+ - [x] Traids (root, 1st, 2nd)

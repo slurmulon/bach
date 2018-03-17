@@ -44,6 +44,21 @@
           want [:track [:statement "Text"]]]
       (is (= want (reduce-values tree))))))
 
+(deftest beat-unit
+  (testing "basic"
+    (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "4"] [:number "4"]]]]]
+          want 1/4]
+      (is (= want (get-beat-unit tree)))))
+  (testing "scaled"
+    (testing "4/4"
+      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "4"] [:number "4"]]]]]
+            want 1]
+        (is (= want (get-scaled-beat-unit tree)))))
+    (testing "6/8"
+      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]]
+            want 1/2]
+        (is (= want (get-scaled-beat-unit tree)))))))
+
 ; FIXME: handle notes that aren't % 2
 (deftest lowest-beat
   (testing "whole number"
@@ -55,8 +70,9 @@
           want (/ 1 8)]
       (is (= want (get-lowest-beat tree))))))
 
+; TODO: handle uncommon time (6/8, 3/4, etc.)
 (deftest total-beats
-  (testing "general"
+  (testing "common time"
     (let [tree [:track [:statement [:list [:pair [:number "1"] [:list]] [:pair [:number "4"] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
           want (rationalize 5.5)]
       (is (= want (get-total-beats tree))))))
@@ -82,27 +98,29 @@
   (testing "singleton"
     (testing "whole note"
       (let [tree [:track [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-            want 2000.0] ; FIXME: I think that a quarter note should actually be 500. whole note should be 2000
+            want 2000.0]
         (is (= want (get-ms-per-beat tree)))))
-
     (testing "half note"
       (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 1000.0]
         (is (= want (get-ms-per-beat tree)))))
-
     (testing "quarter note"
       (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 500.0]
         (is (= want (get-ms-per-beat tree)))))
-
     (testing "eigth note"
       (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 250.0]
         (is (= want (get-ms-per-beat tree))))))
   (testing "non-default time signature"
-    (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]] [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-          want 1500.0]
-      (is (= want (get-ms-per-beat tree))))))
+    (testing "3/4"
+      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]] [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+            want 1500.0]
+        (is (= want (get-ms-per-beat tree)))))
+    (testing "6/8"
+      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]] [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+            want 1500.0]
+        (is (= want (get-ms-per-beat tree)))))))
 
 ; (deftest lowest-beat
 ;   (testing "finds the lowest beat amongst all of the pairs"

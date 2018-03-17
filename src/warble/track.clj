@@ -146,7 +146,6 @@
   (let [reduced-track (reduce-values track)
         header (find-header reduced-track "Time" default-time-signature)]
     header))
-    ; (ratio-to-vector header)))
 
 (defn get-tempo
   [track]
@@ -164,6 +163,12 @@
   "Determines the reference unit to use for beats, based on time signature"
   [track]
   (/ 1 (last (get-time-signature track)))) ; AKA 1/denominator
+
+(defn get-scaled-beat-unit
+  "Determines the reference unit to use for beats, scaled to a quarter note
+   @see https://music.stackexchange.com/a/24141"
+  [track]
+  (/ 4 (last (get-time-signature track))))
 
 (defn get-lowest-beat
   "Determines the lowest beat unit defined in the track.
@@ -183,6 +188,7 @@
   "Determines the lowest beat normalized against the beat unit of the track (defined in the time signature"
   [track]
   (let [lowest-beat (get-lowest-beat track)
+        ; beat-unit (get-scaled-beat-unit track)]
         beat-unit (get-beat-unit track)]
     (* lowest-beat beat-unit)))
 
@@ -191,12 +197,11 @@
   [track]
   (first (get-time-signature track))) ; AKA numerator
 
-; FIXME: this needs to consider the time signature, I think
 (defn get-normalized-beats-per-measure
   "Determines how many beats are in a measure, normalized against the lowest beat of the track"
   [track]
   (let [lowest-beat (get-lowest-beat track)]
-    (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat))) ; FIXME: denominator is simplifying the ratio and breaking calculations (e.g. 6/8 -> 3/4)
+    (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
 
 ; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
 ; to the lowest common beat found in the track
@@ -215,6 +220,7 @@
   "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)"
   [track]
   (let [total-beats (get-total-beats track)
+        ; beat-unit (get-scaled-beat-unit track)]
         beat-unit (get-beat-unit track)]
     (/ total-beats beat-unit)))
 
@@ -250,6 +256,7 @@
       :minutes duration-minutes)))
 
 ; @see https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te
+; - FIXME: this needs to consider the denominator. 3/4 and 6/8 should produce equal results.
 (defn get-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
    Mostly exists to make parsing easier for the high-level interpreter / player"
@@ -257,10 +264,19 @@
   (let [reduced-track (reduce-track track)
         norm-beats-per-measure (get-normalized-beats-per-measure reduced-track)
         beats-per-measure (get-beats-per-measure reduced-track)
-        divisor (/ norm-beats-per-measure beats-per-measure)
+        divisor (/ norm-beats-per-measure beats-per-measure) ; FIXME: need to multiply this by `get-scaled-beat-unit`
+        scaled-divisor (/ divisor (get-scaled-beat-unit track))
         tempo (get-tempo reduced-track)
         ms-per-beat (* (/ 60 tempo) 1000)
-        norm-ms-per-beat (/ ms-per-beat divisor)]
+        ; norm-ms-per-beat (/ ms-per-beat divisor)]
+        norm-ms-per-beat (/ ms-per-beat scaled-divisor)]
+    (println "\nms-per-beat" ms-per-beat)
+    (println "norm-ms-per-beat" norm-ms-per-beat)
+    (println "scaled-beat-unit" (get-scaled-beat-unit track))
+    (println "divisor" divisor)
+    (println "divisor scaled" scaled-divisor)
+    (println "beats-per-measure" beats-per-measure)
+    (println "norm-beats-per-measure" norm-beats-per-measure)
     (float norm-ms-per-beat)))
 
 ; FIXME: one thing this should do differently is append the result of the original track definition,
