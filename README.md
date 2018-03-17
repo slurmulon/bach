@@ -18,14 +18,14 @@
 - [Usage](https://github.com/slurmulon/warble#usage)
   * [CLI](https://github.com/slurmulon/warble#cli)
   * [Library](https://github.com/slurmulon/warble#library)
-- [Notation](https://github.com/slurmulon/warble#notation)
+- [Documentation](https://github.com/slurmulon/warble#documentation)
   * [Beats](https://github.com/slurmulon/warble#beats)
   * [Variables](https://github.com/slurmulon/warble#variables)
   * [Cadences](https://github.com/slurmulon/warble#cadences)
   * [Attributes](https://github.com/slurmulon/warble#attributes)
   * [Meta](https://github.com/slurmulon/warble#meta)
   * [Play](https://github.com/slurmulon/warble#play)
-- [Documentation](https://github.com/slurmulon/warble#documentation)
+- [Glossary](https://github.com/slurmulon/warble#glossary)
   * [Elements](https://github.com/slurmulon/warble#elements)
   * [Headers](https://github.com/slurmulon/warble#headers)
   * [Operators](https://github.com/slurmulon/warble#operators)
@@ -116,7 +116,7 @@ Currently supports the following actions:
 ```
 
 
-## Notation
+## Documentation
 
 An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/warble/blob/master/resources/grammar.bnf).
 
@@ -301,7 +301,7 @@ Any `Elements` that aren't being referenced or used by the value exported with `
 
 Only one `!Play` definition is allowed per track file.
 
-## Documentation
+## Glossary
 
 ### Elements
 
