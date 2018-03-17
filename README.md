@@ -148,11 +148,12 @@ The `Beat` at which any `Element` is played for (interpreted as its duration) is
 The value of a `<duration>` can be:
 
 ```
-N   = N measures or whole notes
-1   = Whole note (one entire measure)
-1/2 = Half note
-1/4 = Quarter note
-1/8 = Eighth note
+N    = N measures or whole notes
+1    = Whole note (one entire measure)
+1/2  = Half note
+1/4  = Quarter note
+1/8  = Eighth note
+1/16 = Sixteenth note
 ...
 1/512 = Minimum duration
 ```
@@ -179,7 +180,7 @@ is the same as:
 
 All `Elements` must be instantiated in a `Beat` tuple (or implicitly converted into one), and the first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
-`Beats` durations can also use basic mathematical operators. This makes the translation between sheet music and `warble` an easy task.
+`Beat` durations can also use basic mathematical operators. This makes the translation between sheet music and `warble` an easy task.
 
 ```
 1 + 1/2 -> Chord'(C2min6')
