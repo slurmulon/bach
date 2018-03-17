@@ -261,8 +261,8 @@ For instance, colors are useful for succesfully expressing a variety of data to 
     Scale('C2min',  color: #6CB359)
     Chord('D2min7', color: #AA5585, voicing: 1)
   },
-  1 -> Chord('G2Maj7', color: #D48B6A, voicing: 2)
-  2 -> Chord('C2Maj7', color: #FFDCAA, voicing: 2)
+  1 -> Chord('G2maj7', color: #D48B6A, voicing: 2)
+  2 -> Chord('C2maj7', color: #FFDCAA, voicing: 2)
 ]
 ```
 
@@ -280,9 +280,9 @@ Headers outside of those defined in the documentation are allowed and can be int
 @CustomHeader = 'so special'
 
 :ABC = [
-  1/2 -> Chord('D2Mmin7')
-  1/2 -> Chord('G2Min7')
-  1 -> Chord('C2Maj7')
+  1/2 -> Chord('D2min7')
+  1/2 -> Chord('G2min7')
+  1 -> Chord('C2maj7')
 ]
 ```
 
