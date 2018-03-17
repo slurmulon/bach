@@ -23,12 +23,13 @@
   * [Variables](https://github.com/slurmulon/warble#variables)
   * [Cadences](https://github.com/slurmulon/warble#cadences)
   * [Attributes](https://github.com/slurmulon/warble#attributes)
-  * [Meta](https://github.com/slurmulon/warble#meta)
+  * [Headers](https://github.com/slurmulon/warble#headers)
   * [Play](https://github.com/slurmulon/warble#play)
 - [Glossary](https://github.com/slurmulon/warble#glossary)
   * [Elements](https://github.com/slurmulon/warble#elements)
   * [Headers](https://github.com/slurmulon/warble#headers)
   * [Operators](https://github.com/slurmulon/warble#operators)
+  * [Primitives(https://github.com/slurmulon/warble#primitives)
 - [Related](https://github.com/slurmulon/warble#related)
 - [Roadmap](https://github.com/slurmulon/warble#roadmap)
 
@@ -264,9 +265,9 @@ For instance, colors are useful for succesfully expressing a variety of data to 
 ]
 ```
 
-### Meta
+### Headers
 
-Optional meta information about the track (aka "headers"), including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
+Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
 
 Headers outside of those defined in the documentation are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any primitive type.
 
@@ -275,7 +276,7 @@ Headers outside of those defined in the documentation are allowed and can be int
 @Time  = 4|4
 @Tempo = 90
 @Tags  = ['test', 'lullaby']
-@CustomHeader =
+@CustomHeader = 'so special'
 
 :ABC = [
   1/2 -> Chord('D2Mmin7')
@@ -333,6 +334,13 @@ Only one `!Play` definition is allowed per track file.
  - `/` = Divide
  - `*` = Multiply
  - `|` = Meter (primarily for time signatures)
+
+### Primitives
+
+ - `'foo'` = string
+ - '"bar"' = string
+ - `123` = number
+ - `#000000` = color
 
 ## Related
 
