@@ -159,10 +159,10 @@ N   = N measures or whole notes
 A `Loop` playing a `Note('C2')` for an entire measure, starting at the first beat, would be specified like so:
 
 ```
-1 -> Note('C2')
+[1 -> Note('C2')]
 ```
 
-When a `Beat` identifier is not provided in an an assignment or list, it will be implied at run-time to be the index of each respective element as they are played, using the unit defined in the time signature (the default is common time, or `4/4`)
+When a `Beat` identifier is not provided in an an assignment or list it will be implied at run-time to be the index of each respective element as they are played, using the unit defined in the time signature (the default is common time, or `4|4`)
 
 For instance:
 
@@ -170,7 +170,7 @@ For instance:
 [1/4 -> Note('C2'), 1/4 -> Note('F2')]
 ```
 
-is the same as
+is the same as:
 
 ```
 [Note('C2'), Note('F2')]
