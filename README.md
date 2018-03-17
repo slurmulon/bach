@@ -122,29 +122,29 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 
 ### Beats
 
-`Loops` are simply nestable collections of either `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Loops`.
+`Loops` are simply nestable collections of `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Loops`.
 
 For the sake of brevity, these entities will be combinationally referred to as `Elements` in this proposal and potentially in the source code.
 
 The `Beat` at which any `Element` is played for (interpreted as its duration) is specified via the tuple-like `->` in a `ListLoop` (`[]`) or `SetLoop` (`{}`).
 
+```
+<duration> -> <element>
+```
+
 `Beat` tuples defined in `ListLoops`, or `Lists`, will be played sequentially in the natural order and will not overlap.
+
+```
+[<duration> -> <element>]
+```
 
 `Beat` tuples defined in `SetLoops`, or `Sets`, will be played in parallel and will overlap.
 
-**Lists**
-
 ```
-[<duration> -> <list|set|element>]
+{<duration -> <element>}
 ```
 
-**Sets**
-
-```
-{<duration -> <list|set|element>}
-```
-
-Where `<duration>` can be:
+The value of a `<duration>` can be:
 
 ```
 N   = N measures or whole notes
