@@ -148,10 +148,9 @@ The `Beat` at which any `Element` is played for (interpreted as its duration) is
 
 ---
 
-The value of a `<duration>` can be:
+The value of a `Beat`'s `<duration>` can be:
 
 ```
-N    = N measures or whole notes
 1    = Whole note (one entire measure)
 1/2  = Half note
 1/4  = Quarter note
@@ -161,7 +160,7 @@ N    = N measures or whole notes
 1/512 = Minimum duration
 ```
 
-A `Loop` playing a `Note('C2')` for an entire measure, starting at the first beat, would be specified like so:
+A `Loop` playing a `Note('C2')` for an entire measure, starting at the first `Beat`, would be specified like so:
 
 ```
 [1 -> Note('C2')]
