@@ -277,11 +277,11 @@ Optional header information, including the **tempo** and **time signature**, is 
 Headers outside of those defined in the documentation are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any primitive type.
 
 ```
-@Title = 'My warble track'
-@Time  = 4|4
-@Tempo = 90
-@Tags  = ['test', 'lullaby']
-@CustomHeader = 'so special'
+@Title  = 'My warble track'
+@Time   = 4|4
+@Tempo  = 90
+@Tags   = ['test', 'lullaby']
+@Custom = 'so special'
 
 :ABC = [
   1/2 -> Chord('D2min7')
