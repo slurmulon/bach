@@ -270,13 +270,6 @@
         ms-per-beat (* (/ 60 tempo) 1000)
         ; norm-ms-per-beat (/ ms-per-beat divisor)]
         norm-ms-per-beat (/ ms-per-beat scaled-divisor)]
-    (println "\nms-per-beat" ms-per-beat)
-    (println "norm-ms-per-beat" norm-ms-per-beat)
-    (println "scaled-beat-unit" (get-scaled-beat-unit track))
-    (println "divisor" divisor)
-    (println "divisor scaled" scaled-divisor)
-    (println "beats-per-measure" beats-per-measure)
-    (println "norm-beats-per-measure" norm-beats-per-measure)
     (float norm-ms-per-beat)))
 
 ; FIXME: one thing this should do differently is append the result of the original track definition,
