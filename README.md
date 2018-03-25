@@ -326,9 +326,11 @@ Only one `!Play` definition is allowed per track file.
  - `Audio` (url)
  - `Instrument` (string, arbitrary)
  - `Title` (string, arbitrary)
+ - `Artist` (string, arbitrary)
  - `Desc` (string, arbitrary)
  - `Tempo` (integer, beats per minute)
  - `Time` (meter, time signature. ex: `6|8`, `4|4`)
+ - `Key` (string, key signature)
  - `Tags` (list or set of strings, arbitrary)
  - `Link` (string, url)
 
