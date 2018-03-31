@@ -1,13 +1,13 @@
-(ns warble.cli
+(ns bach.cli
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as string]
-            [warble.ast :as ast]
-            [warble.track :refer [compile-track]]
-            [warble.data :refer [to-json]])
+            [bach.ast :as ast]
+            [bach.track :refer [compile-track]]
+            [bach.data :refer [to-json]])
   (:gen-class))
 
 (def cli-options
-  [["-i" "--input DATA" "The warble data to use as input"
+  [["-i" "--input DATA" "The bach data to use as input"
     :id :input
     :default ""]
    ["-h" "--help"]])
@@ -24,16 +24,16 @@
                 (println output)))})
 
 (defn help [options]
-  (->> ["warble is a pragmatic notation for representing musical tracks and loops"
+  (->> ["bach is a pragmatic notation for representing musical tracks and loops"
         ""
-        "Usage: warble [options] action"
+        "Usage: bach [options] action"
         ""
         "Options:"
         options
         ""
         "Actions:"
-        "  parse        Parses plain-text warble data into an Abstract Syntax Tree (AST)"
-        "  compile      Compiles plain-text warble data into warble.json, an easy to interpret JSON micro-format"]
+        "  parse        Parses plain-text bach data into an Abstract Syntax Tree (AST)"
+        "  compile      Compiles plain-text bach data into bach.json, an easy to interpret JSON micro-format"]
        (string/join \newline)))
 
 (defn error-msg [errors]
@@ -45,7 +45,7 @@
   (System/exit status))
 
 (defn -main [& args]
-  "warble"
+  "bach"
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
     (cond
       (:help options) (exit 0 (help summary))

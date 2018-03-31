@@ -1,11 +1,11 @@
-(ns warble.data
+(ns bach.data
   (:require [instaparse.core :as insta]
             [clojure.data.json :as json]))
 
 (def to-json json/write-str)
 
 ; TODO: make sure this returns an array when appropriate
-; @see warble.track-test/compilation
+; @see bach.track-test/compilation
 (defn hiccup-to-hash-map
   [tree]
   (insta/transform

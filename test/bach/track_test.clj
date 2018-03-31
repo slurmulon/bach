@@ -1,6 +1,6 @@
-(ns warble.track-test
+(ns bach.track-test
   (:require [clojure.test :refer :all]
-            [warble.track :refer :all]))
+            [bach.track :refer :all]))
 
 (deftest defaults
   (testing "tempo"
