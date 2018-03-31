@@ -1,6 +1,6 @@
-(ns warble.ast-test
+(ns bach.ast-test
   (:require [clojure.test :refer :all]
-            [warble.ast :refer :all]
+            [bach.ast :refer :all]
             [instaparse.core :as insta]))
 
 (deftest variables
