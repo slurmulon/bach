@@ -59,11 +59,11 @@ In general `bach` allows people to create modules and/or applications that need 
 
 ### Leinengen/Boot
 
-`[bach "0.2.0-SNAPSHOT"]`
+`[bach "0.3.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "bach:bach:0.2.0-SNAPSHOT"`
+`compile "bach:bach:0.3.0-SNAPSHOT"`
 
 ### Maven
 
@@ -71,7 +71,7 @@ In general `bach` allows people to create modules and/or applications that need 
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
 </dependency>
 ```
 
