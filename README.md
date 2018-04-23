@@ -60,7 +60,7 @@ In general `bach` allows people to create modules and/or applications that need 
 
 ## Example
 
-The following `bach` track represents the scale progression of a blues song.
+The following `bach` track represents the scale progression of a blues song:
 
 ```
 @Audio = 'http://api.madhax.io/track/q2IBRPmNq9/audio/mp3'
@@ -77,11 +77,23 @@ The following `bach` track represents the scale progression of a blues song.
 :Track = [
   1 -> :A
   1 -> :D
-  2 ->
+  2 -> :A
+  2 -> :D
+  2 -> :A
+  1 -> :E
+  1 -> :D
+  2 -> :A
 ]
+
+!Play :Track
 ```
 
-Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure (or whole note), then scale `:D` for `1` measure, then scale `:A` again for `2` measures, and so on.
+and is interpreted like so:
+
+1. Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure (or whole note)
+1. Scale `:D` will be played for `1` measure
+1. scale `:A` will be played for `2` measures
+1. ...
 
 To find a list of every construct supported by `bach` (such as `Note`, `Chord`, etc.), please refer to the ["Constructs"](https://github.com/slurmulon/bach#constructs) section.
 
