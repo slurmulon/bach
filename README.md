@@ -12,6 +12,7 @@
 
 - [Goals](https://github.com/slurmulon/bach#goals)
 - [Design](https://github.com/slurmulon/bach#design)
+- [Example](https://github.com/slurmulon/bach#example)
 - [Install](https://github.com/slurmulon/bach#install)
 - [Setup](https://github.com/slurmulon/bach#setup)
 - [Testing](https://github.com/slurmulon/bach#testing)
@@ -25,12 +26,14 @@
   * [Attributes](https://github.com/slurmulon/bach#attributes)
   * [Headers](https://github.com/slurmulon/bach#headers)
   * [Play](https://github.com/slurmulon/bach#play)
-- [Glossary](https://github.com/slurmulon/bach#glossary)
+- [Constructs](https://github.com/slurmulon/bach#constructs)
   * [Elements](https://github.com/slurmulon/bach#elements)
   * [Headers](https://github.com/slurmulon/bach#headers-1)
   * [Operators](https://github.com/slurmulon/bach#operators)
   * [Primitives](https://github.com/slurmulon/bach#primitives)
 - [Related](https://github.com/slurmulon/bach#related)
+- [Help](https://github.com/slurmulon/bach#help)
+- [Contributing](https://github.com/slurmulon/bach#contributing)
 - [Roadmap](https://github.com/slurmulon/bach#roadmap)
 
 ## Goals
@@ -54,6 +57,33 @@ This module, by itself, can only parse and compile plaintext `bach` data into [`
 `bach.json` makes it trivial, especially for JavaScript engines, to sequentially process a `bach` music track and synchronize it in real-time with audio.
 
 In general `bach` allows people to create modules and/or applications that need to synchronize data with music in real-time.
+
+## Example
+
+The following `bach` track represents the scale progression of a blues song.
+
+```
+@Audio = 'http://api.madhax.io/track/q2IBRPmNq9/audio/mp3'
+@Title = 'Jimi Style 12-Bar-Blues Backing Track in A'
+@Key = 'A'
+@Tempo = 42
+@Tags = ['blues', 'rock', 'slow']
+@Instrument = 'guitar'
+
+:A = Scale('A3 minorpentatonic')
+:D = Scale('D3 minorpentatonic')
+:E = Scale('E3 minorpentatonic')
+
+:Track = [
+  1 -> :A
+  1 -> :D
+  2 ->
+]
+```
+
+Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure (or whole note), then scale `:D` for `1` measure, then scale `:A` again for `2` measures, and so on.
+
+To find a list of every construct supported by `bach` (such as `Note`, `Chord`, etc.), please refer to the ["Constructs"](https://github.com/slurmulon/bach#constructs) section.
 
 ## Install
 
@@ -307,7 +337,7 @@ Any `Elements` that aren't being referenced or used by the value exported with `
 
 Only one `!Play` definition is allowed per track file.
 
-## Glossary
+## Constructs
 
 ### Elements
 
@@ -352,7 +382,15 @@ Only one `!Play` definition is allowed per track file.
 
 - [`bach-json-schema`](https://github.com/slurmulon/bach-json-schema) contains the official JSON Schema definition for the `bach.json` format
 - [`bach-rest-api`](https://github.com/slurmulon/bach-rest-api) is a RESTful HTTP service that allows compilation of `bach` tracks into `bach.json`
-- [`juke`](https://github.com/slurmulon/juke) is the official NodeJS `bach` interpreter library
+- [`gig`](https://github.com/slurmulon/gig) is the official NodeJS `bach` interpreter library
+
+## Help
+
+If you encounter any problems or have any questions then please feel free to open up an issue.
+
+## Contributing
+
+Contributions are always welcome. Simply fork, make your changes and then create a pull request with thorough tests.
 
 ## Roadmap
 
