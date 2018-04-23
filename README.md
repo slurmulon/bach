@@ -21,6 +21,9 @@
   * [Library](https://github.com/slurmulon/bach#library)
 - [Documentation](https://github.com/slurmulon/bach#documentation)
   * [Beats](https://github.com/slurmulon/bach#beats)
+    - [Durations](https://github.com/slurmulon/bach#durations)
+    - [Instantiation](https://github.com/slurmulon/bach#instantiation)
+    - [Implicits](https://github.com/slurmulon/bach#implicits)
   * [Variables](https://github.com/slurmulon/bach#variables)
   * [Cadences](https://github.com/slurmulon/bach#cadences)
   * [Attributes](https://github.com/slurmulon/bach#attributes)
@@ -188,7 +191,7 @@ The `Beat` at which any `Element` is played for (interpreted as its duration) is
 {<duration -> <element>}
 ```
 
----
+#### Durations
 
 The value of a `Beat`'s `<duration>` can be:
 
@@ -222,7 +225,7 @@ is the same as:
 [Note('C2'), Note('F2')]
 ```
 
----
+#### Instantiation
 
 All `Elements` must be instantiated in a `Beat` tuple (or implicitly converted into one), and the first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
@@ -244,7 +247,7 @@ This is usefeul for specifying more complicated rhythms, like those seen in jazz
 
 You may also use the `-`, `*` and `/` operators.
 
----
+#### Implicits
 
 As a convenience, `Elements` may also be implicit, specified using `#`:
 
@@ -255,6 +258,8 @@ As a convenience, `Elements` may also be implicit, specified using `#`:
 ```
 
 Determining the semantic value of implicit `Elements` (i.e. whether it's a `Note`, `Chord`, etc.) is the responsibility of the `bach` interpreter.
+
+It's suggested that you primarily use the `#` as it will save you a _lot_ of typing over time.
 
 ### Variables
 
