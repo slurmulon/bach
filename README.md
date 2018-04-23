@@ -91,8 +91,8 @@ The following `bach` track represents the scale progression of a blues song:
 and is interpreted like so:
 
 1. Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure (or whole note)
-1. Scale `:D` will be played for `1` measure
-1. scale `:A` will be played for `2` measures
+1. Scale `:D`, or `D3 minorpentatonic`, will be played for `1` measure
+1. Scale `:A` will be played for `2` measures
 1. ...
 
 To find a list of every construct supported by `bach` (such as `Note`, `Chord`, etc.), please refer to the ["Constructs"](https://github.com/slurmulon/bach#constructs) section.
