@@ -1,12 +1,11 @@
 # bach
 
-> :musical_score: Notation for musical loops and tracks with a focus on readability and productivity
+> :musical_score: Musical notation with a focus on readability and productivity
 
 ---
 
-[![Clojars Project](https://img.shields.io/clojars/v/bach.svg)](https://clojars.org/bach)
 
-`bach` aims to establish a pragmatic, intuitive and highly readable syntax for representing musical loops and tracks.
+<p align="center"><img src="./assets/logo-small.png" alt="Bach logo"></p>
 
 ## Sections
 
@@ -53,11 +52,11 @@
 
 ## Design
 
-`bach` is a notation for writing tracks that are ultimately interpreted by a `bach` engine.
+`bach` tracks are ultimately interpreted by a higher-level `bach` engine.
 
 This module, by itself, can only parse and compile plaintext `bach` data into [`bach.json`](https://github.com/slurmulon/bach-json-schema).
 
-`bach.json` makes it trivial, especially for JavaScript engines, to sequentially process a `bach` music track and synchronize it in real-time with audio.
+`bach.json` makes it trivial, especially for JavaScript and JSON-friendly languages, to sequentially process a `bach` music track and synchronize it in real-time with audio.
 
 In general `bach` allows people to create modules and/or applications that need to synchronize data with music in real-time.
 
@@ -101,6 +100,8 @@ and is interpreted like so:
 To find a list of every construct supported by `bach` (such as `Note`, `Chord`, etc.), please refer to the ["Constructs"](https://github.com/slurmulon/bach#constructs) section.
 
 ## Install
+
+[![Clojars Project](https://img.shields.io/clojars/v/bach.svg)](https://clojars.org/bach)
 
 ### Leinengen/Boot
 
