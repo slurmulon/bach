@@ -103,8 +103,6 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 
 ## Install
 
-[![Clojars Project](https://img.shields.io/clojars/v/bach.svg)](https://clojars.org/bach)
-
 ### Leinengen/Boot
 
 `[bach "0.2.0-SNAPSHOT"]`
