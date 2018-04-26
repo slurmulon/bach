@@ -1,4 +1,4 @@
-lojure CircleCI 2.0 configuration file
+# Clojure CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-clojure/ for more details
 #
@@ -14,7 +14,7 @@ jobs:
       LEIN_ROOT: "true"
       # Customize the JVM maximum heap limit
       JVM_OPTS: -Xmx3200m
-    
+
     steps:
       - checkout
 
