@@ -105,11 +105,11 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 
 ### Leinengen/Boot
 
-`[bach "0.2.0-SNAPSHOT"]`
+`[bach "0.3.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "bach:bach:0.2.0-SNAPSHOT"`
+`compile "bach:bach:0.3.0-SNAPSHOT"`
 
 ### Maven
 
