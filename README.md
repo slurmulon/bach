@@ -170,25 +170,23 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 
 ### Beats
 
-`Beats` represent a `Sequence` of `Elements` played for a `Duration` of time.
+`Beats` represent either an `Element` or a `Collection` of `Elements` that are played for a duration of time.
 
-`Sequences` are simply nestable collections of `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Sequences`.
+`Elements` are either `Chords`, `Scales`, `Notes`, `Rests` (`~`), or `Collections`.
 
-For the sake of brevity, these entities will be combinationally referred to as `Elements` in this proposal and potentially in the source code.
-
-The `Beat` at which any `Element` is played on (also interpreted as its `Duration`) is specified via the tuple-like `->` in a `ListSequence` (`[]`) or `SetSequence` (`{}`).
+The `Beat` on which an `Element` is played on (also interpreted as its duration) is specified using the tuple symbol, `->`:
 
 ```
 <duration> -> <element>
 ```
 
-`Beat` tuples defined in `ListSequences`, or `Lists`, will be played sequentially in the natural order and will not overlap.
+`Beat` tuples defined in `Lists` will be played sequentially in the natural order (left to right) and will not overlap.
 
 ```
 [<duration> -> <element>]
 ```
 
-`Beat` tuples defined in `SetSequences`, or `Sets`, will be played in parallel and will overlap.
+`Beat` tuples defined in `Sets` will be played in parallel and may overlap.
 
 ```
 {<duration> -> <element>}
@@ -212,6 +210,12 @@ A `Sequence` playing a `Note('C2')` for an entire measure, starting at the first
 
 ```
 [1 -> Note('C2')]
+```
+
+If you wanted to play to start playing the note on the second `Beat` of the measure, then simply rest (`~`) on the first `Beat`:
+
+```
+[1/4 -> ~, 1 -> Note('C2']
 ```
 
 When a `Beat` identifier is not provided in an an assignment or sequence, it will be implied at run-time to be the index of each respective element as they are played, using the unit defined in the time signature (the default is common time, or `4|4`)
