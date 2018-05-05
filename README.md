@@ -206,19 +206,21 @@ The value of a `Beat`'s `<duration>` can be:
 1/512 = Minimum duration
 ```
 
-A `Sequence` playing a `Note('C2')` for an entire measure, starting at the first `Beat`, would be specified like so:
+A `List` playing a `Note('C2')` for an entire measure, starting at the first `Beat`, would be specified like so:
 
 ```
 [1 -> Note('C2')]
 ```
 
-If you wanted to play to start playing the note on the second `Beat` of the measure, then simply rest (`~`) on the first `Beat`:
+If you wanted to start playing the note on the second `Beat` of the measure, then simply rest (`~`) on the first `Beat`:
 
 ```
 [1/4 -> ~, 1 -> Note('C2']
 ```
 
-When a `Beat` identifier is not provided in an an assignment or sequence, it will be implied at run-time to be the index of each respective element as they are played, using the unit defined in the time signature (the default is common time, or `4|4`)
+When a `Beat` tuple is not provided in an an assignment or a `Collection`, both the position and duration of the `Beat` will be implied at run-time to be the index of each respective element as they are played.
+
+The position and duration are both determined by the time signature (the default is common time, or `4|4`)
 
 For instance:
 
