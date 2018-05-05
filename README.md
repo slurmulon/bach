@@ -170,26 +170,28 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 
 ### Beats
 
-`Loops` are simply nestable collections of `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Loops`.
+`Beats` represent a `Sequence` of `Elements` played for a `Duration` of time.
+
+`Sequences` are simply nestable collections of `Chords`, `Scales`, `Notes`, `Rests` (`~`), or other `Sequences`.
 
 For the sake of brevity, these entities will be combinationally referred to as `Elements` in this proposal and potentially in the source code.
 
-The `Beat` at which any `Element` is played for (interpreted as its duration) is specified via the tuple-like `->` in a `ListLoop` (`[]`) or `SetLoop` (`{}`).
+The `Beat` at which any `Element` is played on (also interpreted as its `Duration`) is specified via the tuple-like `->` in a `ListSequence` (`[]`) or `SetSequence` (`{}`).
 
 ```
 <duration> -> <element>
 ```
 
-`Beat` tuples defined in `ListLoops`, or `Lists`, will be played sequentially in the natural order and will not overlap.
+`Beat` tuples defined in `ListSequences`, or `Lists`, will be played sequentially in the natural order and will not overlap.
 
 ```
 [<duration> -> <element>]
 ```
 
-`Beat` tuples defined in `SetLoops`, or `Sets`, will be played in parallel and will overlap.
+`Beat` tuples defined in `SetSequences`, or `Sets`, will be played in parallel and will overlap.
 
 ```
-{<duration -> <element>}
+{<duration> -> <element>}
 ```
 
 #### Durations
@@ -206,13 +208,13 @@ The value of a `Beat`'s `<duration>` can be:
 1/512 = Minimum duration
 ```
 
-A `Loop` playing a `Note('C2')` for an entire measure, starting at the first `Beat`, would be specified like so:
+A `Sequence` playing a `Note('C2')` for an entire measure, starting at the first `Beat`, would be specified like so:
 
 ```
 [1 -> Note('C2')]
 ```
 
-When a `Beat` identifier is not provided in an an assignment or list it will be implied at run-time to be the index of each respective element as they are played, using the unit defined in the time signature (the default is common time, or `4|4`)
+When a `Beat` identifier is not provided in an an assignment or sequence, it will be implied at run-time to be the index of each respective element as they are played, using the unit defined in the time signature (the default is common time, or `4|4`)
 
 For instance:
 
@@ -230,7 +232,7 @@ is the same as:
 
 All `Elements` must be instantiated in a `Beat` tuple (or implicitly converted into one), and the first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
-`Beat` durations can also use basic mathematical operators. This makes the translation between sheet music and `bach` an easy task.
+`Beat` can also use basic mathematical operators. This makes the translation between sheet music and `bach` an easy task.
 
 ```
 1 + 1/2 -> Chord'(C2min6')
@@ -246,11 +248,11 @@ This is usefeul for specifying more complicated rhythms, like those seen in jazz
 ]
 ```
 
-You may also use the `-`, `*` and `/` operators.
+You may also use the `-`, `*` and `/` operators, but they should generally be avoided because they reduce understandability.
 
 #### Implicits
 
-As a convenience, `Elements` may also be implicit, specified using `#`:
+As a convenience, `Elements` may also be defined implicitly, specified using a `#`:
 
 ```
 :Note  = #('C2')
@@ -260,11 +262,11 @@ As a convenience, `Elements` may also be implicit, specified using `#`:
 
 Determining the semantic value of implicit `Elements` (i.e. whether it's a `Note`, `Chord`, etc.) is the responsibility of the `bach` interpreter.
 
-It's suggested that you primarily use the `#` as it will save you a _lot_ of typing over time.
+It's suggested that you primarily use `#` as it will save you a _lot_ of typing over time.
 
 ### Variables
 
-To assign a variable, prefix a unique name with the `:` operator and provide a value (`<element|list|set>`):
+To assign a variable, prefix a unique name with the `:` operator and provide a value (`<element>`):
 
 ```
 :DasLoop = [1 -> Note('C2'), 1 -> Note('E2')]
@@ -417,11 +419,10 @@ Contributions are always welcome. Simply fork, make your changes and then create
  - [X] General work towards making the tracks iterable in a normalized fashion
  - [ ] Destructured list assignments
  - [ ] Application of collection variables (i.e. dereference and flatten value into surrounding list)
- - [ ] Allow user to define sections of a track that should loop forever (`!Loop`)
+ - [ ] Allow user to define sections of a track that should loop forever
  - [ ] Allow track linking with Hypermedia
  - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress, or specify areas to loop
- - [ ] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
- - [ ] Note fitness / quality data (i.e. how well it fits a given scale or chord in the current context)
+ - [X] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
  - [x] Arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
  - [x] Chord voicings/inversions (i.e. `Chord('C2maj7', inversion: 1)`)
  - [x] Traids (root, 1st, 2nd)
