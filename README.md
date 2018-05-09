@@ -421,9 +421,9 @@ Contributions are always welcome. Simply fork, make your changes and then create
 ## Roadmap
 
  - [ ] Write technical specfiication
- - [ ] Semantic `ref` values for any `Element`
  - [X] General work towards making the tracks iterable in a normalized fashion
  - [ ] Destructured list assignments
+ - [ ] Expandable / destructured scales and chords (i.e. `[... 1/4 -> Scale('C2')]`)
  - [ ] Application of collection variables (i.e. dereference and flatten value into surrounding list)
  - [ ] Allow user to define sections of a track that should loop forever
  - [ ] Allow track linking with Hypermedia
@@ -432,3 +432,4 @@ Contributions are always welcome. Simply fork, make your changes and then create
  - [x] Arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
  - [x] Chord voicings/inversions (i.e. `Chord('C2maj7', inversion: 1)`)
  - [x] Traids (root, 1st, 2nd)
+ - [ ] Sort out complexities around `Beats` in nested `List`s (i.e. should nested `Beats` / `Elements` be able to surpass their parents?)
