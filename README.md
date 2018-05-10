@@ -422,6 +422,11 @@ Contributions are always welcome. Simply fork, make your changes and then create
 
  - [ ] Write technical specfiication
  - [X] General work towards making the tracks iterable in a normalized fashion
+ - [ ] Refactor headers (rename to "metas") so that they are contextual instead of global
+ - [ ] Create `@Dynamics` contextual meta construct (alternatives: `@Intensity`, `@Volume`)
+ - [ ] Create `@Accent` contextual meta construct
+ - [ ] Element relationships (e.g. tie, slur, glissando, arpeggiated chord)
+ - [ ] Tuplets
  - [ ] Destructured list assignments
  - [ ] Expandable / destructured scales and chords (i.e. `[... 1/4 -> Scale('C2')]`)
  - [ ] Application of collection variables (i.e. dereference and flatten value into surrounding list)
