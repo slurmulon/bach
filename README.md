@@ -22,6 +22,9 @@
   * [Library](https://github.com/slurmulon/bach#library)
 - [Documentation](https://github.com/slurmulon/bach#documentation)
   * [Beats](https://github.com/slurmulon/bach#beats)
+    - [Lists](https://github.com/slurmulon/bach#lists)
+    - [Sets](https://github.com/slurmulon/bach#durations)
+    - [Nesting](https://github.com/slurmulon/bach#nesting)
     - [Durations](https://github.com/slurmulon/bach#durations)
     - [Instantiation](https://github.com/slurmulon/bach#instantiation)
     - [Implicits](https://github.com/slurmulon/bach#implicits)
@@ -163,7 +166,6 @@ Currently supports the following actions:
 (compile-track (ast/parse ":Foo = []"))
 ```
 
-
 ## Documentation
 
 An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/bach/blob/master/resources/grammar.bnf).
@@ -180,16 +182,37 @@ The `Beat` on which an `Element` is played on (also interpreted as its duration)
 <duration> -> <element>
 ```
 
+#### Lists
+
 `Beat` tuples defined in `Lists` will be played sequentially in the natural order (left to right) and will not overlap.
 
 ```
 [<duration> -> <element>]
 ```
 
+#### Sets
+
 `Beat` tuples defined in `Sets` will be played in parallel and may overlap.
 
 ```
 {<duration> -> <element>}
+```
+
+#### Nesting
+
+`Sets` or `Lists` defined in other `Sets` (i.e. nested `Sets`) may be defined without a duration.
+
+```
+{
+  [
+    <duration> -> <element>
+    <duration> -> <element>
+  ],
+  [
+    <duration> -> <element>
+    <duration> -> <element>
+  ]
+}
 ```
 
 #### Durations
@@ -236,7 +259,9 @@ is the same as:
 
 #### Instantiation
 
-All `Elements` must be instantiated in a `Beat` tuple (or implicitly converted into one), and the first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
+All `Elements`, unless already nested in a `List` or `Set`, must be instantiated in a `Beat` tuple (or implicitly converted into one, as shown in the previous section)
+
+The first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
 `Beat` can also use basic mathematical operators. This makes the translation between sheet music and `bach` an easy task.
 
