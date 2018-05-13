@@ -23,7 +23,7 @@
 - [Documentation](https://github.com/slurmulon/bach#documentation)
   * [Beats](https://github.com/slurmulon/bach#beats)
     - [Lists](https://github.com/slurmulon/bach#lists)
-    - [Sets](https://github.com/slurmulon/bach#durations)
+    - [Sets](https://github.com/slurmulon/bach#sets)
     - [Nesting](https://github.com/slurmulon/bach#nesting)
     - [Durations](https://github.com/slurmulon/bach#durations)
     - [Instantiation](https://github.com/slurmulon/bach#instantiation)
