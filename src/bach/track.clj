@@ -96,7 +96,6 @@
                    [:play value-token])))}
     track))))
 
-; FIXME: remove ":div /" and replace with `identity`
 (defn reduce-values
   "Reduces any primitive values in a parsed track"
   [track]
@@ -106,7 +105,7 @@
      :mul *,
      :div /,
      :meter (fn [n d] [n d]),
-     :number clojure.edn/read-string
+     :number clojure.edn/read-string,
      :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 
 (defn reduce-track
