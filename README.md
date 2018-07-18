@@ -7,7 +7,7 @@
 [![build](https://img.shields.io/circleci/project/github/RedSparr0w/node-csgo-parser.svg?style=for-the-badge)](https://circleci.com/gh/slurmulon/bach)
 [![clojars](https://img.shields.io/clojars/v/bach.svg?style=for-the-badge)](https://clojars.org/bach)
 
-<p align="center"><img src="./assets/logo-small.png" alt="Bach logo"></p>
+<p align="center"><img src="./assets/logo-round.gif" alt="Bach logo" style="width: 200px"></p>
 
 ## Sections
 
