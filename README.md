@@ -1,6 +1,6 @@
 # bach
 
-> :musical_score: Semantic musical notation with a focus on readability and productivity
+> :musical_score: Semantic music notation with a focus on readability and productivity
 
 ---
 
@@ -46,7 +46,7 @@
 
 ## What
 
-`bach` is a semantic musication notation designed to be both human and computer friendly.
+`bach` is a semantic music notation designed to be both human and computer friendly.
 
 _This is currently a living document for ideas and should not be considered stable!_
 
