@@ -60,17 +60,16 @@ _This is currently a living document for ideas and should not be considered stab
 - Easy to translate from sheet music
 - Small learning curve
 - Highly productive
-- Simple, composable and scalable constructs
 - Trivial to interpret compiled output. Writing `bach` engines should be easy!
-- Keep your definitions DRY
+- Keeps your definitions DRY
 
 ## Design
 
-`bach` tracks are ultimately interpreted by a higher-level `bach` engine.
+`bach` tracks are ultimately interpreted by a higher-level `bach` engine, such as [`gig`](https://github.com/slurmulon/gig).
 
 This module, by itself, can only parse and compile plaintext `bach` data into [`bach.json`](https://github.com/slurmulon/bach-json-schema).
 
-`bach.json` is a JSON micro-format that makes it trivial to sequentially process a `bach` music track and synchronize it in real-time with audio.
+`bach.json` is a JSON micro-format that makes it trivial for `bach` engines to sequentially process a `bach` music track and synchronize it in real-time with audio.
 
 ## Example
 
