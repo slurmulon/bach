@@ -1,6 +1,6 @@
 # bach
 
-> :musical_score: Musical notation with a focus on readability and productivity
+> :musical_score: Semantic musical notation with a focus on readability and productivity
 
 ---
 
@@ -11,43 +11,52 @@
 
 ## Sections
 
-- [Goals](https://github.com/slurmulon/bach#goals)
-- [Design](https://github.com/slurmulon/bach#design)
-- [Example](https://github.com/slurmulon/bach#example)
-- [Install](https://github.com/slurmulon/bach#install)
-- [Setup](https://github.com/slurmulon/bach#setup)
-- [Testing](https://github.com/slurmulon/bach#testing)
-- [Usage](https://github.com/slurmulon/bach#usage)
-  * [CLI](https://github.com/slurmulon/bach#cli)
-  * [Library](https://github.com/slurmulon/bach#library)
-- [Documentation](https://github.com/slurmulon/bach#documentation)
-  * [Beats](https://github.com/slurmulon/bach#beats)
-    - [Lists](https://github.com/slurmulon/bach#lists)
-    - [Sets](https://github.com/slurmulon/bach#sets)
-    - [Nesting](https://github.com/slurmulon/bach#nesting)
-    - [Durations](https://github.com/slurmulon/bach#durations)
-    - [Instantiation](https://github.com/slurmulon/bach#instantiation)
-    - [Implicits](https://github.com/slurmulon/bach#implicits)
-  * [Variables](https://github.com/slurmulon/bach#variables)
-  * [Cadences](https://github.com/slurmulon/bach#cadences)
-  * [Attributes](https://github.com/slurmulon/bach#attributes)
-  * [Headers](https://github.com/slurmulon/bach#headers)
-  * [Play](https://github.com/slurmulon/bach#play)
-- [Constructs](https://github.com/slurmulon/bach#constructs)
-  * [Elements](https://github.com/slurmulon/bach#elements)
-  * [Headers](https://github.com/slurmulon/bach#headers-1)
-  * [Operators](https://github.com/slurmulon/bach#operators)
-  * [Primitives](https://github.com/slurmulon/bach#primitives)
-- [Related](https://github.com/slurmulon/bach#related)
-- [Help](https://github.com/slurmulon/bach#help)
-- [Contributing](https://github.com/slurmulon/bach#contributing)
-- [Roadmap](https://github.com/slurmulon/bach#roadmap)
+- [Goals](#goals)
+- [What](#what)
+- [Design](#design)
+- [Example](#example)
+- [Install](#install)
+- [Setup](#setup)
+- [Testing](#testing)
+- [Usage](#usage)
+  * [CLI](#cli)
+  * [Library](#library)
+- [Documentation](#documentation)
+  * [Beats](#beats)
+    - [Lists](#lists)
+    - [Sets](#sets)
+    - [Nesting](#nesting)
+    - [Durations](#durations)
+    - [Instantiation](#instantiation)
+    - [Implicits](#implicits)
+  * [Variables](#variables)
+  * [Cadences](#cadences)
+  * [Attributes](#attributes)
+  * [Headers](#headers)
+  * [Play](#play)
+- [Constructs](#constructs)
+  * [Elements](#elements)
+  * [Headers](#headers-1)
+  * [Operators](#operators)
+  * [Primitives](#primitives)
+- [Related](#related)
+- [Help](#help)
+- [Contributing](#contributing)
+- [Roadmap](#roadmap)
+
+## What
+
+`bach` is a semantic musication notation designed to be both human and computer friendly.
+
+_This is currently a living document for ideas and should not be considered stable!_
 
 ## Goals
 
 - Allow for alternative real-time representations of music (e.g. visual instead of just audio)
 - Seamless synchronization with associated audio data by minimizing the complexities around timing
 - Adhere to traditional Western music theory concepts
+- Support semantic music constructs via scientific notation
+- Easy to read for both humans and computers
 - Easy to translate from sheet music
 - Small learning curve
 - Highly productive
@@ -61,9 +70,7 @@
 
 This module, by itself, can only parse and compile plaintext `bach` data into [`bach.json`](https://github.com/slurmulon/bach-json-schema).
 
-`bach.json` makes it trivial, especially for JavaScript and JSON-friendly languages, to sequentially process a `bach` music track and synchronize it in real-time with audio.
-
-In general `bach` allows people to create modules and/or applications that need to synchronize data with music in real-time.
+`bach.json` is a JSON micro-format that makes it trivial to sequentially process a `bach` music track and synchronize it in real-time with audio.
 
 ## Example
 
@@ -139,17 +146,16 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 First be sure that you have a binary executable (requires `lein` to be installed) available on your `PATH`:
 
 ```sh
-$ cd bach
 $ lein bin
 ```
 
-Then you can just execute the resulting binary like so:
+Then you can execute the resulting binary like so:
 
 ```sh
 $ target/bach -i /path/to/track.bach compile
 ```
 
-Currently supports the following actions:
+The executable currently supports the following actions:
 
 - `parse`: creates an Abstract Syntax Tree (AST) from vanilla `bach` data
 - `compile`: parses and compiles vanilla `bach` data into `bach.json`, an intermediary JSON micro-format that allows for simple interpretation of tracks
@@ -176,7 +182,7 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 
 `Elements` are either `Chords`, `Scales`, `Notes`, `Rests` (`~`), or `Collections`.
 
-The `Beat` on which an `Element` is played on (also interpreted as its duration) is specified using the tuple symbol, `->`:
+The duration a `Beat` is for is specified using the tuple symbol, `->`:
 
 ```
 <duration> -> <element>
@@ -184,15 +190,15 @@ The `Beat` on which an `Element` is played on (also interpreted as its duration)
 
 #### Lists
 
-`Beat` tuples defined in `Lists` will be played sequentially in the natural order (left to right) and will not overlap.
+`Beats` defined in `Lists` will be played sequentially in the natural order (left to right) and will **not** overlap.
 
 ```
-[<duration> -> <element>]
+[<duration> -> <element>, <duration> -> <element>]
 ```
 
 #### Sets
 
-`Beat` tuples defined in `Sets` will be played in parallel and may overlap.
+`Beats` defined in `Sets` will be played in parallel and may overlap.
 
 ```
 {<duration> -> <element>}
@@ -257,13 +263,7 @@ is the same as:
 [Note('C2'), Note('F2')]
 ```
 
-#### Instantiation
-
-All `Elements`, unless already nested in a `List` or `Set`, must be instantiated in a `Beat` tuple (or implicitly converted into one, as shown in the previous section)
-
-The first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
-
-`Beat` can also use basic mathematical operators. This makes the translation between sheet music and `bach` an easy task.
+`Beat` durations can also use basic mathematical operators. This makes the translation between sheet music and `bach` an easy task.
 
 ```
 1 + 1/2 -> Chord'(C2min6')
@@ -279,7 +279,13 @@ This is usefeul for specifying more complicated rhythms, like those seen in jazz
 ]
 ```
 
-You may also use the `-`, `*` and `/` operators, but they should generally be avoided because they reduce understandability.
+You may also use the `-`, `*` and `/` operators.
+
+#### Instantiation
+
+All `Elements`, unless already nested in a `List` or `Set`, must be instantiated in a `Beat` tuple (or implicitly converted into one, as shown in the previous section)
+
+The first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
 #### Implicits
 
@@ -293,20 +299,20 @@ As a convenience, `Elements` may also be defined implicitly, specified using a `
 
 Determining the semantic value of implicit `Elements` (i.e. whether it's a `Note`, `Chord`, etc.) is the responsibility of the `bach` interpreter.
 
-It's suggested that you primarily use `#` as it will save you a _lot_ of typing over time.
+It's suggested that you primarily use implicits as they will save you a _lot_ of typing over time.
 
 ### Variables
 
 To assign a variable, prefix a unique name with the `:` operator and provide a value (`<element>`):
 
 ```
-:DasLoop = [1 -> Note('C2'), 1 -> Note('E2')]
+:MyLoop = [1 -> Note('C2'), 1 -> Note('E2')]
 ```
 
 Once assigned a name, variables may be dynamically referenced anywhere else in the track:
 
 ```
-:CoolLooop = :DasLoop
+:CoolLooop = :MyLoop
 ```
 
 ### Cadences
@@ -355,7 +361,7 @@ For instance, colors are useful for succesfully expressing a variety of data to 
 
 Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
 
-Headers outside of those defined in the documentation are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any primitive type.
+Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any primitive type.
 
 ```
 @Title  = 'My bach track'
@@ -450,6 +456,7 @@ Contributions are always welcome. Simply fork, make your changes and then create
  - [ ] Refactor headers (rename to "metas") so that they are contextual instead of global
  - [ ] Create `@Dynamics` contextual meta construct (alternatives: `@Intensity`, `@Volume`)
  - [ ] Create `@Accent` contextual meta construct
+ - [ ] Replace `!Play` with more generic `export` keyword
  - [ ] Element relationships (e.g. tie, slur, glissando, arpeggiated chord)
  - [ ] Tuplets
  - [ ] Destructured list assignments
