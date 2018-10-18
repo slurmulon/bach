@@ -7,7 +7,7 @@
   (:gen-class))
 
 (def cli-options
-  [["-i" "--input DATA" "The bach data to use as input"
+  [["-i" "--input DATA" "The bach file to use as input"
     :id :input
     :default ""]
    ["-h" "--help"]])
@@ -24,7 +24,7 @@
                 (println output)))})
 
 (defn help [options]
-  (->> ["bach is a pragmatic notation for representing musical tracks and loops"
+  (->> ["bach is a semantic musical notation"
         ""
         "Usage: bach [options] action"
         ""
