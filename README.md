@@ -11,8 +11,8 @@
 
 ## Sections
 
-- [Goals](#goals)
 - [What](#what)
+- [Goals](#goals)
 - [Design](#design)
 - [Example](#example)
 - [Install](#install)
