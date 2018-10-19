@@ -200,7 +200,7 @@ The duration that a `Beat` is played for is specified using the tuple symbol, `-
 `Beats` defined in `Sets` will be played in parallel and may overlap.
 
 ```
-{<duration> -> <element>}
+{<duration> -> <element>, <duration> -> <element>}
 ```
 
 #### Nesting
