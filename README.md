@@ -181,7 +181,7 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 
 `Elements` are either `Chords`, `Scales`, `Notes`, `Rests` (`~`), or `Collections`.
 
-The duration a `Beat` is for is specified using the tuple symbol, `->`:
+The duration that a `Beat` is played for is specified using the tuple symbol, `->`:
 
 ```
 <duration> -> <element>
