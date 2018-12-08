@@ -13,7 +13,7 @@ pair       = term <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> elem
 header     = meta <'='> elem
 attribute  = word [<empty>] <':'> [<empty>] prim
-identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
+identifier = [<empty>] #':[a-zA-Z0-9]+' [<empty>]
 arguments  = ((identifier | string | attribute | add-sub) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
 meta       = [<empty>] <'@'> #'(Audio|Instrument|Time|Tempo|Key|Delay|Link|Title|Artist|Desc|Tags)' [<empty>]
