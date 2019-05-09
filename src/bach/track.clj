@@ -263,13 +263,16 @@
   (let [reduced-track (reduce-track track)
         norm-beats-per-measure (get-normalized-beats-per-measure reduced-track)
         beats-per-measure (get-beats-per-measure reduced-track)
+        lowest-beat (get-lowest-beat track)
         divisor (/ norm-beats-per-measure beats-per-measure) ; FIXME: need to multiply this by `get-scaled-beat-unit`
         scaled-divisor (/ divisor (get-scaled-beat-unit track))
         tempo (get-tempo reduced-track)
         ms-per-beat (* (/ 60 tempo) 1000)
         ; norm-ms-per-beat (/ ms-per-beat divisor)]
         norm-ms-per-beat (/ ms-per-beat scaled-divisor)]
-    (float norm-ms-per-beat)))
+    ; (println "Scaled divisor, divisor, lowest-beat" scaled-divisor divisor lowest-beat)
+    (float norm-ms-per-beat))) ; ORIG
+    ; (float (/ norm-ms-per-beat lowest-beat))))
 
 ; FIXME: one thing this should do differently is append the result of the original track definition,
 ; that way variables and such are retained properly. otherwise this works great.
@@ -281,6 +284,7 @@
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
         beats-per-measure (get-normalized-beats-per-measure track)
         total-measures (get-total-measures-ceiled track)
+        lowest-beat (get-lowest-beat track)
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
         reduced-track (reduce-track track)]
     (insta/transform
@@ -291,17 +295,18 @@
                 (update-measures [measure-index beat-index notes]
                   (swap! measures assoc-in [measure-index beat-index] notes))
                 (beat-indices [beat]
-                  (let [lowest-beat (get-lowest-beat track)
-                        global-beat-index (/ @beat-cursor lowest-beat)
+                  (let [global-beat-index (/ @beat-cursor lowest-beat)
                         local-beat-index (mod global-beat-index beats-per-measure)
                         measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                     {:measure measure-index :beat local-beat-index}))] ; TODO; consider using normalized local beat index instead
           (insta/transform
             {:pair (fn [beats notes]
-                     (let [indices (beat-indices beats)
+                     (let [norm-beats (/ beats lowest-beat)
+                           indices (beat-indices beats)
                            measure-index (:measure indices)
                            beat-index (:beat indices)
-                           compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
+                           ; compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
+                           compiled-notes {:duration norm-beats :notes (hiccup-to-hash-map notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
                        (update-measures measure-index beat-index compiled-notes)
                        (update-cursor beats)))}
           play-track)))}
@@ -321,6 +326,7 @@
                    :ms-per-beat ms-per-beat,
                    :lowest-beat lowest-beat)))
 
+; FIXME: report parsing errors (also support config letting this error out instead)
 (defn compile-track
   "Provides a 'compiled' version of a parsed track that contains all of the information necessary to easily
    interpret a track as a single stream of normalized data (no references, all values are resolved)"
