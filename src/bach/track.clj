@@ -146,6 +146,7 @@
         header (find-header reduced-track "Time" default-time-signature)]
     header))
 
+; FIXME: Support floating point tempos
 (defn get-tempo
   [track]
   (find-header track "Tempo" default-tempo))
@@ -181,7 +182,11 @@
                (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
-    (min 1 @lowest-duration)))
+    (let [lowest-beat-unit (/ 1 (-> @lowest-duration
+                                    rationalize
+                                    clojure.lang.Numbers/toRatio
+                                    denominator))]
+      (min 1 lowest-beat-unit))))
 
 (defn get-normalized-lowest-beat
   "Determines the lowest beat normalized against the beat unit of the track (defined in the time signature"
