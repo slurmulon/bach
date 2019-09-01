@@ -1,3 +1,12 @@
+; FIXME: (MAYBE) Don't look at durations as fractions of a measure based on the time signature denominator.
+; - For instance: Right now a "whole" note in 6|8 would result in 6 1/8ths (worth of duration) being played. When REALLY that should be 8 1/8th notes (so a measure plus 1/4 note)
+; - A whole note should always mean 4 quarter notes, or 8 eighth notes (etc.), regardless of the time signature
+; TODO: Allow Bach notes to be scaled/scoped in three different ways:
+;  - Measure/bar (like it is now, which sucks for odd meters such as 5|8)
+;  - Number of beats / beat unit (1 beat = 1 of the denominator unit of a time signature)
+;  - Traditional western (i.e. whole note, or 1,  means 4 quarter notes regardless of time signature)
+;    * Probably make this the default, or just switch over to this entirely for now
+
 (ns bach.track
   (:require [instaparse.core :as insta]
             [bach.data :refer [hiccup-to-hash-map ratio-to-vector]]))
@@ -182,6 +191,8 @@
                (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
+    ; FIXME: Ideal because it's most optimized, but it breaks `normalize-measures` a bit
+    ; (min 1 @lowest-duration)))
     (let [lowest-beat-unit (/ 1 (-> @lowest-duration
                                     rationalize
                                     clojure.lang.Numbers/toRatio
@@ -189,7 +200,7 @@
       (min 1 lowest-beat-unit))))
 
 (defn get-normalized-lowest-beat
-  "Determines the lowest beat normalized against the beat unit of the track (defined in the time signature"
+  "Determines the lowest beat normalized against the beat unit of the track (defined in the time signature)"
   [track]
   (let [lowest-beat (get-lowest-beat track)
         ; beat-unit (get-scaled-beat-unit track)]
@@ -209,6 +220,9 @@
 
 ; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
 ; to the lowest common beat found in the track
+; FIXME: Make 1 = 4 1/4 notes (in :trad mode)
+;        Make 1 = 1 measure (in :bar mode)
+;        Make 1 = 1 beat (in :unit mode)
 (defn get-total-beats
   "Determines the total number of beats in the track (1 = 1 whole note / measure)"
   [track]
@@ -261,7 +275,7 @@
 
 ; @see https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te
 ; - FIXME: this needs to consider the denominator. 3/4 and 6/8 should produce equal results.
-(defn get-ms-per-beat
+(defn get-ms-per-beat-OLD
   "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
    Mostly exists to make parsing easier for the high-level interpreter / player"
   [track]
@@ -274,6 +288,21 @@
         ms-per-beat (* (/ 60 tempo) 1000)
         ; norm-ms-per-beat (/ ms-per-beat divisor)]
         norm-ms-per-beat (/ ms-per-beat scaled-divisor)]
+    (float norm-ms-per-beat)))
+
+(defn get-ms-per-beat
+  "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
+   Mostly exists to make parsing easier for the high-level interpreter / player"
+  [track]
+  (let [reduced-track (reduce-track track)
+        tempo (get-tempo reduced-track)
+        lowest-beat (get-lowest-beat reduced-track)
+        ; TODO: Probably break this out into its own function
+        scaled-lowest-beat (/ (/ 1 4) lowest-beat)
+        ms-per-beat (* (/ 60 tempo) 1000)
+        norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
+    (println "\n\n\nlowest-beat" lowest-beat)
+    (println "norm beat!!!" norm-ms-per-beat)
     (float norm-ms-per-beat)))
 
 ; FIXME: one thing this should do differently is append the result of the original track definition,
