@@ -31,5 +31,5 @@ color      = #'#[a-fA-F0-9xX]{6}'
 add        = [<empty>] add-sub [<empty>] <'+'> [<empty>] mul-div [<empty>]
 sub        = [<empty>] add-sub [<empty>] <'-'> [<empty>] mul-div [<empty>]
 <mul-div>  = term | mul | div
-mul        = mul-div <'*'> term
-div        = mul-div <'/'> term
+mul        = [<empty>] mul-div [<empty>] <'*'> [<empty>] term [<empty>]
+div        = [<empty>] mul-div [<empty>] <'/'> [<empty>] term [<empty>]
