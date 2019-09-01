@@ -20,7 +20,8 @@
                        [:statement [:assign [:identifier ":B"] [:identifier ":A"]]]]]
       (is (= (validate tree) true))))
   (testing "identifier (invalid, unknown variable)"
-    (let [tree [:track [:statement [:assign [:identifier ":A"] [:number "1"]] [:assign [:identifier "B"] [:identifier "Z"]]]]]
+    (let [tree [:track [:statement [:assign [:identifier ":A"] [:number "1"]]
+                                   [:assign [:identifier "B"] [:identifier "Z"]]]]]
       (is (thrown-with-msg? Exception #"variable is not declared before it's used" (validate tree)))))
   (testing "basic div (valid numerator and denominator)"
     (let [tree [:track [:statement [:div [:number "1"] [:number "2"]]]]]
@@ -42,6 +43,11 @@
   (testing "string"
     (let [tree [:track [:statement [:string "'Text'"]]]
           want [:track [:statement "Text"]]]
+      (is (= want (reduce-values tree)))))
+  (testing "operation"
+    (let [tree [:track [:statement [:add [:div [:number "1"] [:number "2"]]
+                                         [:div [:number "1"] [:number "4"]]]]]
+          want [:track [:statement 3/4]]]
       (is (= want (reduce-values tree))))))
 
 (deftest beat-unit
@@ -51,29 +57,63 @@
       (is (= want (get-beat-unit tree)))))
   (testing "scaled"
     (testing "4/4"
-      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "4"] [:number "4"]]]]]
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "4"]
+                                                      [:number "4"]]]]]
             want 1]
         (is (= want (get-scaled-beat-unit tree)))))
     (testing "6/8"
-      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]]
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "6"]
+                                                      [:number "8"]]]]]
             want 1/2]
         (is (= want (get-scaled-beat-unit tree)))))))
 
 ; FIXME: handle notes that aren't % 2
 (deftest lowest-beat
   (testing "whole number"
-    (let [tree [:track [:statement [:list [:pair [:number "4"] [:list]] [:pair [:number "2"] [:list]] [:pair [:number "1"] [:list]]]]]
+    (let [tree [:track [:statement [:list [:pair [:number "4"] [:list]]
+                                          [:pair [:number "2"] [:list]]
+                                          [:pair [:number "1"] [:list]]]]]
           want 1]
       (is (= want (get-lowest-beat tree)))))
   (testing "ratio"
-    (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+    (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:list]]
+                                          [:pair [:div [:number "1"] [:number "4"]] [:list]]
+                                          [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
           want (/ 1 8)]
+      (is (= want (get-lowest-beat tree)))))
+  (testing "complex ratio"
+    (let [tree [:track [:statement [:header [:meta "Time"]
+                                            [:meter [:number "3"]
+                                                    [:number "4"]]]]
+                       [:statement [:list [:pair [:add [:div [:number "1"]
+                                                             [:number "2"]]
+                                                       [:div [:number "1"]
+                                                             [:number "4"]]]
+                                                 [:atom [:keyword "Note"]
+                                                        [:init [:arguments [:string "'C2'"]]]]]]]]
+          ; FIXME: Ideal value, but not entirely necessary
+          ; want (/ 3 4)]
+          want (/ 1 4)]
       (is (= want (get-lowest-beat tree))))))
+
+; (deftest normalized-lowest-beat
+;   (testing "whole number"
+;     (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]
+;                        [:statement [:list [:pair [:div [:number "1"] [:number "
+;     )
+
+;   (testing "ratio"
+;     ))
 
 ; TODO: handle uncommon time (6/8, 3/4, etc.)
 (deftest total-beats
   (testing "common time"
-    (let [tree [:track [:statement [:list [:pair [:number "1"] [:list]] [:pair [:number "4"] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
+    (let [tree [:track [:statement [:list [:pair [:number "1"] [:list]]
+                                          [:pair [:number "4"] [:list]]
+                                          [:pair [:div [:number "1"] [:number "4"]] [:list]]
+                                          [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
           want (rationalize 5.5)]
       (is (= want (get-total-beats tree))))))
 
@@ -84,7 +124,8 @@
             want 1]
         (is (= want (get-total-duration tree :minutes)))))
     (testing "with extra seconds"
-      (let [tree [:track [:statement [:list [:pair [:number "20"] [:list]] [:pair [:number "25"] [:list]]]]] ; 20 measures x 4 beats = 80, 25 measures x 4 = 100 beats === 180 total beats
+      (let [tree [:track [:statement [:list [:pair [:number "20"] [:list]]
+                                            [:pair [:number "25"] [:list]]]]] ; 20 measures x 4 beats = 80, 25 measures x 4 = 100 beats === 180 total beats
             want (rationalize 1.5)]
         (is (= want (get-total-duration tree :minutes))))))
   (testing "milliseconds"
@@ -97,29 +138,56 @@
 (deftest milliseconds-per-beat
   (testing "singleton"
     (testing "whole note"
-      (let [tree [:track [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+      (let [tree [:track [:statement [:list [:pair [:number "1"]
+                                                   [:atom [:keyword "Note"]
+                                                          [:init [:arguments [:string "'C2'"]]]]]]]]
             want 2000.0]
         (is (= want (get-ms-per-beat tree)))))
     (testing "half note"
-      (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+      (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]]
+                                                   [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]
+                                            [:pair [:div [:number "1"] [:number "2"]]
+                                                   [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 1000.0]
         (is (= want (get-ms-per-beat tree)))))
     (testing "quarter note"
-      (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+      (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "4"]]
+                                                   [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 500.0]
         (is (= want (get-ms-per-beat tree)))))
     (testing "eigth note"
-      (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+      (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]]
+                                                   [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 250.0]
         (is (= want (get-ms-per-beat tree))))))
+  ; FIXME: Could improve this by having `get-lowest-beat` look at the reduced values, right now it is using 1/4 when it could use 3/4 if it added 1/2 and 1/4 together first (this should already be happening, actually)
   (testing "non-default time signature"
     (testing "3/4"
-      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]] [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-            want 1500.0]
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "3"]
+                                                      [:number "4"]]]]
+                         [:statement [:list [:pair [:add [:div [:number "1"]
+                                                               [:number "2"]]
+                                                         [:div [:number "1"]
+                                                               [:number "4"]]]
+                                                   [:atom [:keyword "Note"]
+                                                          [:init [:arguments [:string "'C2'"]]]]]]]]
+                         ; [:statement [:list [:pair [:number "1"]
+                         ;                           [:atom [:keyword "Note"]
+                         ;                                  [:init [:arguments [:string "'C2'"]]]]]]]]
+            ; FIXME: Use this value once get-lowest-beat is optimized and can return things like 3/4
+            ; want 1500.0]
+            want 500.0]
         (is (= want (get-ms-per-beat tree)))))
     (testing "6/8"
-      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]] [:statement [:list [:pair [:number "1"] [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-            want 1500.0]
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "6"]
+                                                      [:number "8"]]]]
+                         [:statement [:list [:pair [:number "1"]
+                                                   [:atom [:keyword "Note"]
+                                                          [:init [:arguments [:string "'C2'"]]]]]]]]
+            ; want 1500.0]
+            want 2000.0]
         (is (= want (get-ms-per-beat tree)))))))
 
 ; (deftest lowest-beat
@@ -150,10 +218,19 @@
                        [:statement [:assign [:identifier :B] [:list [:number 1] [:number 2]]]]]]
       (is (= want (deref-variables tree)))))
   (testing "variables (nested list/array)"
-    (let [tree [:track [:statement [:assign [:identifier :A] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]
-                       [:statement [:assign [:identifier :B] [:list [:pair [:number "1"] [:identifier :A]]]]]]
-          want [:track [:statement [:assign [:identifier :A] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]
-                       [:statement [:assign [:identifier :B] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]]]]]
+    (let [tree [:track [:statement [:assign [:identifier :A]
+                                            [:atom [:keyword "Chord"]
+                                                   [:init [:arguments [:string "'D2min7'"]]]]]]
+                       [:statement [:assign [:identifier :B]
+                                            [:list [:pair [:number "1"]
+                                                          [:identifier :A]]]]]]
+          want [:track [:statement [:assign [:identifier :A]
+                                            [:atom [:keyword "Chord"]
+                                                   [:init [:arguments [:string "'D2min7'"]]]]]]
+                       [:statement [:assign [:identifier :B]
+                                            [:list [:pair [:number "1"]
+                                                          [:atom [:keyword "Chord"]
+                                                                 [:init [:arguments [:string "'D2min7'"]]]]]]]]]]
       (is (= want (deref-variables tree)))))
   ; (testing "beats"
   ;   (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "3"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'B2Maj7'"]]]]]]]]]
@@ -164,11 +241,15 @@
 (deftest scaled
   (testing "beats per measure"
     (testing "fully reduced ratio"
-      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]]]
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "3"]
+                                                      [:number "4"]]]]]
             want 3]
         (is (= want (get-beats-per-measure tree)))))
     (testing "reduceable ratio (avoid reduction)"
-      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]]
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "6"]
+                                                      [:number "8"]]]]]
             want 6]
         (is (= want (get-beats-per-measure tree)))))))
 
@@ -179,26 +260,147 @@
   (testing "total beats"
     (testing "using greater unit than denominator in time signature"
       (testing "single measure"
-        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]]]]]]
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                                [:list [:pair [:number "1"]
+                                                              [:atom [:keyword "Chord"]
+                                                                     [:init [:arguments [:string "'D2min7'"]]]]]]]]]
             want 4]
         (is (= want (get-normalized-total-beats tree)))))
       (testing "multiple measures"
-        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                                [:list [:pair [:number "1"]
+                                                              [:atom [:keyword "Chord"]
+                                                                      [:init [:arguments [:string "'D2min7'"]]]]]
+                                                        [:pair [:number "1"]
+                                                               [:atom [:keyword "Chord"]
+                                                                      [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
               want 8]
           (is (= want (get-normalized-total-beats tree)))))))
   ; TODO: "with greater than whole notes"
   (testing "measures"
     (testing "with whole notes"
-      (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]] [:statement [:play [:identifier ":ABC"]]]]
-            want [[{:duration 1, :notes {:atom {:keyword "Chord", :init {:arguments ["D2min7"]}}}}] [{:duration 1, :notes {:atom {:keyword "Chord", :init {:arguments ["G2Maj7"]}}}}] [{:duration 1, :notes {:atom {:keyword "Chord", :init {:arguments ["C2maj7"]}}}}]]]
+      (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                              [:list [:pair [:number "1"]
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'D2min7'"]]]]]
+                                                     [:pair [:number "1"]
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'G2Maj7'"]]]]]
+                                                     [:pair [:number "1"]
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'C2maj7'"]]]]]]]]
+                         [:statement [:play [:identifier ":ABC"]]]]
+            want [[{:duration 1,
+                    :notes {:atom {:keyword "Chord",
+                                   :init {:arguments ["D2min7"]}}}}]
+                  [{:duration 1,
+                    :notes {:atom {:keyword "Chord",
+                                   :init {:arguments ["G2Maj7"]}}}}]
+                  [{:duration 1,
+                    :notes {:atom {:keyword "Chord",
+                                   :init {:arguments ["C2maj7"]}}}}]]]
         (is (= want (normalize-measures tree))))) )
     (testing "with half notes"
-      (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:number "1"] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]] [:statement [:play [:identifier ":ABC"]]]]
-            want [[{:duration 1/2, :notes {:atom {:keyword "Chord", :init {:arguments ["D2min7"]}}}} {:duration 1/2, :notes {:atom {:keyword "Chord", :init {:arguments ["G2Maj7"]}}}}] [{:duration 1, :notes {:atom {:keyword "Chord", :init {:arguments ["C2maj7"]}}}} nil]]]
+      (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                              [:list [:pair [:div [:number "1"]
+                                                                  [:number "2"]]
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'D2min7'"]]]]]
+                                                     [:pair [:div [:number "1"]
+                                                                  [:number "2"]] 
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'G2Maj7'"]]]]]
+                                                     [:pair [:number "1"]
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'C2maj7'"]]]]]]]]
+                         [:statement [:play [:identifier ":ABC"]]]]
+            want [[{:duration 1/2,
+                    :notes {:atom {:keyword "Chord",
+                                   :init {:arguments ["D2min7"]}}}}
+                   {:duration 1/2,
+                    :notes {:atom {:keyword "Chord",
+                                   :init {:arguments ["G2Maj7"]}}}}]
+                  [{:duration 1,
+                    :notes {:atom {:keyword "Chord",
+                                   :init {:arguments ["C2maj7"]}}}}
+                   nil]]]
         (is (= want (normalize-measures tree)))))
     (testing "with quarter notes"
-      (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]] [:statement [:play [:identifier ":ABC"]]]]
-            want [[{:duration 1/4, :notes {:atom {:keyword "Chord", :init {:arguments ["D2min7"]}}}} {:duration 1/2, :notes {:atom {:keyword "Chord", :init {:arguments ["G2Maj7"]}}}} nil {:duration 1/4, :notes {:atom {:keyword "Chord", :init {:arguments ["C2maj7"]}}}}]]]
+      (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                              [:list [:pair [:div [:number "1"]
+                                                                  [:number "4"]]
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'D2min7'"]]]]]
+                                                     [:pair [:div [:number "1"]
+                                                                  [:number "2"]]
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'G2Maj7'"]]]]]
+                                                     [:pair [:div [:number "1"]
+                                                                  [:number "4"]]
+                                                            [:atom [:keyword "Chord"]
+                                                                   [:init [:arguments [:string "'C2maj7'"]]]]]]]]
+                   [:statement [:play [:identifier ":ABC"]]]]
+            want [[{:duration 1/4,
+                    :notes {:atom {:keyword "Chord",
+                                   :init {:arguments ["D2min7"]}}}}
+                    {:duration 1/2,
+                     :notes {:atom {:keyword "Chord",
+                                    :init {:arguments ["G2Maj7"]}}}}
+                    nil
+                    {:duration 1/4,
+                     :notes {:atom {:keyword "Chord",
+                                    :init {:arguments ["C2maj7"]}}}}]]]
+        (is (= want (normalize-measures tree)))))
+      (testing "with eigth notes"
+        (let [tree [:track
+                     [:statement
+                       [:play
+                         [:list
+                           [:pair
+                             [:div [:number "5"] [:number "8"]]
+                             [:atom [:keyword "Chord"] [:init [:arguments [:string "Dmin7"]]]]
+                            ]
+                           [:pair
+                             [:div [:number "3"] [:number "8"]]
+                             [:atom [:keyword "Chord"] [:init [:arguments [:string "Emin7"]]]]
+                           ]
+                          ]
+                        ]
+                      ]
+                    ]
+              want [
+                     [
+                       {
+                         :duration 5/8,
+                         :notes {
+                           :atom {
+                             :keyword "Chord",
+                             :init {
+                               :arguments ["Dmin7"]
+                             }
+                           }
+                         }
+                       }
+                       nil
+                       nil
+                       nil
+                       nil
+                       {
+                         :duration 3/8,
+                         :notes {
+                           :atom {
+                             :keyword "Chord",
+                             :init {
+                               :arguments ["Emin7"]
+                             }
+                           }
+                         }
+                      }
+                      nil
+                      nil
+                    ]
+                ]
+              ]
         (is (= want (normalize-measures tree)))))
 
   ; FIXME
@@ -214,27 +416,66 @@
       ; (let [tree [:track [:statement [:header [:meta "Tempo"] [:number "90"]]]]
       ;       want 90]
       ;   (is (= (:tempo (provision-headers tree)) want)))
-      (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]]]
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "3"] [:number "4"]]]]]
             want [3 4]]
         (is (= (:time (provision-headers tree)) want)))))
     (testing "dynamic"
       (testing "total beats"
-        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:list]] [:pair [:number "3"] [:list]]]]]]
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                                [:list [:pair [:number "1"] [:list]]
+                                                       [:pair [:number "3"] [:list]]]]]]
               want 4]
           (is (= (:total-beats (provision-headers tree)) want)))))
       (testing "ms per beat"
-        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:number "1"] [:list]] [:pair [:number "3"] [:list]]]]]]
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                                [:list [:pair [:number "1"] [:list]]
+                                                       [:pair [:number "3"] [:list]]]]]]
               want 2000.0]
           (is (= (:ms-per-beat (provision-headers tree)) want))))
       (testing "lowest beat"
-        (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "4"]] [:list]] [:pair [:number "1"] [:list]]]]]]
+        (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                                [:list [:pair [:div [:number "1"]
+                                                                    [:number "4"]]
+                                                              [:list]]
+                                                       [:pair [:number "1"]
+                                                              [:list]]]]]]
               want 1/4]
           (is (= (:lowest-beat (provision-headers tree)) want)))))
 
 ; TODO: test with nested pair ([1 -> [Note('C'), Note('B')])
 (deftest compilation
   (testing "basic"
-    (let [tree [:track [:statement [:assign [:identifier ":ABC"] [:list [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D2min7'"]]]]] [:pair [:div [:number "1"] [:number "2"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'G2Maj7'"]]]]] [:pair [:div [:number "1"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C2maj7'"]]]]]]]] [:statement [:play [:identifier ":ABC"]]]]
-          want {:headers {:tags [], :desc "", :time [4 4], :total-beats 1N, :title "Untitled", :link "", :ms-per-beat 500.0, :lowest-beat 1/4, :audio "", :tempo 120}, :data [[{:duration 1/4, :notes {:atom {:keyword "Chord", :init {:arguments ["D2min7"]}}}} {:duration 1/2, :notes {:atom {:keyword "Chord", :init {:arguments ["G2Maj7"]}}}} nil {:duration 1/4, :notes {:atom {:keyword "Chord", :init {:arguments ["C2maj7"]}}}}]]}]
+    (let [tree [:track [:statement [:assign [:identifier ":ABC"]
+                                            [:list [:pair [:div [:number "1"] [:number "4"]]
+                                                          [:atom [:keyword "Chord"]
+                                                                 [:init [:arguments [:string "'D2min7'"]]]]]
+                                                   [:pair [:div [:number "1"] [:number "2"]]
+                                                          [:atom [:keyword "Chord"]
+                                                                 [:init [:arguments [:string "'G2Maj7'"]]]]]
+                                                   [:pair [:div [:number "1"] [:number "4"]]
+                                                          [:atom [:keyword "Chord"]
+                                                                 [:init [:arguments [:string "'C2maj7'"]]]]]]]]
+                       [:statement [:play [:identifier ":ABC"]]]]
+          want {:headers {:tags [],
+                          :desc "",
+                          :time [4 4],
+                          :total-beats 1N,
+                          :title "Untitled",
+                          :link "",
+                          :ms-per-beat 500.0,
+                          :lowest-beat 1/4,
+                          :audio "",
+                          :tempo 120},
+                :data [[{:duration 1/4,
+                         :notes {:atom {:keyword "Chord",
+                                        :init {:arguments ["D2min7"]}}}}
+                        {:duration 1/2,
+                         :notes {:atom {:keyword "Chord",
+                                        :init {:arguments ["G2Maj7"]}}}}
+                        nil
+                        {:duration 1/4,
+                         :notes {:atom {:keyword "Chord",
+                                        :init {:arguments ["C2maj7"]}}}}]]}]
       (is (= (compile-track tree) want)))))
 
