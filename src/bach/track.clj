@@ -274,22 +274,6 @@
       :minutes duration-minutes)))
 
 ; @see https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te
-; - FIXME: this needs to consider the denominator. 3/4 and 6/8 should produce equal results.
-(defn get-ms-per-beat-OLD
-  "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
-   Mostly exists to make parsing easier for the high-level interpreter / player"
-  [track]
-  (let [reduced-track (reduce-track track)
-        norm-beats-per-measure (get-normalized-beats-per-measure reduced-track)
-        beats-per-measure (get-beats-per-measure reduced-track)
-        divisor (/ norm-beats-per-measure beats-per-measure) ; FIXME: need to multiply this by `get-scaled-beat-unit`
-        scaled-divisor (/ divisor (get-scaled-beat-unit track))
-        tempo (get-tempo reduced-track)
-        ms-per-beat (* (/ 60 tempo) 1000)
-        ; norm-ms-per-beat (/ ms-per-beat divisor)]
-        norm-ms-per-beat (/ ms-per-beat scaled-divisor)]
-    (float norm-ms-per-beat)))
-
 (defn get-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
    Mostly exists to make parsing easier for the high-level interpreter / player"
@@ -301,8 +285,6 @@
         scaled-lowest-beat (/ (/ 1 4) lowest-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
-    (println "\n\n\nlowest-beat" lowest-beat)
-    (println "norm beat!!!" norm-ms-per-beat)
     (float norm-ms-per-beat)))
 
 ; FIXME: one thing this should do differently is append the result of the original track definition,
