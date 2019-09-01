@@ -179,6 +179,9 @@
   [track]
   (/ 4 (last (get-time-signature track))))
 
+(declare get-beats-per-measure)
+
+; TODO: Coerce lowest-beat to be a modulus of the total number of beats in a measure based on the time signature
 (defn get-lowest-beat
   "Determines the lowest beat unit defined in the track.
    Serves as the basis for normalization of the track, enabling trivial interpretation"
@@ -191,13 +194,30 @@
                (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
+    ; Impl 0:
     ; FIXME: Ideal because it's most optimized, but it breaks `normalize-measures` a bit
     ; (min 1 @lowest-duration)))
-    (let [lowest-beat-unit (/ 1 (-> @lowest-duration
+    ; Impl 1:
+    (let [beat-unit (get-beat-unit reduced-track)
+          beats-per-measure (get-beats-per-measure reduced-track)
+          lowest-beat-unit (/ 1 (-> @lowest-duration
                                     rationalize
                                     clojure.lang.Numbers/toRatio
-                                    denominator))]
-      (min 1 lowest-beat-unit))))
+                                    denominator))
+          lowest-beat (min 1 lowest-beat-unit)
+          lowest-beat-unit-ratio (/ lowest-beat beat-unit)
+          lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)]
+      (if (= lowest-beat-mod 0) lowest-beat beat-unit))))
+      ; (min 1 lowest-beat-unit))))
+    ; Impl 3:
+    ; (let [global-beat-unit (get-beat-unit reduced-track)
+    ;       lowest-beat-unit (/ 1 (-> @lowest-duration
+    ;                                 rationalize
+    ;                                 clojure.lang.Numbers/toRatio
+    ;                                 denominator))
+    ;       lowest-beat (min 1 lowest-beat-unit global-beat-unit)]
+    ;   lowest-beat)))
+
 
 (defn get-normalized-lowest-beat
   "Determines the lowest beat normalized against the beat unit of the track (defined in the time signature)"
