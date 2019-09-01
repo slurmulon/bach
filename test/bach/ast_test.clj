@@ -45,19 +45,28 @@
     (let [want [:track [:statement [:header [:meta "Tags"] [:list [:string "'rock'"] [:string "'funk'"]]]]]]
       (is (= want (parse "@Tags = ['rock', 'funk']"))))))
 
-(deftest pair
-  (testing "pairs"
-    (testing "valid"
+(deftest pairs
+  (testing "valid"
+    (testing "basic"
+      (let [want [:track [:statement [:pair [:number "1"] [:list]]]]]
+        (is (= (parse "1 -> []") want))))
+    (testing "expression"
       (testing "basic"
-        (let [want [:track [:statement [:pair [:number "1"] [:list]]]]]
-          (is (= (parse "1 -> []") want))))
-      (testing "expression"
         (let [want [:track [:statement [:pair [:mul [:number "4"]
                                                     [:div [:number "6"] [:number "8"]]]
                                               [:list]]]]]
-          (is (= (parse "4 * 6/8 -> []") want)))))
-    (testing "invalid"
-      (is (= (insta/failure? (parse "abc -> []")) true)))))
+          (is (= (parse "4 * 6/8 -> []") want))))
+      (testing "nested"
+        (let [want [:track [:statement [:list [:pair [:mul [:number "4"]
+                                                           [:div [:number "6"] [:number "8"]]]
+                                                      [:list]]]]]]
+          (is (= (parse "[4 * 6/8 -> []]") want))))))
+  ; TODO: sequential pairs
+  (testing "invalid"
+    (testing "identifier as key"
+      (is (= (insta/failure? (parse "abc -> []")) true)))
+    (testing "missing value"
+      (is (= (insta/failure? (parse "abc ->")) true)))))
 
 (deftest arrays
   (testing "emptiness"
