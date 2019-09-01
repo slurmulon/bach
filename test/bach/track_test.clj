@@ -96,6 +96,19 @@
           ; FIXME: Ideal value, but not entirely necessary
           ; want (/ 3 4)]
           want (/ 1 4)]
+      (is (= want (get-lowest-beat tree)))))
+  (testing "spanning multiple measures"
+    (let [tree [:track [:statement [:header [:meta "Time"]
+                                            [:meter [:number "6"]
+                                                    [:number "8"]]]]
+                       [:statement [:list [:pair [:mul [:number "2"]
+                                                       [:div [:number "6"]
+                                                             [:number "8"]]]
+                                                 [:atom [:keyword "Note"]
+                                                        [:init [:arguments [:string "'C2'"]]]]]]]]
+          ; TODO: Eventually, once get-lowest-beat can support multiple measures (Clojure 1.9.946+)
+          ; want (/ 3 2)
+          want (/ 3 4)]
       (is (= want (get-lowest-beat tree))))))
 
 ; (deftest normalized-lowest-beat
@@ -186,9 +199,9 @@
                          [:statement [:list [:pair [:number "1"]
                                                    [:atom [:keyword "Note"]
                                                           [:init [:arguments [:string "'C2'"]]]]]]]]
-            ; want 1500.0]
+            want 1500.0]
             ; want 2000.0]
-            want 250.0] ; because "1", or 4 beats, does not align flushly with the meter
+            ; want 250.0] ; because "1", or 4 beats, does not align flushly with the meter
         (is (= want (get-ms-per-beat tree)))))))
 
 ; (deftest lowest-beat
