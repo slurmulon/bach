@@ -352,55 +352,22 @@
                                     :init {:arguments ["C2maj7"]}}}}]]]
         (is (= want (normalize-measures tree)))))
       (testing "with eigth notes"
-        (let [tree [:track
-                     [:statement
-                       [:play
-                         [:list
-                           [:pair
-                             [:div [:number "5"] [:number "8"]]
-                             [:atom [:keyword "Chord"] [:init [:arguments [:string "Dmin7"]]]]
-                            ]
-                           [:pair
-                             [:div [:number "3"] [:number "8"]]
-                             [:atom [:keyword "Chord"] [:init [:arguments [:string "Emin7"]]]]
-                           ]
-                          ]
-                        ]
-                      ]
-                    ]
-              want [
-                     [
-                       {
-                         :duration 5/8,
-                         :notes {
-                           :atom {
-                             :keyword "Chord",
-                             :init {
-                               :arguments ["Dmin7"]
-                             }
-                           }
-                         }
-                       }
+        (let [tree [:track [:statement [:play [:list [:pair [:div [:number "5"] [:number "8"]]
+                                                            [:atom [:keyword "Chord"] [:init [:arguments [:string "Dmin7"]]]]]
+                                                     [:pair [:div [:number "3"] [:number "8"]]
+                                                            [:atom [:keyword "Chord"] [:init [:arguments [:string "Emin7"]]]]]]]]]
+              want [[{:duration 5/8,
+                      :notes {:atom {:keyword "Chord",
+                                     :init {:arguments ["Dmin7"]}}}}
                        nil
                        nil
                        nil
                        nil
-                       {
-                         :duration 3/8,
-                         :notes {
-                           :atom {
-                             :keyword "Chord",
-                             :init {
-                               :arguments ["Emin7"]
-                             }
-                           }
-                         }
-                      }
+                       {:duration 3/8,
+                        :notes {:atom {:keyword "Chord",
+                                       :init {:arguments ["Emin7"]}}}}
                       nil
-                      nil
-                    ]
-                ]
-              ]
+                      nil]]]
         (is (= want (normalize-measures tree)))))
 
   ; FIXME
