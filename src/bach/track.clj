@@ -186,7 +186,10 @@
   "Determines the lowest beat unit defined in the track.
    Serves as the basis for normalization of the track, enabling trivial interpretation"
   [track]
+  ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
+  ; @see: https://cljs.github.io/api/syntax/Inf
   (let [lowest-duration (atom 1)
+        ;lowest-duration (atom ##Inf)
         reduced-track (reduce-values track)]
     (insta/transform
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
@@ -207,7 +210,9 @@
           lowest-beat (min 1 lowest-beat-unit)
           lowest-beat-unit-ratio (/ lowest-beat beat-unit)
           lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)]
-      (if (= lowest-beat-mod 0) lowest-beat beat-unit))))
+      (if (= lowest-beat 1)
+        (* beats-per-measure beat-unit)
+        (if (= lowest-beat-mod 0) lowest-beat beat-unit)))))
       ; (min 1 lowest-beat-unit))))
     ; Impl 3:
     ; (let [global-beat-unit (get-beat-unit reduced-track)
