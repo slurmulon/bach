@@ -187,7 +187,8 @@
                                                    [:atom [:keyword "Note"]
                                                           [:init [:arguments [:string "'C2'"]]]]]]]]
             ; want 1500.0]
-            want 2000.0]
+            ; want 2000.0]
+            want 250.0] ; because "1", or 4 beats, does not align flushly with the meter
         (is (= want (get-ms-per-beat tree)))))))
 
 ; (deftest lowest-beat
@@ -369,6 +370,23 @@
                       nil
                       nil]]]
         (is (= want (normalize-measures tree)))))
+      ; (testing "with odd number of beats per measure"
+      ; TODO: We need to coerce the lowest beat to modulate with the number of beats in a measure
+      ;  - For instance, if the meter is 5|8 and the lowest beat is 1/4, the lowest beat needs to become 1/8 instead
+      ;  - Create a test for this in `get-lowest-beat` method
+      ; (testing "with non-modular lowest beat"
+      ;   (let [tree [:track [:statement [:header [:meta "Time"]
+      ;                                           [:meter [:number "5"] [:number "8"]]]]
+      ;                      [:statement [:play [:list [:pair [:div [:number "1"] [:number "4"]]
+      ;                                                       [:atom [:keyword "Chord"]
+      ;                                                              [:init [:arguments [:string "Dmin7"]]]]]]]]]
+      ;         want [[:duration 1/4,
+      ;                :notes {:atom {:keyword "Chord",
+      ;                               :init {:arguments ["Dmin7"]}}}
+      ;                nil
+      ;                nil
+      ;                nil
+      ;                nil]]
 
   ; FIXME
   ; (testing "with nested measure references (should avoid dupes)"
