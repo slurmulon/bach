@@ -17,7 +17,10 @@
       (is (= (parse "1 / 2") want))))
   (testing "complex operations"
     (let [want [:track [:statement [:add [:number "1"] [:div [:number "2"] [:number "3"]]]]]]
-      (is (= (parse "1 + 2/3") want)))))
+      (is (= (parse "1 + 2/3") want))))
+  (testing "parenthesized operations"
+    (let [want [:track [:statement [:mul [:number "2"] [:add [:number "1"] [:number "3"]]]]]]
+      (is (= (parse "2 * (1 + 3)") want)))))
 
 ; (deftest colors
 ;   (testing "hex"
