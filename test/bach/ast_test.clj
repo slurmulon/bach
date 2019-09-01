@@ -48,8 +48,14 @@
 (deftest pair
   (testing "pairs"
     (testing "valid"
-      (let [want [:track [:statement [:pair [:number "1"] [:list]]]]]
-        (is (= (parse "1 -> []") want))))
+      (testing "basic"
+        (let [want [:track [:statement [:pair [:number "1"] [:list]]]]]
+          (is (= (parse "1 -> []") want))))
+      (testing "expression"
+        (let [want [:track [:statement [:pair [:mul [:number "4"]
+                                                    [:div [:number "6"] [:number "8"]]]
+                                              [:list]]]]]
+          (is (= (parse "4 * 6/8 -> []") want)))))
     (testing "invalid"
       (is (= (insta/failure? (parse "abc -> []")) true)))))
 
