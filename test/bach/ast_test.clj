@@ -65,7 +65,12 @@
         (let [want [:track [:statement [:list [:pair [:mul [:number "4"]
                                                            [:div [:number "6"] [:number "8"]]]
                                                      [:list]]]]]]
-          (is (= (parse "[\n4 * 6/8 -> []\n]") want))))))
+          (is (= (parse "[\n4 * 6/8 -> []\n]") want))))
+      (testing "arbitrary whitespace"
+        (let [want [:track [:statement [:list [:pair [:mul [:number "4"]
+                                                           [:div [:number "6"] [:number "8"]]]
+                                                     [:list]]]]]]
+          (is (= (parse "[\n  4 * 6/8 -> []\n]") want))))))
   ; TODO: sequential pairs
   (testing "invalid"
     (testing "identifier as key"
