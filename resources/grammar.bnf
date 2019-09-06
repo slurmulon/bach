@@ -28,8 +28,8 @@ color      = #'#[a-fA-F0-9xX]{6}'
 
 (* Math *)
 <add-sub>  = mul-div | add | sub
-add        = [<empty>] add-sub [<empty>] <'+'> [<empty>] mul-div [<empty>]
-sub        = [<empty>] add-sub [<empty>] <'-'> [<empty>] mul-div [<empty>]
+add        = term [<empty>] <'+'> [<empty>] term
+sub        = term [<empty>] <'-'> [<empty>] term
 <mul-div>  = term | mul | div
-mul        = [<empty>] mul-div [<empty>] <'*'> [<empty>] term [<empty>]
-div        = [<empty>] mul-div [<empty>] <'/'> [<empty>] term [<empty>]
+mul        = term [<empty>] <'*'> [<empty>] term
+div        = term [<empty>] <'/'> [<empty>] term
