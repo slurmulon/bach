@@ -61,6 +61,11 @@
                                                            [:div [:number "6"] [:number "8"]]]
                                                      [:list]]]]]]
           (is (= (parse "[4 * 6/8 -> []]") want))))
+      (testing "optional parens"
+        (let [want [:track [:statement [:list [:pair [:mul [:number "4"]
+                                                           [:div [:number "6"] [:number "8"]]]
+                                                     [:list]]]]]]
+          (is (= (parse "[(4 * 6/8) -> []]") want))))
       (testing "line breaks"
         (let [want [:track [:statement [:list [:pair [:mul [:number "4"]
                                                            [:div [:number "6"] [:number "8"]]]
