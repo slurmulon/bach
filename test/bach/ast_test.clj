@@ -59,8 +59,13 @@
       (testing "nested"
         (let [want [:track [:statement [:list [:pair [:mul [:number "4"]
                                                            [:div [:number "6"] [:number "8"]]]
-                                                      [:list]]]]]]
-          (is (= (parse "[4 * 6/8 -> []]") want))))))
+                                                     [:list]]]]]]
+          (is (= (parse "[4 * 6/8 -> []]") want))))
+      (testing "line breaks"
+        (let [want [:track [:statement [:list [:pair [:mul [:number "4"]
+                                                           [:div [:number "6"] [:number "8"]]]
+                                                     [:list]]]]]]
+          (is (= (parse "[\n4 * 6/8 -> []\n]") want))))))
   ; TODO: sequential pairs
   (testing "invalid"
     (testing "identifier as key"
