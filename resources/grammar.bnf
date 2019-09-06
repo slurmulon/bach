@@ -3,7 +3,7 @@ track = statement*
 statement = token (<empty> token)*
 
 <token>    = elem | assign | header | play
-<term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
+<term>     = [<empty>] number | [<empty>] [<'('>] add-sub [<')'>] [<empty>]
 <elem>     = [<empty>] atom | prim | term | pair | list | set | identifier [<empty>]
 <prim>     = [<empty>] string | number | meter | color [<empty>]
 atom       = [<empty>] keyword [<empty>] init [<empty>]
