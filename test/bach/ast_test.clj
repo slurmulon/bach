@@ -31,10 +31,14 @@
       (let [want [:track [:statement [:mul [:number "2"] [:div [:number "6"] [:number "8"]]]]]]
         (is (= (parse "2 * (6 / 8)") want))))))
 
-; (deftest colors
-;   (testing "hex"
-;     (let [want [:track [:statement [:color "#FF0000"]]]]
-;       (is (= (parse "#FF0000") want)))))
+(deftest colors
+  (testing "hex"
+    (testing "3 digits"
+      (let [want [:track [:statement [:color "#000"]]]]
+        (is (= (parse "#000") want))))
+    (testing "6 digits"
+      (let [want [:track [:statement [:color "#FF0000"]]]]
+        (is (= (parse "#FF0000") want))))))
 
 (deftest meta-data
   (testing "tempo"
