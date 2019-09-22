@@ -3,18 +3,34 @@ track = statement*
 statement = token (<empty> token)*
 
 <token>    = elem | assign | header | play
-<term>     = [<empty>] number | [<empty>] [<'('>] add-sub [<')'>] [<empty>]
-<elem>     = [<empty>] atom | prim | term | pair | list | set | identifier [<empty>]
+
+(* TODO: Research this link more *)
+(* @see: https://cs.stackexchange.com/questions/23738/grammar-for-parsing-simple-mathematical-expression *)
+(* @see: https://athena.ecs.csus.edu/~gordonvs/135/resources/04bnfParseTrees.pdf *)
+
+(* USES: Syntax A *)
+(* <term>     = [<empty>] number | [<empty>] [<'('>] add-sub [<')'>] [<empty>]
+<expr>     = [<empty>] add | sub | term [<empty>] *)
+
+(* USES: Syntax B *)
+(* Most likely to be correct based on above link *)
+(* <expr>     = [<empty>] add | sub | term [<empty>] *)
+
+(* USES: Syntax B *)
+(* CLOSEST: Only breaks with `1/4 + 1/8` *)
+<expr>     = [<empty>] term | add | sub [<empty>]
+
+<elem>     = [<empty>] atom | prim | expr | pair | list | set | identifier [<empty>]
 <prim>     = [<empty>] string | number | meter | color [<empty>]
 atom       = [<empty>] keyword [<empty>] init [<empty>]
 set        = [<empty>] <'{'> [elem (<','|empty> elem)* [<','>]] <'}'> [<empty>]
 list       = [<empty>] <'['> [elem (<','|empty> elem)* [<','>]] <']'> [<empty>]
-pair       = term <'->'> elem [<empty>,<empty>]
+pair       = expr <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> elem
 header     = meta <'='> elem
 attribute  = word [<empty>] <':'> [<empty>] prim
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
-arguments  = ((identifier | string | attribute | add-sub) [<empty> <','> <empty>])*
+arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
 meta       = [<empty>] <'@'> #'(Audio|Instrument|Time|Tempo|Key|Delay|Link|Title|Artist|Desc|Tags)' [<empty>]
 keyword    = [<empty>] #'(`|~|Note|Scale|Chord|Mode|Triad)' [<empty>]
@@ -27,9 +43,41 @@ color      = #'#[a-fA-F0-9xX]{6}'
 <empty>    = #'(\r\n|\n|\r|\s)*'
 
 (* Math *)
-<add-sub>  = mul-div | add | sub
+(* Syntax A *)
+(* <add-sub>  = mul-div | add | sub
 add        = term [<empty>] <'+'> [<empty>] term
 sub        = term [<empty>] <'-'> [<empty>] term
 <mul-div>  = term | mul | div
 mul        = term [<empty>] <'*'> [<empty>] term
-div        = term [<empty>] <'/'> [<empty>] term
+div        = term [<empty>] <'/'> [<empty>] term *)
+
+(* Syntax B *)
+(* CLOSEST GRAMMAR RULES *)
+add = term <'+'> expr
+sub = term <'-'> expr
+<term> = [<empty>] number | mul | div | factor [<empty>] 
+(* ORIGINAL (but wrong)
+mul = factor <'*'> term 
+div = factor <'/'> term *)
+mul = factor <'*'> factor
+div = factor <'/'> factor
+<factor> = [<empty>] [<'('>] expr [<')'>] [<empty>]
+
+(* Syntax C *)
+(* @see: http://math.pnw.edu/~rlkraft/cs31600-2012/chapter03/syntax-examples.html #10 *)
+(* FIXME: Order of operations is off for mul and div *)
+(* <expr> = number | mul-div | add-sub
+<add-sub> = add | sub
+add = mul-div <'+'> mul-div
+sub = mul-div <'-'> mul-div
+<mul-div> = mul | div
+mul = factor <'*'> factor
+div = factor <'/'> factor
+<math-base> = term | number
+<factor> = [<empty>] [<'('>] math-base [<')'>] [<empty>] *)
+
+(* expr = term [ ('+' | '-') term ]*
+term = factor [ ('*' | '/') factor ]*
+factor = base [ '^' exponent ]*
+base = '(' expr ')' | identifier | number
+exponent = '(' expr ')' | identifier | number *)
