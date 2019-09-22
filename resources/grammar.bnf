@@ -39,7 +39,7 @@ meter      = [<empty>] number <'|'> number [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
 number     = #'[0-9]+'
-color      = #'#[a-fA-F0-9xX]{6}'
+color      = #'#[a-fA-F0-9xX]{3,6}'
 <empty>    = #'(\r\n|\n|\r|\s)*'
 
 (* Math *)
