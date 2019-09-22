@@ -106,19 +106,10 @@
                                                              [:number "8"]]]
                                                  [:atom [:keyword "Note"]
                                                         [:init [:arguments [:string "'C2'"]]]]]]]]
-          ; TODO: Eventually, once get-lowest-beat can support multiple measures (Clojure 1.9.946+)
+          ; TODO: Eventually, once get-lowest-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
           ; want (/ 3 2)
           want (/ 3 4)]
       (is (= want (get-lowest-beat tree))))))
-
-; (deftest normalized-lowest-beat
-;   (testing "whole number"
-;     (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]
-;                        [:statement [:list [:pair [:div [:number "1"] [:number "
-;     )
-
-;   (testing "ratio"
-;     ))
 
 ; TODO: handle uncommon time (6/8, 3/4, etc.)
 (deftest total-beats

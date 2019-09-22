@@ -16,8 +16,13 @@
     (let [want [:track [:statement [:div [:number "1"] [:number "2"]]]]]
       (is (= (parse "1 / 2") want))))
   (testing "complex operations"
-    (let [want [:track [:statement [:add [:number "1"] [:div [:number "2"] [:number "3"]]]]]]
-      (is (= (parse "1 + 2/3") want))))
+    (testing "whole number plus rational number"
+      (let [want [:track [:statement [:add [:number "1"] [:div [:number "2"] [:number "3"]]]]]]
+        (is (= (parse "1 + 2/3") want))))
+    (testing "rational number plus rational number"
+      (let [want [:track [:statement [:add [:div [:number "1"] [:number "4"]]
+                                           [:div [:number "1"] [:number "8"]]]]]]
+        (is (= (parse "1/4 + 1/8") want)))))
   (testing "parenthesized operations"
     (testing "multiplication and addition"
       (let [want [:track [:statement [:mul [:number "2"] [:add [:number "1"] [:number "3"]]]]]]
