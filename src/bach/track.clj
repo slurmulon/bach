@@ -321,6 +321,7 @@
   [track]
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
         beats-per-measure (get-normalized-beats-per-measure track)
+        lowest-beat (get-lowest-beat track)
         total-measures (get-total-measures-ceiled track)
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
         reduced-track (reduce-track track)]
@@ -332,8 +333,7 @@
                 (update-measures [measure-index beat-index notes]
                   (swap! measures assoc-in [measure-index beat-index] notes))
                 (beat-indices [beat]
-                  (let [lowest-beat (get-lowest-beat track)
-                        global-beat-index (/ @beat-cursor lowest-beat)
+                  (let [global-beat-index (/ @beat-cursor lowest-beat)
                         local-beat-index (mod global-beat-index beats-per-measure)
                         measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                     {:measure measure-index :beat local-beat-index}))] ; TODO; consider using normalized local beat index instead
