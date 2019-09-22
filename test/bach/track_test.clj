@@ -111,7 +111,6 @@
           want (/ 3 4)]
       (is (= want (get-lowest-beat tree))))))
 
-; TODO: handle uncommon time (6/8, 3/4, etc.)
 (deftest total-beats
   (testing "common time"
     (let [tree [:track [:statement [:list [:pair [:number "1"] [:list]]
@@ -119,6 +118,14 @@
                                           [:pair [:div [:number "1"] [:number "4"]] [:list]]
                                           [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
           want (rationalize 5.5)]
+      (is (= want (get-total-beats tree)))))
+  (testing "less common time"
+    (let [tree [:track [:statement [:meta "Time"]
+                                   [:meter [:number "6"]
+                                           [:number "8"]]]
+                       [:statement [:list [:pair [:number "1"] [:list]]
+                                          [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+          want (/ 9 8)]
       (is (= want (get-total-beats tree))))))
 
 (deftest duration
