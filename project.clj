@@ -1,5 +1,5 @@
-(defproject bach "0.3.0-SNAPSHOT"
-  :description "Musical notation with a focus on readability and productivity"
+(defproject bach "1.0.0"
+  :description "Semantic music notation"
   :url "https://github.com/slurmulon/bach"
   :license {:name "MIT"
             :url "https://opensource.org/licenses/MIT"}
