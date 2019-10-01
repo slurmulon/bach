@@ -179,7 +179,10 @@
   [track]
   (/ 4 (last (get-time-signature track))))
 
-(declare get-beats-per-measure)
+(defn get-beats-per-measure
+  "Determines how many beats are in each measure, based on the time signature"
+  [track]
+  (first (get-time-signature track))) ; AKA numerator
 
 ; TODO: Coerce lowest-beat to be a modulus of the total number of beats in a measure based on the time signature
 (defn get-lowest-beat
@@ -197,10 +200,6 @@
                (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
-    ; Impl 0:
-    ; FIXME: Ideal because it's most optimized, but it breaks `normalize-measures` a bit
-    ; (min 1 @lowest-duration)))
-    ; Impl 1:
     (let [beat-unit (get-beat-unit reduced-track)
           beats-per-measure (get-beats-per-measure reduced-track)
           lowest-beat-unit (/ 1 (-> @lowest-duration
@@ -213,15 +212,6 @@
       (if (= lowest-beat 1)
         (* beats-per-measure beat-unit)
         (if (= lowest-beat-mod 0) lowest-beat beat-unit)))))
-      ; (min 1 lowest-beat-unit))))
-    ; Impl 3:
-    ; (let [global-beat-unit (get-beat-unit reduced-track)
-    ;       lowest-beat-unit (/ 1 (-> @lowest-duration
-    ;                                 rationalize
-    ;                                 clojure.lang.Numbers/toRatio
-    ;                                 denominator))
-    ;       lowest-beat (min 1 lowest-beat-unit global-beat-unit)]
-    ;   lowest-beat)))
 
 
 (defn get-normalized-lowest-beat
@@ -231,11 +221,6 @@
         ; beat-unit (get-scaled-beat-unit track)]
         beat-unit (get-beat-unit track)]
     (* lowest-beat beat-unit)))
-
-(defn get-beats-per-measure
-  "Determines how many beats are in each measure, based on the time signature"
-  [track]
-  (first (get-time-signature track))) ; AKA numerator
 
 (defn get-normalized-beats-per-measure
   "Determines how many beats are in a measure, normalized against the lowest beat of the track"
@@ -338,6 +323,9 @@
                         measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                     {:measure measure-index :beat local-beat-index}))] ; TODO; consider using normalized local beat index instead
           (insta/transform
+            ; TODO: Generally rename `notes` to `items`. Makes more sense since a beat can contain more than just notes.
+            ; TODO: Reduce `notes` so that we don't have a pointless wrapper `:atom`
+            ; TODO: Normalize `notes` to a collection
             {:pair (fn [beats notes]
                      (let [indices (beat-indices beats)
                            measure-index (:measure indices)
