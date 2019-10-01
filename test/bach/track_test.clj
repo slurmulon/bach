@@ -70,6 +70,8 @@
         (is (= want (get-scaled-beat-unit tree)))))))
 
 ; FIXME: handle notes that aren't % 2
+; FIXME: Write a test for when the lowest beat is not a modulus of the time signature
+;  - e.g. "2 -> Chord('...')" in 6|8
 (deftest lowest-beat
   (testing "whole number"
     (let [tree [:track [:statement [:list [:pair [:number "4"] [:list]]
@@ -98,18 +100,28 @@
           want (/ 1 4)]
       (is (= want (get-lowest-beat tree)))))
   (testing "spanning multiple measures"
-    (let [tree [:track [:statement [:header [:meta "Time"]
-                                            [:meter [:number "6"]
-                                                    [:number "8"]]]]
-                       [:statement [:list [:pair [:mul [:number "2"]
-                                                       [:div [:number "6"]
-                                                             [:number "8"]]]
-                                                 [:atom [:keyword "Note"]
-                                                        [:init [:arguments [:string "'C2'"]]]]]]]]
-          ; TODO: Eventually, once get-lowest-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
-          ; want (/ 3 2)
-          want (/ 3 4)]
-      (is (= want (get-lowest-beat tree))))))
+    (testing "aligned"
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "6"]
+                                                      [:number "8"]]]]
+                        [:statement [:list [:pair [:mul [:number "2"]
+                                                        [:div [:number "6"]
+                                                              [:number "8"]]]
+                                                  [:atom [:keyword "Note"]
+                                                         [:init [:arguments [:string "'C2'"]]]]]]]]
+            ; TODO: Eventually, once get-lowest-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
+            ; want (/ 3 2)
+            want (/ 3 4)]
+        (is (= want (get-lowest-beat tree)))))
+    (testing "misaligned"
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "6"]
+                                                      [:number "8"]]]]
+                         [:statement [:list [:pair [:number "2"]
+                                                   [:atom [:keyword "Note"]
+                                                          [:init [:arguments [:string "'C2'"]]]]]]]]
+            want (/ 3 4)]
+        (is (= want (get-lowest-beat tree)))))))
 
 (deftest total-beats
   (testing "common time"
