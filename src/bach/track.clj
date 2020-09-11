@@ -16,6 +16,7 @@
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
+; TODO: Remove all but `tempo`, `time`, `total-beats`, `ms-per-beat`, and `lowest-beat`
 (def default-headers {:tempo default-tempo
                       :time default-time-signature
                       :total-beats 0
@@ -62,9 +63,7 @@
                     bottom (-> bottom-token last read-string)]
                 (cond
                   (not (some #{bottom} (take 10 powers-of-two)))
-                    (throw (Exception. "note divisors must be base 2 and no greater than 512"))
-                  (> top bottom)
-                    (throw (Exception. "numerator cannot be greater than denominator")))))
+                    (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
        :tempo (fn [& tempo-token]
                 (let [tempo (-> tempo-token last read-string)]
                   (when (not (<= 0 tempo 256))
@@ -191,12 +190,15 @@
   [track]
   ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
   ; @see: https://cljs.github.io/api/syntax/Inf
-  (let [lowest-duration (atom 1)
+  (let [;lowest-duration (atom 1)
+        ; NOTE: Using 1024 because Java doesn't support Infinity on this version and it's absurdly huge
+        lowest-duration (atom 1024)
         ;lowest-duration (atom ##Inf)
         reduced-track (reduce-values track)]
     (insta/transform
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
       {:pair (fn [duration _]
+               (println "duration wut" duration, (< duration @lowest-duration))
                (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
@@ -209,7 +211,15 @@
           lowest-beat (min 1 lowest-beat-unit)
           lowest-beat-unit-ratio (/ lowest-beat beat-unit)
           lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)]
+      (println "... lowest-duration" @lowest-duration)
+      (println "... lowest-beat-mod" lowest-beat-mod)
+      (println "... lowest-beat-unit" lowest-beat-unit)
+      (println "... lowest-beat-unit-ratio" lowest-beat-unit-ratio)
+      (println "... lowest-beat" lowest-beat)
+      (println "... beats-per-measure" beats-per-measure)
+      (println "... beat-unit" beat-unit)
       (if (= lowest-beat 1)
+        ; FIXME: Might need to min this with the time signature
         (* beats-per-measure beat-unit)
         (if (= lowest-beat-mod 0) lowest-beat beat-unit)))))
 
@@ -227,6 +237,8 @@
   [track]
   (let [lowest-beat (get-lowest-beat track)]
     (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
+    ; TODO: Determine why this causes IndexOutOfBounds exception in normalize-measures
+    ; (if (< lowest-beat 1) (numerator lowest-beat) lowest-beat)))
 
 ; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
 ; to the lowest common beat found in the track
@@ -234,7 +246,7 @@
 ;        Make 1 = 1 measure (in :bar mode)
 ;        Make 1 = 1 beat (in :unit mode)
 (defn get-total-beats
-  "Determines the total number of beats in the track (1 = 1 whole note / measure)"
+  "Determines the total number of beats in the track (1 = 1 whole note, NOT necessarily 1 measure)"
   [track]
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
@@ -264,11 +276,15 @@
    since the beats are not normalized to the lowest common beat"
   [track]
   (get-total-beats track))
+  ; EXPERIMENT (5/2/20)
+  ; (get-normalized-total-beats track))
 
 (defn get-total-measures-ceiled
   "Provides the total number of measures in a track, ceiled"
   [track]
-  (Math/ceil (get-total-beats track)))
+  ; (Math/ceil (get-total-beats track)))
+  ; EXPERIMENTAL (maybe use this instead)
+  (Math/floor (get-total-beats track)))
 
 (defn get-total-duration
   "Determines the total time duration of a track (milliseconds, seconds, minutes)"
@@ -297,6 +313,8 @@
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
     (float norm-ms-per-beat)))
 
+; TODO: Fix tracks where end measure is not equal to the number of bars in the time signature (e.g. 2 beats when time sig is 4|4)
+; @see: https://lodash.com/docs/#chunk
 ; FIXME: one thing this should do differently is append the result of the original track definition,
 ; that way variables and such are retained properly. otherwise this works great.
 ; FIXME: to achieve above, we could just extract dereferenced notes in :play (from the track) and pass that into insta/transform
@@ -306,10 +324,16 @@
   [track]
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
         beats-per-measure (get-normalized-beats-per-measure track)
+        ; WARN: DANGEROUS EXPERIMENT
+        ;  - Doesn't seem to fix issue with Zapa Waltz (using 6/4 duration on 3|4 track)
+        ; beats-per-measure (get-beats-per-measure track)
         lowest-beat (get-lowest-beat track)
         total-measures (get-total-measures-ceiled track)
         measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
         reduced-track (reduce-track track)]
+    (println "normalize-track, lowest-beat" lowest-beat)
+    (println "normalize-track, total-measures" total-measures)
+    (println "normalize-track, beats-per-measure" beats-per-measure)
     (insta/transform
       ; we only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
       {:play (fn [play-track]
@@ -350,6 +374,7 @@
                    :ms-per-beat ms-per-beat,
                    :lowest-beat lowest-beat)))
 
+; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
 (defn compile-track
   "Provides a 'compiled' version of a parsed track that contains all of the information necessary to easily
    interpret a track as a single stream of normalized data (no references, all values are resolved)"
