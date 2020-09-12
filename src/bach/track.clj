@@ -312,7 +312,7 @@
         lowest-beat (get-lowest-beat track)
         total-measures (get-total-measures-ceiled track)
         total-beats (get-total-beats track)
-        unused-tail-beats (mod beats-per-measure (* beats-per-measure (mod total-beats (min total-beats 4))))
+        unused-tail-beats (mod (* beats-per-measure (mod total-beats (min total-beats 4))) beats-per-measure)
         measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
         measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
         reduced-track (reduce-track track)]
