@@ -33,13 +33,10 @@
     (vector? ratio) ratio
     :else (throw (Exception. "input must be a ratio or a vector"))))
 
-; (defn trim-matrix-tail
 (defn trim-matrix-row
-; (defn drop-last-cols
   [matrix row cols]
   (cond
     (> cols 0)
-      ; (let [tail-index (- (count matrix) 1)
       (let [clip #(->> % (drop-last cols) (into []))]
         (update matrix row clip))
     :else matrix))

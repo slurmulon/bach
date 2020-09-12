@@ -190,15 +190,11 @@
   [track]
   ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
   ; @see: https://cljs.github.io/api/syntax/Inf
-  (let [;lowest-duration (atom 1)
-        ; NOTE: Using 1024 because Java doesn't support Infinity on this version and it's absurdly huge
-        lowest-duration (atom 1024)
-        ;lowest-duration (atom ##Inf)
+  (let [lowest-duration (atom 1024)
         reduced-track (reduce-values track)]
     (insta/transform
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
       {:pair (fn [duration _]
-               (println "duration wut" duration, (< duration @lowest-duration))
                (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
@@ -211,13 +207,6 @@
           lowest-beat (min 1 lowest-beat-unit)
           lowest-beat-unit-ratio (/ lowest-beat beat-unit)
           lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)]
-      ; (println "... lowest-duration" @lowest-duration)
-      ; (println "... lowest-beat-mod" lowest-beat-mod)
-      ; (println "... lowest-beat-unit" lowest-beat-unit)
-      ; (println "... lowest-beat-unit-ratio" lowest-beat-unit-ratio)
-      ; (println "... lowest-beat" lowest-beat)
-      ; (println "... beats-per-measure" beats-per-measure)
-      ; (println "... beat-unit" beat-unit)
       (if (= lowest-beat 1)
         ; FIXME: Might need to min this with the time signature
         (* beats-per-measure beat-unit)
@@ -276,18 +265,11 @@
    since the beats are not normalized to the lowest common beat"
   [track]
   (get-total-beats track))
-  ; EXPERIMENT (5/2/20)
-  ; (get-normalized-total-beats track))
 
 (defn get-total-measures-ceiled
   "Provides the total number of measures in a track, ceiled"
   [track]
-  ; ORIGINAL
   (Math/ceil (get-total-beats track)))
-  ; EXPERIMENTAL (maybe use this instead)
-  ;  - LAST
-  ;  - FIXME: Cuts off tracks that run past the last measure
-  ; (Math/floor (get-total-beats track)))
 
 (defn get-total-duration
   "Determines the total time duration of a track (milliseconds, seconds, minutes)"
@@ -312,8 +294,6 @@
         lowest-beat (get-lowest-beat reduced-track)
         ; TODO: Probably break this out into its own function
         scaled-lowest-beat (/ (/ 1 4) lowest-beat)
-        ; EXPERIMENT
-        ; scaled-lowest-beat lowest-beat
         ms-per-beat (* (/ 60 tempo) 1000)
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
     (println "[get-ms-per-beat] lowest-beat" lowest-beat)
@@ -331,21 +311,11 @@
   [track]
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
         beats-per-measure (get-normalized-beats-per-measure track)
-        ; WARN: DANGEROUS EXPERIMENT
-        ;  - Doesn't seem to fix issue with Zapa Waltz (using 6/4 duration on 3|4 track)
-        ; beats-per-measure (get-beats-per-measure track)
         lowest-beat (get-lowest-beat track)
         total-measures (get-total-measures-ceiled track)
         total-beats (get-total-beats track)
-        ; LAST
-        ; unused-tail-beats (* beats-per-measure (mod total-beats (min total-beats 4)))
-        unused-tail-beats (mod (* beats-per-measure (mod total-beats (min total-beats 4))) beats-per-measure)
+        unused-tail-beats (mod beats-per-measure (* beats-per-measure (mod total-beats (min total-beats 4))))
         measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
-        ; ORIG
-        ; measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
-        ; TRIMMED (in prog)
-        ;  - ISSUE: See http://localhost:8080/#/play/25
-        ;    - FIX: Update Gig to support uneven matrices
         measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
         reduced-track (reduce-track track)]
     (println "normalize-track, lowest-beat" lowest-beat)
