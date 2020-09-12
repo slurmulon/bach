@@ -296,8 +296,6 @@
         scaled-lowest-beat (/ (/ 1 4) lowest-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
-    (println "[get-ms-per-beat] lowest-beat" lowest-beat)
-    (println "[get-ms-per-beat] scaled-lowest-beat" scaled-lowest-beat)
     (float norm-ms-per-beat)))
 
 ; TODO: Fix tracks where end measure is not equal to the number of bars in the time signature (e.g. 2 beats when time sig is 4|4)
@@ -318,14 +316,8 @@
         measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
         measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
         reduced-track (reduce-track track)]
-    (println "normalize-track, lowest-beat" lowest-beat)
-    (println "normalize-track, total-measures" total-measures)
-    (println "normalize-track, total-beats", (get-total-beats track))
-    (println "normalize-track, beats-per-measure" beats-per-measure)
-    (println "normalize-track, unused-tail-beats" unused-tail-beats)
-
     (insta/transform
-      ; we only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
+      ; We only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
       {:play (fn [play-track]
         (letfn [(update-cursor [beats]
                   (swap! beat-cursor + beats))
