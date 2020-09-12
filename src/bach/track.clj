@@ -9,7 +9,7 @@
 
 (ns bach.track
   (:require [instaparse.core :as insta]
-            [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-tail]]))
+            [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-row]]))
 
 (defstruct compiled-track :headers :data)
 
@@ -339,7 +339,7 @@
         ; measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
         ; FIXME: Needs to drop last element of sub-array instead, derp
         ; measures (atom (->> measure-matrix (drop-last unused-tail-beats))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
-        measures (atom (trim-matrix-tail measure-matrix unused-tail-beats))
+        measures (atom (trim-matrix-row measure-matrix total-measures unused-tail-beats))
         reduced-track (reduce-track track)]
     (println "normalize-track, lowest-beat" lowest-beat)
     (println "normalize-track, total-measures" total-measures)
