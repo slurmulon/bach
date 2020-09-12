@@ -9,7 +9,7 @@
 
 (ns bach.track
   (:require [instaparse.core :as insta]
-            [bach.data :refer [hiccup-to-hash-map ratio-to-vector]]))
+            [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-tail]]))
 
 (defstruct compiled-track :headers :data)
 
@@ -211,13 +211,13 @@
           lowest-beat (min 1 lowest-beat-unit)
           lowest-beat-unit-ratio (/ lowest-beat beat-unit)
           lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)]
-      (println "... lowest-duration" @lowest-duration)
-      (println "... lowest-beat-mod" lowest-beat-mod)
-      (println "... lowest-beat-unit" lowest-beat-unit)
-      (println "... lowest-beat-unit-ratio" lowest-beat-unit-ratio)
-      (println "... lowest-beat" lowest-beat)
-      (println "... beats-per-measure" beats-per-measure)
-      (println "... beat-unit" beat-unit)
+      ; (println "... lowest-duration" @lowest-duration)
+      ; (println "... lowest-beat-mod" lowest-beat-mod)
+      ; (println "... lowest-beat-unit" lowest-beat-unit)
+      ; (println "... lowest-beat-unit-ratio" lowest-beat-unit-ratio)
+      ; (println "... lowest-beat" lowest-beat)
+      ; (println "... beats-per-measure" beats-per-measure)
+      ; (println "... beat-unit" beat-unit)
       (if (= lowest-beat 1)
         ; FIXME: Might need to min this with the time signature
         (* beats-per-measure beat-unit)
@@ -282,9 +282,12 @@
 (defn get-total-measures-ceiled
   "Provides the total number of measures in a track, ceiled"
   [track]
-  ; (Math/ceil (get-total-beats track)))
+  ; ORIGINAL
+  (Math/ceil (get-total-beats track)))
   ; EXPERIMENTAL (maybe use this instead)
-  (Math/floor (get-total-beats track)))
+  ;  - LAST
+  ;  - FIXME: Cuts off tracks that run past the last measure
+  ; (Math/floor (get-total-beats track)))
 
 (defn get-total-duration
   "Determines the total time duration of a track (milliseconds, seconds, minutes)"
@@ -329,11 +332,21 @@
         ; beats-per-measure (get-beats-per-measure track)
         lowest-beat (get-lowest-beat track)
         total-measures (get-total-measures-ceiled track)
-        measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
+        total-beats (get-total-beats track)
+        unused-tail-beats (* beats-per-measure (mod total-beats (min total-beats 4)))
+        measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
+        ; ORIG
+        ; measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
+        ; FIXME: Needs to drop last element of sub-array instead, derp
+        ; measures (atom (->> measure-matrix (drop-last unused-tail-beats))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
+        measures (atom (trim-matrix-tail measure-matrix unused-tail-beats))
         reduced-track (reduce-track track)]
     (println "normalize-track, lowest-beat" lowest-beat)
     (println "normalize-track, total-measures" total-measures)
+    (println "normalize-track, total-beats", (get-total-beats track))
     (println "normalize-track, beats-per-measure" beats-per-measure)
+    (println "normalize-track, unused-tail-beats" unused-tail-beats)
+
     (insta/transform
       ; we only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
       {:play (fn [play-track]

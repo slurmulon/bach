@@ -32,3 +32,23 @@
     (ratio? ratio) [(numerator ratio) (denominator ratio)]
     (vector? ratio) ratio
     :else (throw (Exception. "input must be a ratio or a vector"))))
+
+; (defn trim-vector-tail
+; LAST
+; (defn trim-matrix-tail
+;   [matrix overflow]
+;   (let [tail-index (- (count matrix) 1)
+;         clip #(->> % (drop-last overflow) (into []))]
+;     (update matrix tail-index clip)))
+;         ; (update tail-index #(drop-last overflow))
+
+(defn trim-matrix-tail
+  [matrix overflow]
+  (cond
+    (> overflow 0)
+      (let [tail-index (- (count matrix) 1)
+            clip #(->> % (drop-last overflow) (into []))]
+        (update matrix tail-index clip))
+    :else matrix))
+        ; (update tail-index #(drop-last overflow))
+
