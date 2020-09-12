@@ -312,8 +312,12 @@
         lowest-beat (get-lowest-beat reduced-track)
         ; TODO: Probably break this out into its own function
         scaled-lowest-beat (/ (/ 1 4) lowest-beat)
+        ; EXPERIMENT
+        ; scaled-lowest-beat lowest-beat
         ms-per-beat (* (/ 60 tempo) 1000)
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
+    (println "[get-ms-per-beat] lowest-beat" lowest-beat)
+    (println "[get-ms-per-beat] scaled-lowest-beat" scaled-lowest-beat)
     (float norm-ms-per-beat)))
 
 ; TODO: Fix tracks where end measure is not equal to the number of bars in the time signature (e.g. 2 beats when time sig is 4|4)
@@ -333,13 +337,16 @@
         lowest-beat (get-lowest-beat track)
         total-measures (get-total-measures-ceiled track)
         total-beats (get-total-beats track)
-        unused-tail-beats (* beats-per-measure (mod total-beats (min total-beats 4)))
+        ; LAST
+        ; unused-tail-beats (* beats-per-measure (mod total-beats (min total-beats 4)))
+        unused-tail-beats (mod (* beats-per-measure (mod total-beats (min total-beats 4))) beats-per-measure)
         measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
         ; ORIG
         ; measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
-        ; FIXME: Needs to drop last element of sub-array instead, derp
-        ; measures (atom (->> measure-matrix (drop-last unused-tail-beats))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
-        measures (atom (trim-matrix-row measure-matrix total-measures unused-tail-beats))
+        ; TRIMMED (in prog)
+        ;  - ISSUE: See http://localhost:8080/#/play/25
+        ;    - FIX: Update Gig to support uneven matrices
+        measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
         reduced-track (reduce-track track)]
     (println "normalize-track, lowest-beat" lowest-beat)
     (println "normalize-track, total-measures" total-measures)
