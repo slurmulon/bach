@@ -28,10 +28,11 @@
       (is (= (validate tree) true))))
   (testing "basic div (valid numerator, invalid denominator)"
     (let [tree [:track [:statement [:div [:number "1"] [:number "3"]]]]]
-      (is (thrown-with-msg? Exception #"note divisors must be base 2 and no greater than 512" (validate tree)))))
-  (testing "basic div (invalid numerator, valid denominator)"
-    (let [tree [:track [:statement [:div [:number "5"] [:number "4"]]]]]
-      (is (thrown-with-msg? Exception #"numerator cannot be greater than denominator" (validate tree))))))
+      (is (thrown-with-msg? Exception #"note divisors must be base 2 and no greater than 512" (validate tree))))))
+  ; NOTE: No longer seems to be a necessary requirement due to updated beat calculations (whole note)
+  ; (testing "basic div (invalid numerator, valid denominator)"
+  ;   (let [tree [:track [:statement [:div [:number "5"] [:number "4"]]]]]
+  ;     (is (thrown-with-msg? Exception #"numerator cannot be greater than denominator" (validate tree))))))
   ; (testing "keyword"
   ;   (let [tree [:track [:statement [:keyword "Scale"] [:init [:arguments [:string [:word "C2 Major")
 
@@ -110,8 +111,10 @@
                                                   [:atom [:keyword "Note"]
                                                          [:init [:arguments [:string "'C2'"]]]]]]]]
             ; TODO: Eventually, once get-lowest-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
+            ; - Actually, probably abandoning this since things are easier if lowest-beat cannot exceed a measure (e.g. 1)
             ; want (/ 3 2)
-            want (/ 3 4)]
+            ; want (/ 3 4)]
+            want (/ 1 2)]
         (is (= want (get-lowest-beat tree)))))
     (testing "misaligned"
       (let [tree [:track [:statement [:header [:meta "Time"]
@@ -121,6 +124,16 @@
                                                    [:atom [:keyword "Note"]
                                                           [:init [:arguments [:string "'C2'"]]]]]]]]
             want (/ 3 4)]
+        (is (= want (get-lowest-beat tree)))))
+    (testing "misaligned (alt)"
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "3"]
+                                                      [:number "4"]]]]
+                         [:statement [:list [:pair [:div [:number "6"]
+                                                         [:number "4"]]
+                                                   [:atom [:keyword "Note"]
+                                                          [:init [:arguments [:string "'C2'"]]]]]]]]
+            want (/ 1 2)]
         (is (= want (get-lowest-beat tree)))))))
 
 (deftest total-beats
@@ -485,5 +498,30 @@
                         {:duration 1/4,
                          :notes {:atom {:keyword "Chord",
                                         :init {:arguments ["C2maj7"]}}}}]]}]
-      (is (= (compile-track tree) want)))))
-
+      (is (= (compile-track tree) want))))
+  (testing "advanced"
+    (testing "beat duration exceeds single measure"
+      (let [tree [:track [:statement [:header [:meta "Tempo"] [:number "100"]]]
+                         [:statement [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]] [:play [:list [:pair [:div [:number "6"] [:number "4"]] [:set [:atom [:keyword "Scale"] [:init [:arguments [:string "'C# phrygian'"]]]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'C#m'"]]]]]] [:pair [:div [:number "6"] [:number "4"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'Dmaj7'"]]]]]]]]]
+            want {:headers {:tags [],
+                            :desc "",
+                            :time [3 4],
+                            :total-beats 3N,
+                            :title "Untitled",
+                            :link "",
+                            :ms-per-beat 1200.0,
+                            :lowest-beat 1/2,
+                            :audio "",
+                            :tempo 100},
+                  :data [[{:duration 3/2,
+                           :notes [{:atom {:keyword "Scale",
+                                           :init {:arguments ["C# phrygian"]}}}
+                                   {:atom {:keyword "Chord",
+                                           :init {:arguments ["C#m"]}}}]}
+                          nil]
+                         [nil
+                          {:duration 3/2,
+                           :notes {:atom {:keyword "Chord",
+                                          :init {:arguments ["Dmaj7"]}}}}]
+                         [nil nil]]}]
+      (is (= (compile-track tree) want))))))
