@@ -181,7 +181,6 @@
 (defn get-beats-per-measure
   "Determines how many beats are in each measure, based on the time signature"
   [track]
-  ; (println "@@@ beats-per-measure" (get-time-signature track))
   (first (get-time-signature track))) ; AKA numerator
 
 ; TODO: Coerce lowest-beat to be a modulus of the total number of beats in a measure based on the time signature
@@ -199,6 +198,7 @@
                (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
+    ; TODO: Can surely simplify this calculation further, algorithm is fluffy and based on trial/error
     (let [beat-unit (get-beat-unit reduced-track)
           beats-per-measure (get-beats-per-measure reduced-track)
           lowest-beat-unit (/ 1 (-> @lowest-duration
@@ -209,21 +209,7 @@
           lowest-beat-unit-ratio (/ lowest-beat beat-unit)
           lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)
           default-lowest-beat (* beats-per-measure beat-unit)]
-      (println "lowest-duration" @lowest-duration)
-      (println "lowest-beat" lowest-beat)
-      (println "lowest-beat-mod" lowest-beat-mod)
-      (println "lowest-beat-unit" lowest-beat-unit)
-      (println "lowest-beat-unit-ratio" lowest-beat-unit-ratio)
-      (println "beat-unit" beat-unit)
-      (println "default-lowest-beat" default-lowest-beat)
-      (if (= lowest-beat 1)
-        default-lowest-beat
-        ; ORIG
-        ; (if (= lowest-beat-mod 0) lowest-beat default-lowest-beat)))))
-        ; EXPERIMENT
-        ;  - Ensures the lowest-beat is always less than an entire measure's worth of beats (scaled to time signature)
-        ;  - SEEMS TO WORK, JUST NEED TO UPDATE 3 TESTS
-        lowest-beat))))
+      (if (= lowest-beat 1) default-lowest-beat lowest-beat))))
         ; BREAKS test. Gets at the point that we should pretty much always just use 1/4 note as beat unit
         ; (if (= lowest-beat-mod 0) beat-unit default-lowest-beat)))))
 
