@@ -8,6 +8,14 @@
     (let [want [:track [:statement [:assign [:identifier ":Test"] [:number "1"]]]]]
       (is (= (parse ":Test = 1") want)))))
 
+(deftest primitives
+  (testing "integer"
+    (let [want [:track [:statement [:number "1"]]]]
+      (is (= (parse "1") want))))
+  (testing "double"
+    (let [want [:track [:statement [:number "2.5"]]]]
+      (is (= (parse "2.5") want)))))
+
 (deftest terms
   (testing "addition"
     (let [want [:track [:statement [:add [:number "1"] [:number "2"]]]]]
