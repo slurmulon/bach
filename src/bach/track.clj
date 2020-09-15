@@ -206,12 +206,8 @@
                                     clojure.lang.Numbers/toRatio
                                     denominator))
           lowest-beat (min 1 lowest-beat-unit)
-          lowest-beat-unit-ratio (/ lowest-beat beat-unit)
-          lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)
           default-lowest-beat (* beats-per-measure beat-unit)]
       (if (= lowest-beat 1) default-lowest-beat lowest-beat))))
-        ; BREAKS test. Gets at the point that we should pretty much always just use 1/4 note as beat unit
-        ; (if (= lowest-beat-mod 0) beat-unit default-lowest-beat)))))
 
 
 (defn get-normalized-lowest-beat
@@ -331,19 +327,12 @@
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
         beats-per-measure (get-normalized-beats-per-measure track)
         lowest-beat (get-lowest-beat track)
-        ; ORIG
         total-measures (get-total-measures-ceiled track)
         total-beats (get-total-beats track)
-        ; EXPERIMENT
-        ; total-beats (get-scaled-total-beats track)
-        ; total-measures total-beats
         unused-tail-beats (mod (* beats-per-measure (mod total-beats (min total-beats 4))) beats-per-measure)
         measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
         measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
         reduced-track (reduce-track track)]
-    (println "total-beats" total-beats)
-    (println "total-measures" total-measures)
-    (println "unused-tail-beats" unused-tail-beats)
     (insta/transform
       ; We only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
       {:play (fn [play-track]
