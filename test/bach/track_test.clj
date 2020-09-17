@@ -205,15 +205,15 @@
             ; want (rationalize 1.5)]
         (is (= want (get-normalized-total-measures tree)))))
     (testing "beat unit is less (shorter) than lowest common beat"
-      (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "3"]
+                                                      [:number "4"]]]]
+                         [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
-                                            [:pair [:div [:number "1"] [:number "4"]] [:list]]
                                             [:pair [:div [:number "1"] [:number "4"]] [:list]]
                                             [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
             want 1]
         (is (= want (get-normalized-total-measures tree)))))
-)))
-    ; TODO
     ; TODO
     ; (testing "beat unit is greater (longer) than lowest common beat"
     ;   (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
@@ -222,7 +222,15 @@
     ;                                         [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
     ;         want 1]
     ;     (is (= want (get-normalized-total-measures tree))))))
-
+      (testing "total measures is less than duration of full bar (bar = a measure scaled to meter"
+        (let [tree [:track [:statement [:header [:meta "Time"]
+                                              [:meter [:number "3"]
+                                                      [:number "4"]]]]
+                           [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
+                                              [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+              want (/ 1 3)]
+          (is (= want (get-normalized-total-measures tree)))))
+)))
 
 ; (deftest normalized-total-measures
 ;   (testing "common time"
