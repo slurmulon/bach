@@ -154,6 +154,11 @@
         header (find-header reduced-track "Time" default-time-signature)]
     header))
 
+(defn get-meter
+  [track]
+  (let [[beats-per-measure & [beat-unit]] (get-time-signature track)]
+    (/ beats-per-measure beat-unit)))
+
 ; FIXME: Support floating point tempos
 (defn get-tempo
   [track]
@@ -178,6 +183,12 @@
   [track]
   (/ 4 (last (get-time-signature track))))
 
+(defn get-beat-unit-ratio
+  "Determines the ratio between the beat unit and the number of beats per measure"
+  [track]
+  (let [[beats-per-measure & [beat-unit]] (get-time-signature track)]
+    (mod beat-unit beats-per-measure)))
+
 (defn get-beats-per-measure
   "Determines how many beats are in each measure, based on the time signature"
   [track]
@@ -201,13 +212,64 @@
     ; TODO: Can surely simplify this calculation further, algorithm is fluffy and based on trial/error
     (let [beat-unit (get-beat-unit reduced-track)
           beats-per-measure (get-beats-per-measure reduced-track)
+          time-signature (* beats-per-measure beat-unit)
           lowest-beat-unit (/ 1 (-> @lowest-duration
                                     rationalize
                                     clojure.lang.Numbers/toRatio
                                     denominator))
-          lowest-beat (min 1 lowest-beat-unit)
-          default-lowest-beat (* beats-per-measure beat-unit)]
-      (if (= lowest-beat 1) default-lowest-beat lowest-beat))))
+          ; LAST
+          ; lowest-beat (min 1 lowest-beat-unit)
+          ; lowest-beat (min time-signature lowest-beat-unit)
+          ; lowest-beat (min time-signature @lowest-duration)
+          lowest-beat @lowest-duration
+          ; OLD
+          ; lowest-beat-unit-ratio (/ lowest-beat beat-unit)
+          ; lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)
+          ; NEW
+          beat-unit-ratio (get-beat-unit-ratio track)
+          ; lowest-beat-aligns (mod (denominator lowest-beat-unit) (denominator 
+          ; lowest-beat-aligns (= 0 (/ (denominator @lowest-duration) time-signature))
+          ; LAST
+          ; lowest-beat-aligns (= 0 (/ lowest-beat time-signature))
+          ; lowest-beat-aligns (= 0 (/ lowest-beat 4))
+          lowest-beat-aligns (= 0 (mod (max lowest-beat time-signature)
+                                       (min lowest-beat time-signature)))
+          ; odd-time-sig? (odd? (mod beats-per-measure beat-unit))
+          ; beat-unit-ratio
+          ; AKA full-scaled-measure
+          ;  - TODO: rename (to full-scaled-measure or the like)
+          ;  - TODO: Move to its own func
+          default-lowest-beat (* beats-per-measure beat-unit)
+          full-scaled-measure default-lowest-beat]
+      ; (println "\n[lowest-beat] beat-unit" beat-unit)
+      ; (println "[lowest-beat] time sig" time-signature)
+      ; (println "[lowest-beat] beats-per-measure" beats-per-measure)
+      ; (println "[lowest-beat] lowest-uration" @lowest-duration)
+      ; (println "[lowest-beat] lowest-beat-unit" lowest-beat-unit)
+      ; (println "[lowest-beat] aligns???" lowest-beat-aligns)
+      ; (println "[lowest-beat] lowest-beat" lowest-beat)
+      ; ; (println "[lowest-beat] lowest-beat-mod" lowest-beat-mod)
+      ; (println "[lowest-beat] beat-unit-ratio" beat-unit-ratio)
+      ; (println "[lowest-beat] default-lowest-beat" default-lowest-beat)
+      ; (if (= lowest-beat 1) default-lowest-beat lowest-beat))))
+      ; LAST
+      ; (if (= lowest-beat 1)
+      ; EXPERIMENT
+      (if lowest-beat-aligns
+      ; (if (and lowest-beat-aligns (not odd-time-sig?))
+        ; LAST
+        ; TODO: Experiment with this as `lowest-beat` instead
+        ; default-lowest-beat
+        ; full-scaled-measure
+        lowest-beat
+        ; (if (= lowest-beat-mod 0) lowest-beat default-lowest-beat)))))
+        ; EXPERIMENT
+        ; (if (= lowest-beat-mod 0) lowest-beat beat-unit)))))
+        ; WARN: do we also need to consider if the lowest-beat aligns with the beat-unit-ratio? Seems so
+        ; (if (= beat-unit-ratio 0) lowest-beat beat-unit)))))
+        beat-unit))))
+        ; IDEAL (optimized to entire bar)
+        ; (if (= beat-unit-ratio 0) lowest-beat full-scaled-measure)))))
 
 
 (defn get-normalized-lowest-beat
@@ -221,8 +283,13 @@
 (defn get-normalized-beats-per-measure
   "Determines how many beats are in a measure, normalized against the lowest beat of the track"
   [track]
-  (let [lowest-beat (get-lowest-beat track)]
-    (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
+  (let [lowest-beat (get-lowest-beat track)
+        meter (get-meter track)]
+    (println "---- lowest-beat" lowest-beat)
+    (println "--- meter" meter)
+    (/ (max lowest-beat meter)
+       (min lowest-beat meter))))
+    ; (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
     ; TODO: Determine why this causes IndexOutOfBounds exception in normalize-measures
     ; (if (< lowest-beat 1) (numerator lowest-beat) lowest-beat)))
 
@@ -254,8 +321,9 @@
   "Determines the total beats in a track normalized to the lowest beat of the track"
   [track]
   (let [total-beats (get-total-beats track)
-        lowest-beat (get-normalized-lowest-beat track)]
-    (/ total-beats lowest-beat)))
+        lowest-beat (get-lowest-beat track)]
+    (/ (max total-beats lowest-beat)
+       (min total-beats lowest-beat))))
 
 (defn get-total-measures
   "Determines the total number of measures in the track. Beats and measures are equivelant here
@@ -268,13 +336,13 @@
   ;       total-beats (get-scaled-total-beats track)]
   ; ; EXPERIMENT
   ; ;  - Close, but beats-per-measure does not align with total beats
-  ; ; (let [beats-per-measure (get-normalized-beats-per-measure track)
-  ; ;       total-beats (get-total-beats track)]
+  ; (let [beats-per-measure (get-normalized-beats-per-measure track)
+  ;       total-beats (get-normalized-total-beats track)]
   ;   (println "--- beats-per-measure" beats-per-measure)
   ;   (println "--- beat-unit" beat-unit)
   ;   (println "--- total-beats" total-beats)
   ;   (println "--- result" (/ total-beats beats-per-measure))
-  ;   (/ total-beats beats-per-measure)))
+    ; (/ total-beats beats-per-measure)))
 
   ; ORIG
   (get-total-beats track))
@@ -287,6 +355,51 @@
   ; ORIG
   ; (Math/ceil (get-total-beats track)))
   (Math/ceil (get-total-measures track)))
+
+(defn get-normalized-total-measures
+  [track]
+  (let [lowest-beat (get-lowest-beat track)
+        beats-per-measure (get-normalized-beats-per-measure track)
+        total-beats (get-normalized-total-beats track)
+        total-measures (get-total-measures track)
+        ; total-beats (get-total-beats track)
+        ; beats-(/ total-measures lowest-beat)
+        meter (get-meter track)]
+    ; (/ (min total-measures lowest-beat)
+    ;    (max total-measures lowest-beat))))
+
+    ; Well, it's already normalized to the time signature
+    ;  - Er, only because of ceiled (tested with 5/8)
+    ; TODO: Remove any usage of this method! DEPRECATE!
+    ; total-measures))
+    ; (println "lowest-beat" lowest-beat)
+    (println "[norm-total-measures] meter" meter)
+    (println "[norm-total-measures] lowest-beat" lowest-beat)
+    (println "[norm-total-measures] total-measures" total-measures)
+    (println "[norm-total-measures] total-beats (norm)" total-beats)
+    (println "[norm-total-measures] beats-per-measure (norm)" beats-per-measure)
+    ; (println "[norm-total-measures] lowest-beat" lowest-beat)
+    ; (println "norm total beats" (get-normalized-total-beats track))
+    ; (println "resulttt" (* total-measures (/ 1 lowest-beat)))
+    ; (println "resulttt" (/ total-measures meter))
+    ; CHECKPOINT
+    ;  - In the right direction. We want to compare against lowest-beat instead of meter, since that what normalized-total-beats does
+    ; (/ (max total-measures lowest-beat)
+    ;    (min total-measures lowest-beat))))
+    ; (* total-measures (/ 1 lowest-beat))))
+
+    ; GOOD (not great)
+    ; (* total-measures (/ 1 meter))))
+    ;  - Don't need lowest-beat here because total-beats is already normalized to it
+    ;  - Therefore (* total-measures total-beats) should maybe suffice
+    ; (/ (* total-measures (/ 1 lowest-beat)) total-beats)))
+    ; (/ (* total-measures (/ 1 lowest-beat)) total-beats)))
+    ;  - Darn, thought this was the solution but breaks more than expected
+    (/ total-beats beats-per-measure)))
+
+    ; (/ total-measures (/ 1 total-beats))))
+    ; LAST
+    ; (/ total-measures meter)))
 
 (defn get-total-duration
   "Determines the total time duration of a track (milliseconds, seconds, minutes)"
@@ -310,10 +423,24 @@
         tempo (get-tempo reduced-track)
         lowest-beat (get-lowest-beat reduced-track)
         ; TODO: Probably break this out into its own function
+        ; LAST
+        ; QUESTION: Why always dividing by (1/4) here?
         scaled-lowest-beat (/ (/ 1 4) lowest-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
+        ; LAST
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
+        ; norm-ms-per-beat (* ms-per-beat lowest-beat)]
+    (println "[get-ms-per-beat] lowest-beat" lowest-beat)
+    (println "[get-ms-per-beat] result" norm-ms-per-beat)
     (float norm-ms-per-beat)))
+
+(defn normalize-duration
+  [duration lowest-beat time-sig]
+  ; (let [lowest-beat (get-lowest-beat track)
+  ;       time-sig (get-time-signature track)]
+    (* duration
+      (/ (max lowest-beat time-sig)
+         (min lowest-beat time-sig))))
 
 ; TODO: Fix tracks where end measure is not equal to the number of bars in the time signature (e.g. 2 beats when time sig is 4|4)
 ; @see: https://lodash.com/docs/#chunk
@@ -325,14 +452,26 @@
    Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through"
   [track]
   (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
-        beats-per-measure (get-normalized-beats-per-measure track)
         lowest-beat (get-lowest-beat track)
-        total-measures (get-total-measures-ceiled track)
-        total-beats (get-total-beats track)
+        beats-per-measure (get-normalized-beats-per-measure track)
+        ; TODO: Experiment with this as get-total-normalized-measures!
+        ;  e.g. (* % (get-time-signature track))
+        ; LAST
+        ; total-measures (get-total-measures-ceiled track)
+        total-measures (get-normalized-total-measures track)
+        ; TODO: Experiment with this as get-total-normalized-beats!
+        ;  e.g. (* % (get-time-signature track))
+        ; LAST
+        ; total-beats (get-total-beats track)
+        total-beats (get-normalized-total-beats track)
         unused-tail-beats (mod (* beats-per-measure (mod total-beats (min total-beats 4))) beats-per-measure)
         measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
         measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
         reduced-track (reduce-track track)]
+    (println "[normalize] lowest-beat" lowest-beat)
+    (println "[normalize] beats-per-measure (norm)" beats-per-measure)
+    (println "[normalize] total-measures (norm)" total-measures)
+    (println "[normalize] total-beats (norm)" total-beats)
     (insta/transform
       ; We only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
       {:play (fn [play-track]
@@ -354,6 +493,7 @@
                            measure-index (:measure indices)
                            beat-index (:beat indices)
                            compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
+                       (println "[normalize] updating cursor" indices)
                        (update-measures measure-index beat-index compiled-notes)
                        (update-cursor beats)))}
           play-track)))}
