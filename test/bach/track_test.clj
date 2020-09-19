@@ -84,7 +84,7 @@
     (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "2"]] [:list]]
                                           [:pair [:div [:number "1"] [:number "4"]] [:list]]
                                           [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-          want (/ 1 8)]
+          want 1/8]
       (is (= want (get-lowest-beat tree)))))
   (testing "complex ratio"
     (let [tree [:track [:statement [:header [:meta "Time"]
@@ -97,7 +97,7 @@
                                                  [:atom [:keyword "Note"]
                                                         [:init [:arguments [:string "'C2'"]]]]]]]]
           ; FIXME: Ideal value, but not entirely necessary
-          want (/ 3 4)]
+          want 3/4]
           ; want (/ 1 4)]
       (is (= want (get-lowest-beat tree)))))
   (testing "spanning multiple measures"
@@ -153,7 +153,7 @@
                                            [:number "8"]]]
                        [:statement [:list [:pair [:number "1"] [:list]]
                                           [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-          want (/ 9 8)]
+          want 9/8]
       (is (= want (get-total-beats tree))))))
 
 ; TODO: Replace with normalized-total-measures, this is redundant since get-total-beats is the same here
@@ -187,7 +187,7 @@
                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
             want (rationalize 0.5)]
         (is (= want (get-normalized-total-measures tree)))))
-    (testing "total measures is less than duration of full bar (bar = a measure scaled to meter"
+    (testing "total measures is less than duration of full bar"
       (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
             want (rationalize 0.25)]
@@ -215,21 +215,26 @@
             want 1]
         (is (= want (get-normalized-total-measures tree)))))
     ; TODO
-    ; (testing "beat unit is greater (longer) than lowest common beat"
-    ;   (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
-    ;                                         [:pair [:div [:number "1"] [:number "8"]] [:list]]
-    ;                                         [:pair [:div [:number "1"] [:number "8"]] [:list]]
-    ;                                         [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-    ;         want 1]
-    ;     (is (= want (get-normalized-total-measures tree))))))
-      (testing "total measures is less than duration of full bar (bar = a measure scaled to meter"
-        (let [tree [:track [:statement [:header [:meta "Time"]
+    (testing "beat unit is greater (longer) than lowest common beat"
+      (let [tree [:track [:statement [:header [:meta "Time"]
                                               [:meter [:number "3"]
                                                       [:number "4"]]]]
-                           [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
-                                              [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-              want (/ 1 3)]
-          (is (= want (get-normalized-total-measures tree)))))
+                         [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
+                                            [:pair [:div [:number "1"] [:number "8"]] [:list]]
+                                            [:pair [:div [:number "1"] [:number "8"]] [:list]]
+                                            [:pair [:div [:number "1"] [:number "8"]] [:list]]
+                                            [:pair [:div [:number "1"] [:number "8"]] [:list]]
+                                            [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+            want 1]
+        (is (= want (get-normalized-total-measures tree)))))
+    (testing "total measures is less than duration of full bar"
+      (let [tree [:track [:statement [:header [:meta "Time"]
+                                            [:meter [:number "3"]
+                                                    [:number "4"]]]]
+                          [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
+                                            [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+            want 1/3]
+        (is (= want (get-normalized-total-measures tree)))))
 )))
 
 ; (deftest normalized-total-measures
@@ -239,7 +244,82 @@
 ; (deftest get-normalized-beats-per-measure)
 
 ; TODO: Test, then refactor bach/track to use throughout
-; (deftest normalize-duration)
+(deftest normalized-duration
+  (testing "common time"
+    (testing "beat unit matches lowest common beat"
+      (let [duration 1/2
+            lowest-beat 1/4
+            time-sig 1
+            want 2]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "beat unit is less (shorter) than lowest common beat"
+      (let [duration 1
+            lowest-beat 1
+            time-sig 2/4
+            want 2]
+        (is (= want (normalize-duration duration lowest-beat time-sig))))))
+    (testing "beat unit is greater (longer) than lowest common beat"
+      (let [duration 1/2
+            lowest-beat 1/8
+            time-sig 1
+            ; TODO: Test this meter specifically
+            ; time-sig (/ 2 4)
+            ; want (/ 1 2)]
+            want 4]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+;     (testing "total measures is less than duration of full bar"
+;       (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+;             want (rationalize 0.25)]
+;         (is (= want (get-normalized-total-measures tree)))))
+    (testing "less common time"
+      (testing "beat unit matches lowest common beat"
+        (testing "duration matches full bar"
+          (let [;duration (/ 3 8)
+                duration 1
+                lowest-beat 1/8
+                time-sig 5/8
+                ;want 3]
+                want 5]
+            (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (testing "duration is less than full bar"
+          (let [duration 3/8
+                lowest-beat 1/8
+                time-sig 5/8
+                want 3]
+            (is (= want (normalize-duration duration lowest-beat time-sig))))))))
+;     (testing "beat unit is less (shorter) than lowest common beat"
+;       (let [tree [:track [:statement [:header [:meta "Time"]
+;                                               [:meter [:number "3"]
+;                                                       [:number "4"]]]]
+;                          [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "4"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
+;             want 1]
+;         (is (= want (get-normalized-total-measures tree)))))
+;     ; TODO
+;     (testing "beat unit is greater (longer) than lowest common beat"
+;       (let [tree [:track [:statement [:header [:meta "Time"]
+;                                               [:meter [:number "3"]
+;                                                       [:number "4"]]]]
+;                          [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+;             want 1]
+;         (is (= want (get-normalized-total-measures tree)))))
+;     (testing "total measures is less than duration of full bar"
+;       (let [tree [:track [:statement [:header [:meta "Time"]
+;                                             [:meter [:number "3"]
+;                                                     [:number "4"]]]]
+;                           [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
+;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
+;             want (/ 1 3)]
+;         (is (= want (get-normalized-total-measures tree)))))
+; )))
 
 (deftest duration
   (testing "minutes"
@@ -256,6 +336,10 @@
     (let [tree [:track [:statement [:list [:pair [:number "30"] [:list]]]]] ; 30 measures x 4 beats = 120 beats
           want 60000]
       (is (= want (get-total-duration tree :milliseconds))))))
+
+; (deftest normalize-duration
+;   (testing "common time"
+;     (testing "")))
 
 ; FIXME: if the duration of the beats is less than a measure, it ends up breaking
 ; the get-ms-per-beat calculation (stemming from total-duration-ms). Need a test for this!
