@@ -113,7 +113,7 @@
             ; TODO: Eventually, once get-lowest-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
             ; - Actually, probably abandoning this since things are easier if lowest-beat cannot exceed a measure (e.g. 1)
             ; want (/ 3 2)
-            want (/ 3 4)]
+            want 3/4]
             ; want (/ 1 2)]
         (is (= want (get-lowest-beat tree)))))
     (testing "misaligned"
@@ -123,9 +123,9 @@
                          [:statement [:list [:pair [:number "2"]
                                                    [:atom [:keyword "Note"]
                                                           [:init [:arguments [:string "'C2'"]]]]]]]]
-            want (/ 3 4)]
+            want 3/4]
         (is (= want (get-lowest-beat tree)))))
-    (testing "misaligned (alt)"
+    (testing "aligned (alt)"
       (let [tree [:track [:statement [:header [:meta "Time"]
                                               [:meter [:number "3"]
                                                       [:number "4"]]]]
@@ -134,9 +134,9 @@
                                                    [:atom [:keyword "Note"]
                                                           [:init [:arguments [:string "'C2'"]]]]]]]]
             ; LAST
-            ; want (/ 1 2)]
-            ; want (/ 1 4)]
-            want (/ 6 4)]
+            ; - Only want if we support lowest-common-beat exceeding an entire measure (seems too complicated right now)
+            ; want (/ 6 4)]
+            want 3/4]
         (is (= want (get-lowest-beat tree)))))))
 
 (deftest total-beats
@@ -264,7 +264,6 @@
             time-sig 1
             ; TODO: Test this meter specifically
             ; time-sig (/ 2 4)
-            ; want (/ 1 2)]
             want 4]
         (is (= want (normalize-duration duration lowest-beat time-sig)))))
 ;     (testing "total measures is less than duration of full bar"
@@ -276,17 +275,33 @@
       (testing "beat unit matches lowest common beat"
         (testing "duration matches full bar"
           (let [;duration (/ 3 8)
-                duration 1
+                ; duration 1
+                duration 5/8
                 lowest-beat 1/8
                 time-sig 5/8
-                ;want 3]
                 want 5]
             (is (= want (normalize-duration duration lowest-beat time-sig)))))
-        (testing "duration is less than full bar"
+        (testing "duration is less than full bar (even meter)"
+          (let [;duration 3/8
+                duration 4/8
+                lowest-beat 1/8
+                time-sig 6/8
+                want 4]
+            ; FIXME: Need to multiply this result by inverse of time-sig - how to know when to do this?
+            ; take recipricol of lowest-common-beat and multiple all values by it
+            (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (testing "duration is less than full bar (odd meter)"
           (let [duration 3/8
                 lowest-beat 1/8
                 time-sig 5/8
                 want 3]
+            ; FIXME: Need to multiply this result by inverse of time-sig - how to know when to do this?
+            (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (testing "duration is greater than full bar and lowest-beat equals a full bar"
+          (let [duration 6/4
+                lowest-beat 3/4
+                time-sig 3/4
+                want 2]
             (is (= want (normalize-duration duration lowest-beat time-sig))))))))
 ;     (testing "beat unit is less (shorter) than lowest common beat"
 ;       (let [tree [:track [:statement [:header [:meta "Time"]
