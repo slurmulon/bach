@@ -33,6 +33,15 @@
     (vector? ratio) ratio
     :else (throw (Exception. "input must be a ratio or a vector"))))
 
+(defn inverse-ratio
+  [ratio]
+  (cond
+    (integer? ratio)
+      (/ 1 ratio)
+    :else
+      (let [[ratio-numerator & [ratio-denominator]] (ratio-to-vector ratio)]
+        (/ ratio-denominator ratio-numerator))))
+
 (defn trim-matrix-row
   [matrix row cols]
   (cond

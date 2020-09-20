@@ -9,7 +9,7 @@
 
 (ns bach.track
   (:require [instaparse.core :as insta]
-            [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-row]]))
+            [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-row inverse-ratio]]))
 
 (defstruct compiled-track :headers :data)
 
@@ -436,38 +436,43 @@
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the lowest common beat"
-  [duration lowest-beat time-sig]
+  [duration lowest-beat meter]
   (let [;lowest-beat (get-lowest-beat track)
         ;time-sig (get-time-signature track)
-        beat-ratio (/ (max lowest-beat time-sig)
-                      (min lowest-beat time-sig))
-        within-measure? (< duration time-sig)]
+        beat-measure-ratio (/ (max lowest-beat meter)
+                              (min lowest-beat meter))
+        ; inverse-meter (/ (denominator meter) (numerator meter))
+        ; WORKS!
+        ; inverse-meter (/ (-> meter
+        ;                     rationalize
+        ;                     clojure.lang.Numbers/toRatio
+        ;                     denominator)
+        ;                  (-> meter
+        ;                      rationalize
+        ;                      clojure.lang.Numbers/toRatio
+        ;                      numerator))
+        inverse-meter (inverse-ratio (rationalize meter))
+        within-measure? (<= duration meter)]
     (println "\n[nd] duration" duration)
     (println "[nd] lowest-beat" lowest-beat)
-    (println "[nd] time-sig" time-sig)
-    (println "[nd] beat-ratio" beat-ratio)
-    ; (cond
-    ;   (> duration (* lowest-beat time-sig))
-    ;     (* duration lowest-beat)
-    ;   :else
-    ;     (* duration
-    ;       (/ (max lowest-beat time-sig)
-    ;          (min lowest-beat time-sig)))))
-            
-    ; LAST
-    ; (* duration
-    ;   (/ (max lowest-beat time-sig)
-    ;      (min lowest-beat time-sig)))))
-
-    ; FIXES UNCOMMON METERS, BREAKS COMMON
-    ; (/ duration lowest-beat)))
-
+    (println "[nd] meter" meter)
+    (println "[nd] inverse-meter" inverse-meter)
+    (println "[nd] beat-ratio" beat-measure-ratio)
+    (println "[nd] within-measure?" within-measure?)
     ; WORKS!
+    ;  - FIXME: duration 6/4, lowest-beat 3/4, time-sig 3/4, want 2
+    ;    - Try switching conditions (Attempt 2)
     (cond
-      (> duration time-sig)
-        (* duration beat-ratio)
-      :else
-        (/ duration lowest-beat))))
+      within-measure? (/ duration lowest-beat)
+      ; :else (* duration beat-measure-ratio))))
+      ; EXPERIMENT
+      :else (* duration inverse-meter))))
+
+    ; (cond
+    ;   (> duration time-sig)
+    ;     (* duration beat-ratio)
+    ;   :else
+    ;     (/ duration lowest-beat))))
 
   ; EXPERIMENT
   ;  - To explicitly support when duration is less than or greater than a measure
