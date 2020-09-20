@@ -245,7 +245,7 @@
 
 ; TODO: Test, then refactor bach/track to use throughout
 (deftest normalized-duration
-  (testing "common time"
+  (testing "common times"
     (testing "beat unit matches lowest common beat"
       (let [duration 1/2
             lowest-beat 1/4
@@ -262,79 +262,46 @@
       (let [duration 1/2
             lowest-beat 1/8
             time-sig 1
-            ; TODO: Test this meter specifically
-            ; time-sig (/ 2 4)
             want 4]
         (is (= want (normalize-duration duration lowest-beat time-sig)))))
-;     (testing "total measures is less than duration of full bar"
-;       (let [tree [:track [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-;             want (rationalize 0.25)]
-;         (is (= want (get-normalized-total-measures tree)))))
-    (testing "less common time"
+    (testing "beat unit is greater (longer) than lowest common beat (2|4 time)"
+      (let [duration 1/2
+            lowest-beat 1/8
+            time-sig 2/4
+            want 1]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "less common times"
       (testing "beat unit matches lowest common beat"
         (testing "duration matches full bar"
-          (let [;duration (/ 3 8)
-                ; duration 1
-                duration 5/8
+          (let [duration 5/8
                 lowest-beat 1/8
                 time-sig 5/8
                 want 5]
             (is (= want (normalize-duration duration lowest-beat time-sig)))))
         (testing "duration is less than full bar (even meter)"
-          (let [;duration 3/8
-                duration 4/8
+          (let [duration 4/8
                 lowest-beat 1/8
                 time-sig 6/8
                 want 4]
-            ; FIXME: Need to multiply this result by inverse of time-sig - how to know when to do this?
-            ; take recipricol of lowest-common-beat and multiple all values by it
             (is (= want (normalize-duration duration lowest-beat time-sig)))))
         (testing "duration is less than full bar (odd meter)"
           (let [duration 3/8
                 lowest-beat 1/8
                 time-sig 5/8
                 want 3]
-            ; FIXME: Need to multiply this result by inverse of time-sig - how to know when to do this?
             (is (= want (normalize-duration duration lowest-beat time-sig)))))
         (testing "duration is greater than full bar and lowest-beat equals a full bar"
           (let [duration 6/4
                 lowest-beat 3/4
                 time-sig 3/4
                 want 2]
+            (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (testing "duration is less than lowest-beat (edge case)"
+          (let [duration 1/16
+                lowest-beat 1/8
+                time-sig 6/8
+                want 1/2]
             (is (= want (normalize-duration duration lowest-beat time-sig))))))))
-;     (testing "beat unit is less (shorter) than lowest common beat"
-;       (let [tree [:track [:statement [:header [:meta "Time"]
-;                                               [:meter [:number "3"]
-;                                                       [:number "4"]]]]
-;                          [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "4"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
-;             want 1]
-;         (is (= want (get-normalized-total-measures tree)))))
-;     ; TODO
-;     (testing "beat unit is greater (longer) than lowest common beat"
-;       (let [tree [:track [:statement [:header [:meta "Time"]
-;                                               [:meter [:number "3"]
-;                                                       [:number "4"]]]]
-;                          [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-;             want 1]
-;         (is (= want (get-normalized-total-measures tree)))))
-;     (testing "total measures is less than duration of full bar"
-;       (let [tree [:track [:statement [:header [:meta "Time"]
-;                                             [:meter [:number "3"]
-;                                                     [:number "4"]]]]
-;                           [:statement [:list [:pair [:div [:number "1"] [:number "8"]] [:list]]
-;                                             [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-;             want (/ 1 3)]
-;         (is (= want (get-normalized-total-measures tree)))))
-; )))
 
 (deftest duration
   (testing "minutes"
@@ -687,11 +654,11 @@
                           {:duration 1/4,
                           :notes {:atom {:keyword "Chord",
                                           :init {:arguments ["C2maj7"]}}}}]]}]
-        (is (= (compile-track tree) want))))
+        (is (= want (compile-track tree)))))
     (testing "non-common meter (8th note as unit)"
       (let [tree [:track [:statement [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]] [:play [:list [:pair [:mul [:number "1"] [:div [:number "6"] [:number "8"]]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'F#m'"]]]]] [:pair [:mul [:number "1"] [:div [:number "6"] [:number "8"]]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'E'"]]]]] [:pair [:mul [:number "2"] [:div [:number "6"] [:number "8"]]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'D'"]]]]]]]]]
             want {:headers {:tags [], :desc "", :time [6 8], :total-beats 3N, :title "Untitled", :link "", :ms-per-beat 500.0, :lowest-beat 1/4, :audio "", :tempo 120}, :data [[{:duration 3/4, :notes {:atom {:keyword "Chord", :init {:arguments ["F#m"]}}}} nil nil {:duration 3/4, :notes {:atom {:keyword "Chord", :init {:arguments ["E"]}}}}] [nil nil {:duration 3/2, :notes {:atom {:keyword "Chord", :init {:arguments ["D"]}}}} nil] [nil nil nil nil]]}]
-        (is (= (compile-track tree) want))))
+        (is (= want (compile-track tree)))))
   (testing "advanced"
     ; TODO: Consider moving to `normalization` suite
     (testing "beat duration exceeds single measure"
@@ -718,10 +685,10 @@
                            :notes {:atom {:keyword "Chord",
                                           :init {:arguments ["Dmaj7"]}}}}]
                          [nil nil]]}]
-      (is (= (compile-track tree) want))))))
+      (is (= want (compile-track tree)))))))
   ; TODO: Move this to `normalize-measures`, since this is what's breaking
   ;  - Actually, this stems from `lowest-beat` returning 1/4 when it should be 1/8
   (testing "obtuse meter (e.g. 5|8, 3|8)"
       (let [tree [:track [:statement [:header [:meta "Tempo"] [:number "75"]]] [:statement [:header [:meta "Time"] [:meter [:number "5"] [:number "8"]]] [:play [:list [:pair [:div [:number "3"] [:number "8"]] [:set [:atom [:keyword "Scale"] [:init [:arguments [:string "'D dorian'"]]]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'Dm9'"]]]]]] [:pair [:div [:number "2"] [:number "8"]] [:atom [:keyword "Chord"] [:init [:arguments [:string "'Am9'"]]]]]]]]]
             want {:headers {:tags [], :desc "", :time [5 8], :total-beats 5/8, :title "Untitled", :link "", :ms-per-beat 400.0, :lowest-beat 1/8, :audio "", :tempo 75}, :data [[{:duration 3/8, :notes [{:atom {:keyword "Scale", :init {:arguments ["D dorian"]}}} {:atom {:keyword "Chord", :init {:arguments ["Dm9"]}}}]} nil nil {:duration 1/4, :notes {:atom {:keyword "Chord", :init {:arguments ["Am9"]}}}} nil]]}]
-      (is (= (compile-track tree) want)))))
+      (is (= want (compile-track tree))))))
