@@ -35,18 +35,14 @@
 
 (defn inverse-ratio
   [ratio]
-  (cond
-    (integer? ratio)
-      (/ 1 ratio)
-    :else
-      (let [[ratio-numerator & [ratio-denominator]] (ratio-to-vector ratio)]
-        (/ ratio-denominator ratio-numerator))))
+  (if (integer? ratio)
+    (/ 1 ratio)
+    (let [[ratio-numerator & [ratio-denominator]] (ratio-to-vector ratio)]
+      (/ ratio-denominator ratio-numerator))))
 
 (defn trim-matrix-row
   [matrix row cols]
-  (cond
-    (> cols 0)
-      (let [clip #(->> % (drop-last cols) (into []))]
-        (update matrix row clip))
-    :else matrix))
-
+  (if (> cols 0)
+    (let [clip #(->> % (drop-last cols) (into []))]
+      (update matrix row clip))
+    matrix))
