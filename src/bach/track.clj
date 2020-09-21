@@ -219,9 +219,9 @@
                                     denominator))
           lowest-beat-aligns (= 0 (mod (max lowest-beat time-signature)
                                        (min lowest-beat time-signature)))
-          full-normalized-measure (* beats-per-measure beat-unit)]
+          entire-measure (* beats-per-measure beat-unit)]
       (if lowest-beat-aligns
-        (min lowest-beat full-normalized-measure)
+        (min lowest-beat entire-measure)
         (min lowest-beat-unit beat-unit)))))
 
 (defn get-normalized-beats-per-measure
@@ -269,20 +269,15 @@
   [track]
   (get-total-beats track))
 
-(defn get-total-measures-ceiled
-  "Provides the total number of measures in a track, ceiled"
-  [track]
-  (Math/ceil (get-total-measures track)))
-
 ; TODO: Consider renaming to `get-total-bars`
 (defn get-normalized-total-measures
+  "Determines the total number of measures in a track, normalized to the lowest common beat"
   [track]
   (let [lowest-beat (get-lowest-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
         total-beats (get-normalized-total-beats track)
         ; TODO: Use this instead of total-beats
-        total-measures (get-total-measures track)
-        meter (get-meter track)]
+        total-measures (get-total-measures track)]
     (/ total-beats beats-per-measure)))
 
 (defn get-total-duration
@@ -331,11 +326,11 @@
         measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
         measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
         reduced-track (reduce-track track)]
-    (println "\n[normalize] meter" meter)
-    (println "[normalize] lowest-beat" lowest-beat)
-    (println "[normalize] beats-per-measure (norm)" beats-per-measure)
-    (println "[normalize] total-measures (norm)" total-measures)
-    (println "[normalize] total-beats (norm)" total-beats)
+    ; (println "\n[normalize] meter" meter)
+    ; (println "[normalize] lowest-beat" lowest-beat)
+    ; (println "[normalize] beats-per-measure (norm)" beats-per-measure)
+    ; (println "[normalize] total-measures (norm)" total-measures)
+    ; (println "[normalize] total-beats (norm)" total-beats)
     (insta/transform
       ; We only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
       {:play (fn [play-track]
