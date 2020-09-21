@@ -1,12 +1,3 @@
-; FIXME: (MAYBE) Don't look at durations as fractions of a measure based on the time signature denominator.
-; - For instance: Right now a "whole" note in 6|8 would result in 6 1/8ths (worth of duration) being played. When REALLY that should be 8 1/8th notes (so a measure plus 1/4 note)
-; - A whole note should always mean 4 quarter notes, or 8 eighth notes (etc.), regardless of the time signature
-; TODO: Allow Bach notes to be scaled/scoped in three different ways:
-;  - Measure/bar (like it is now, which sucks for odd meters such as 5|8)
-;  - Number of beats / beat unit (1 beat = 1 of the denominator unit of a time signature)
-;  - Traditional western (i.e. whole note, or 1,  means 4 quarter notes regardless of time signature)
-;    * Probably make this the default, or just switch over to this entirely for now
-
 (ns bach.track
   (:require [instaparse.core :as insta]
             [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-row inverse-ratio]]))
@@ -125,13 +116,13 @@
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the lowest common beat.
-  In general, this determines 'How many units of `lowest-beat` does the provided `duration` equal considering the `meter` (i.e. time-sig)?"
+  In general, this determines 'How many units of `lowest-beat` does the provided `duration` equal considering the `meter` (i.e. time-sig)?."
   [duration lowest-beat meter]
   (let [inverse-meter (inverse-ratio (rationalize meter))
         within-measure? (<= duration meter)]
-    (cond
-      within-measure? (/ duration lowest-beat)
-      :else (* duration inverse-meter))))
+    (if within-measure?
+      (/ duration lowest-beat)
+      (* duration inverse-meter))))
 
 (defn get-headers
   "Provides the headers (aka meta info) for a parsed track"
@@ -261,7 +252,6 @@
   "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)"
   [track]
   (let [total-beats (get-total-beats track)
-        ; beat-unit (get-scaled-beat-unit track)]
         beat-unit (get-beat-unit track)]
     (/ total-beats beat-unit)))
 
