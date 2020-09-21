@@ -209,7 +209,7 @@
 ;  - Another way of looking at it is ensuring that a "bar" never exceeds the duration of an entire measure, and also aligns with the measure when repeated
 (defn get-lowest-beat
   "Determines the lowest beat unit defined in the track.
-   Serves as the basis for normalization of the track, enabling trivial interpretation"
+   Serves as the basis for normalization of the track, enabling trivial and optimal interpretation."
   [track]
   ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
   ; @see: https://cljs.github.io/api/syntax/Inf
@@ -221,72 +221,20 @@
                (when (< duration @lowest-duration)
                  (reset! lowest-duration duration)))}
       reduced-track)
-    ; TODO: Can surely simplify this calculation further, algorithm is fluffy and based on trial/error
     (let [beat-unit (get-beat-unit reduced-track)
           beats-per-measure (get-beats-per-measure reduced-track)
           time-signature (* beats-per-measure beat-unit)
-          lowest-beat-unit (/ 1 (-> @lowest-duration
+          lowest-beat @lowest-duration
+          lowest-beat-unit (/ 1 (-> lowest-beat
                                     rationalize
                                     clojure.lang.Numbers/toRatio
                                     denominator))
-          ; LAST
-          ; lowest-beat (min 1 lowest-beat-unit)
-          ; lowest-beat (min time-signature lowest-beat-unit)
-          ; lowest-beat (min time-signature @lowest-duration)
-          lowest-beat @lowest-duration
-          ; OLD
-          ; lowest-beat-unit-ratio (/ lowest-beat beat-unit)
-          ; lowest-beat-mod (mod beats-per-measure lowest-beat-unit-ratio)
-          ; NEW
-          beat-unit-ratio (get-beat-unit-ratio track)
-          ; lowest-beat-aligns (mod (denominator lowest-beat-unit) (denominator 
-          ; lowest-beat-aligns (= 0 (/ (denominator @lowest-duration) time-signature))
-          ; LAST
-          ; lowest-beat-aligns (= 0 (/ lowest-beat time-signature))
-          ; lowest-beat-aligns (= 0 (/ lowest-beat 4))
           lowest-beat-aligns (= 0 (mod (max lowest-beat time-signature)
                                        (min lowest-beat time-signature)))
-          ; odd-time-sig? (odd? (mod beats-per-measure beat-unit))
-          ; beat-unit-ratio
-          ; AKA full-scaled-measure
-          ;  - TODO: rename (to full-scaled-measure or the like)
-          ;  - TODO: Move to its own func
-          default-lowest-beat (* beats-per-measure beat-unit)
-          full-scaled-measure default-lowest-beat]
-      ; (println "\n[lowest-beat] beat-unit" beat-unit)
-      ; (println "[lowest-beat] time sig" time-signature)
-      ; (println "[lowest-beat] beats-per-measure" beats-per-measure)
-      ; (println "[lowest-beat] lowest-uration" @lowest-duration)
-      ; (println "[lowest-beat] lowest-beat-unit" lowest-beat-unit)
-      ; (println "[lowest-beat] aligns???" lowest-beat-aligns)
-      ; (println "[lowest-beat] lowest-beat" lowest-beat)
-      ; ; (println "[lowest-beat] lowest-beat-mod" lowest-beat-mod)
-      ; (println "[lowest-beat] beat-unit-ratio" beat-unit-ratio)
-      ; (println "[lowest-beat] default-lowest-beat" default-lowest-beat)
-      ; (if (= lowest-beat 1) default-lowest-beat lowest-beat))))
-      ; LAST
-      ; (if (= lowest-beat 1)
-      ; EXPERIMENT
+          full-normalized-measure (* beats-per-measure beat-unit)]
       (if lowest-beat-aligns
-      ; (if (and lowest-beat-aligns (not odd-time-sig?))
-        ; full-scaled-measure
-        ; LAST
-        ; lowest-beat
-        (min lowest-beat full-scaled-measure)
-        ; LAST
-        ; beat-unit))))
+        (min lowest-beat full-normalized-measure)
         (min lowest-beat-unit beat-unit)))))
-        ; IDEAL (optimized to entire bar)
-        ; (if (= beat-unit-ratio 0) lowest-beat full-scaled-measure)))))
-
-
-(defn get-normalized-lowest-beat
-  "Determines the lowest beat normalized against the beat unit of the track (defined in the time signature)"
-  [track]
-  (let [lowest-beat (get-lowest-beat track)
-        ; beat-unit (get-scaled-beat-unit track)]
-        beat-unit (get-beat-unit track)]
-    (* lowest-beat beat-unit)))
 
 (defn get-normalized-beats-per-measure
   "Determines how many beats are in a measure, normalized against the lowest beat of the track"
@@ -337,31 +285,11 @@
   "Determines the total number of measures in the track. Beats and measures are equivelant here
    since the beats are not normalized to the lowest common beat"
   [track]
-  ; ALMOST FIXES ISSUE WITH TRACKS WHERE LOWEST DURATION EXCEEDS MEASURE
-  ; (let [beats-per-measure (get-beats-per-measure track)
-  ;       beat-unit (get-scaled-beat-unit track)
-  ;       ; total-beats (* (get-total-beats track) 4)]
-  ;       total-beats (get-scaled-total-beats track)]
-  ; ; EXPERIMENT
-  ; ;  - Close, but beats-per-measure does not align with total beats
-  ; (let [beats-per-measure (get-normalized-beats-per-measure track)
-  ;       total-beats (get-normalized-total-beats track)]
-  ;   (println "--- beats-per-measure" beats-per-measure)
-  ;   (println "--- beat-unit" beat-unit)
-  ;   (println "--- total-beats" total-beats)
-  ;   (println "--- result" (/ total-beats beats-per-measure))
-    ; (/ total-beats beats-per-measure)))
-
-  ; ORIG
   (get-total-beats track))
-  ; No difference, interestingly
-  ; (get-scaled-total-beats track))
 
 (defn get-total-measures-ceiled
   "Provides the total number of measures in a track, ceiled"
   [track]
-  ; ORIG
-  ; (Math/ceil (get-total-beats track)))
   (Math/ceil (get-total-measures track)))
 
 ; TODO: Consider renaming to `get-total-bars`
@@ -370,12 +298,10 @@
   (let [lowest-beat (get-lowest-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
         total-beats (get-normalized-total-beats track)
+        ; TODO: Use this instead of total-beats
         total-measures (get-total-measures track)
         meter (get-meter track)]
-    ; LAST
     (/ total-beats beats-per-measure)))
-    ; EXPERIMENT
-    ; (normalize-duration (get-total-beats track) lowest-beat meter)))
 
 (defn get-total-duration
   "Determines the total time duration of a track (milliseconds, seconds, minutes)"
@@ -399,18 +325,10 @@
         tempo (get-tempo reduced-track)
         lowest-beat (get-lowest-beat reduced-track)
         ; TODO: Probably break this out into its own function
-        ; LAST
-        ; QUESTION: Why always dividing by (1/4) here?
         scaled-lowest-beat (/ (/ 1 4) lowest-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
-        ; LAST
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
-        ; norm-ms-per-beat (* ms-per-beat lowest-beat)]
-    (println "[get-ms-per-beat] lowest-beat" lowest-beat)
-    (println "[get-ms-per-beat] result" norm-ms-per-beat)
     (float norm-ms-per-beat)))
-
-; TODO: normalize-track-durations (mutates all durations at once, providing a modified version of track (like `reduce-tracks`)
 
 ; TODO: Fix tracks where end measure is not equal to the number of bars in the time signature (e.g. 2 beats when time sig is 4|4)
 ; @see: https://lodash.com/docs/#chunk
@@ -425,19 +343,8 @@
         meter (get-meter track)
         lowest-beat (get-lowest-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
-        ; TODO: Experiment with this as get-total-normalized-measures!
-        ;  e.g. (* % (get-time-signature track))
-        ; LAST
-        ; total-measures (get-total-measures-ceiled track)
-        ; total-measures (get-normalized-total-measures track)
         total-measures (Math/ceil (get-normalized-total-measures track))
-        ; TODO: Experiment with this as get-total-normalized-beats!
-        ;  e.g. (* % (get-time-signature track))
-        ; LAST
-        ; total-beats (get-total-beats track)
         total-beats (get-normalized-total-beats track)
-        ; TODO: Probably have to refactor this, should probably use `beats-per-measure` (norm'd) instead of `4`
-        ; unused-tail-beats (mod (* beats-per-measure (mod total-beats (min total-beats 4))) beats-per-measure)
         unused-tail-beats (mod (* beats-per-measure (mod total-beats (min total-beats beats-per-measure))) beats-per-measure)
         measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
         measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
@@ -454,46 +361,25 @@
                   (normalize-duration duration lowest-beat meter))
                 (update-cursor [beats]
                   (swap! beat-cursor + beats))
-                  ; (swap! beat-cursor + (cast-duration beats)))
                 (update-measures [measure-index beat-index notes]
                   (swap! measures assoc-in [measure-index beat-index] notes))
                 (beat-indices [beat]
-                  ; (let [global-beat-index (/ @beat-cursor lowest-beat)
-                  ;       local-beat-index (mod global-beat-index beats-per-measure)
-                  ;       measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
-                  ;   (println "[normalize:beat-indices] beat-cursor" @beat-cursor)
-                  ;   (println "[normalize:beat-indices] global-beat-index" global-beat-index)
-                  ;   (println "[normalize:beat-indices] local-beat-index" local-beat-index)
-                  ;   (println "[normalize:beat-indices] measure-index" measure-index)
-                  ;   ; {:measure measure-index :beat local-beat-index}))]
-                  ;   ; TODO (next)
-                  ;   ;  - Re-factor beat-indices to be based on cast-duration
-                  ;   {:measure measure-index :beat local-beat-index}))]
-
                   (let [global-beat-index @beat-cursor
                         local-beat-index (mod global-beat-index beats-per-measure)
                         measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                     {:measure measure-index :beat local-beat-index}))]
-                    ; {:measure (cast-duration measure-index) :beat (cast-duration local-beat-index)}))]
           (insta/transform
             ; TODO: Generally rename `notes` to `items`. Makes more sense since a beat can contain more than just notes.
             ; TODO: Reduce `notes` so that we don't have a pointless wrapper `:atom`
             ; TODO: Normalize `notes` to a collection
             {:pair (fn [duration notes]
-                    ; ORIG
-                    ;fn [beats notes]
                      (let [beats (cast-duration duration)
                            indices (beat-indices beats)
                            measure-index (:measure indices)
                            beat-index (:beat indices)
-                           ; TODO: Use `duration` instead of beats, that way `ms-per-beat` and `total-beats` don't have to get normalized to `lowest-beat` (via `track/compile`) as well
-                           ;  - EXPERIMENTING with above
+                           ; NOTE: Using `duration` instead of `beats` to retain original data
+                           ;       and to avoid normalizing `ms-per-beat`, `total-beats`, etc.
                            compiled-notes {:duration duration :notes (hiccup-to-hash-map notes)}] 
-                           ; TODO: consider adding: :indices [measure-index beat-index]
-                           ; LAST
-                           ; compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}] 
-                       (println "[normalize] updating cursor (indices)" indices)
-                       (println "[normalize] updating cursor (beats, duration)" beats duration)
                        (update-measures measure-index beat-index compiled-notes)
                        (update-cursor beats)))}
           play-track)))}
@@ -505,8 +391,9 @@
   [track]
   (let [headers (get-headers track)
         time-sig (get-time-signature track)
-        ; TODO: Change to `get-normalized-total-beats`
+        ; TODO: Consider changing to `get-normalized-total-beats`
         total-beats (get-total-beats track)
+        ; TODO: Consider changing to `get-normalized-ms-per-beat`
         ms-per-beat (get-ms-per-beat track)
         ; TODO: Either rename as or supplement with `beat-unit` (more clear)
         lowest-beat (get-lowest-beat track)]
