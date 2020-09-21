@@ -132,7 +132,8 @@
                          [:statement [:list [:pair [:number "2"]
                                                    [:atom [:keyword "Note"]
                                                           [:init [:arguments [:string "'C2'"]]]]]]]]
-            want 3/4]
+            ; want 3/4]
+            want 1/8]
         (is (= want (get-lowest-beat tree)))))
     (testing "aligned (alt)"
       (let [tree [:track [:statement [:header [:meta "Time"]
@@ -471,7 +472,10 @@
                                                 [:list [:pair [:number "1"]
                                                               [:atom [:keyword "Chord"]
                                                                      [:init [:arguments [:string "'D2min7'"]]]]]]]]]
-            want 4]
+            ; LAST
+            ;  - TODO: Believe this value should be expected in `get-total-beats` (i.e. based on common time)
+            ; want 4]
+            want 1]
         (is (= want (get-normalized-total-beats tree)))))
       (testing "multiple measures"
         (let [tree [:track [:statement [:assign [:identifier ":ABC"]
@@ -481,7 +485,10 @@
                                                         [:pair [:number "1"]
                                                                [:atom [:keyword "Chord"]
                                                                       [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
-              want 8]
+              ; LAST
+              ;  - TODO: Believe this value should be expected in `get-total-beats` (i.e. based on common time)
+              ; want 8]
+              want 2]
           (is (= want (get-normalized-total-beats tree)))))))
   ; TODO: "with greater than whole notes"
   (testing "measures"
@@ -694,13 +701,10 @@
                            :notes [{:atom {:keyword "Scale",
                                            :init {:arguments ["C# phrygian"]}}}
                                    {:atom {:keyword "Chord",
-                                           :init {:arguments ["C#m"]}}}]}
-                          nil]
-                         [nil
-                          {:duration 3/2,
+                                           :init {:arguments ["C#m"]}}}]}]
+                          [{:duration 3/2,
                            :notes {:atom {:keyword "Chord",
-                                          :init {:arguments ["Dmaj7"]}}}}]
-                         [nil nil]]}]
+                                          :init {:arguments ["Dmaj7"]}}}}]]}]
       (is (= want (compile-track tree)))))))
   ; TODO: Move this to `normalize-measures`, since this is what's breaking
   ;  - Actually, this stems from `lowest-beat` returning 1/4 when it should be 1/8
