@@ -204,9 +204,6 @@
   [track]
   (first (get-time-signature track))) ; AKA numerator
 
-; TODO: Coerce lowest-beat to be a modulus of the total number of beats in a measure based on the time signature
-;  - As a backup/hack, use meter-defined beat unit when lowest-beat exceeds an entire measure
-;  - Another way of looking at it is ensuring that a "bar" never exceeds the duration of an entire measure, and also aligns with the measure when repeated
 (defn get-lowest-beat
   "Determines the lowest beat unit defined in the track.
    Serves as the basis for normalization of the track, enabling trivial and optimal interpretation."
@@ -241,13 +238,8 @@
   [track]
   (let [lowest-beat (get-lowest-beat track)
         meter (get-meter track)]
-    (println "---- lowest-beat" lowest-beat)
-    (println "--- meter" meter)
     (/ (max lowest-beat meter)
        (min lowest-beat meter))))
-    ; (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
-    ; TODO: Determine why this causes IndexOutOfBounds exception in normalize-measures
-    ; (if (< lowest-beat 1) (numerator lowest-beat) lowest-beat)))
 
 ; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
 ; to the lowest common beat found in the track
