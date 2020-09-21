@@ -96,9 +96,18 @@
                                                              [:number "4"]]]
                                                  [:atom [:keyword "Note"]
                                                         [:init [:arguments [:string "'C2'"]]]]]]]]
-          ; FIXME: Ideal value, but not entirely necessary
           want 3/4]
-          ; want (/ 1 4)]
+      (is (= want (get-lowest-beat tree)))))
+  (testing "misaligned to ratio"
+    (let [tree [:track [:statement [:list [:pair [:div [:number "3"]
+                                                       [:number "8"]]
+                                                 [:atom [:keyword "Note"]
+                                                        [:init [:arguments [:string "'C2'"]]]]]
+                                          [:pair [:div [:number "5"]
+                                                       [:number "8"]]
+                                                 [:atom [:keyword "Note"]
+                                                        [:init [:arguments [:string "'E2'"]]]]]]]]
+          want 1/8]
       (is (= want (get-lowest-beat tree)))))
   (testing "spanning multiple measures"
     (testing "aligned"
@@ -268,7 +277,13 @@
       (let [duration 1/2
             lowest-beat 1/8
             time-sig 2/4
-            want 1]
+            want 4]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "beat unit is greater (longer) than lowest common beat (misaligned duration)"
+      (let [duration 3/8
+            lowest-beat 1/8
+            time-sig 4/4
+            want 3]
         (is (= want (normalize-duration duration lowest-beat time-sig)))))
     (testing "less common times"
       (testing "beat unit matches lowest common beat"
@@ -543,6 +558,7 @@
                      :notes {:atom {:keyword "Chord",
                                     :init {:arguments ["C2maj7"]}}}}]]]
         (is (= want (normalize-measures tree)))))
+    ; FIXME/TODO: Lowest common beat is being returned as 1/4, should be 1/8. Create test for this.
       (testing "with eigth notes"
         (let [tree [:track [:statement [:play [:list [:pair [:div [:number "5"] [:number "8"]]
                                                             [:atom [:keyword "Chord"] [:init [:arguments [:string "Dmin7"]]]]]
