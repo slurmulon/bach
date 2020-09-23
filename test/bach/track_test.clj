@@ -688,7 +688,46 @@
                                  :init {:arguments ["Emin7"]}}}}
                  nil
                  nil]]]
-      (is (= want (normalize-measures tree))))))
+      (is (= want (normalize-measures tree))))
+    (testing "with unused trailing beats"
+      (let [tree [:track
+                  [:statement
+                   [:header [:meta "Time"] [:meter [:number "4"] [:number "4"]]]
+                   [:play
+                    [:list
+                     [:pair
+                      [:div [:number "1"] [:number "2"]]
+                      [:atom
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'Cmin'"]]]]]
+                     [:pair
+                      [:div [:number "1"] [:number "2"]]
+                      [:atom [:keyword "Chord"] [:init [:arguments [:string "'G/B'"]]]]]
+                     [:pair
+                      [:div [:number "1"] [:number "2"]]
+                      [:atom
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'Bb'"]]]]]]]]]
+            want {:headers
+                  {:tags [],
+                   :desc "",
+                   :time [4 4],
+                   :total-beats 3/2,
+                   :title "Untitled",
+                   :link "",
+                   :ms-per-beat 1000.0,
+                   :lowest-beat 1/2,
+                   :audio "",
+                   :tempo 120},
+                  :data
+                  [[{:duration 1/2,
+                     :notes {:atom {:keyword "Chord", :init {:arguments ["Cmin"]}}}}
+                    {:duration 1/2,
+                     :notes {:atom {:keyword "Chord", :init {:arguments ["G/B"]}}}}]
+                   [{:duration 1/2,
+                     :notes {:atom {:keyword "Chord", :init {:arguments ["Bb"]}}}}
+                    ; FIXME: This should be removed, test is broken
+                    nil]]}]))))
 
   ; FIXME
   ; (testing "with nested measure references (should avoid dupes)"
@@ -804,25 +843,23 @@
                     [:pair
                      [:mul [:number "2"] [:div [:number "6"] [:number "8"]]]
                      [:atom [:keyword "Chord"] [:init [:arguments [:string "'D'"]]]]]]]]
-            want {:headers
-                  {:tags [],
-                   :desc "",
-                   :time [6 8],
-                   :total-beats 3N,
-                   :title "Untitled",
-                   :link "",
-                   :ms-per-beat 1500.0,
-                   :lowest-beat 3/4,
-                   :audio "",
-                   :tempo 120},
-                  :data
-                  [[{:duration 3/4,
-                     :notes {:atom {:keyword "Chord", :init {:arguments ["F#m"]}}}}]
-                   [{:duration 3/4,
-                     :notes {:atom {:keyword "Chord", :init {:arguments ["E"]}}}}]
-                   [{:duration 3/2,
-                     :notes {:atom {:keyword "Chord", :init {:arguments ["D"]}}}}]
-                   [nil]]}]
+            want {:headers {:tags [],
+                            :desc "",
+                            :time [6 8],
+                            :total-beats 3N,
+                            :title "Untitled",
+                            :link "",
+                            :ms-per-beat 1500.0,
+                            :lowest-beat 3/4,
+                            :audio "",
+                            :tempo 120},
+                  :data [[{:duration 3/4,
+                           :notes {:atom {:keyword "Chord", :init {:arguments ["F#m"]}}}}]
+                         [{:duration 3/4,
+                           :notes {:atom {:keyword "Chord", :init {:arguments ["E"]}}}}]
+                         [{:duration 3/2,
+                           :notes {:atom {:keyword "Chord", :init {:arguments ["D"]}}}}]
+                         [nil]]}]
         (is (= want (compile-track tree))))))
   (testing "advanced"
     ; TODO: Consider moving to `normalization` suite
@@ -847,26 +884,24 @@
                       [:atom
                        [:keyword "Chord"]
                        [:init [:arguments [:string "'Dmaj7'"]]]]]]]]]
-            want {:headers
-                  {:tags [],
-                   :desc "",
-                   :time [3 4],
-                   :total-beats 3N,
-                   :title "Untitled",
-                   :link "",
-                   :ms-per-beat 1800.0,
-                   :lowest-beat 3/4,
-                   :audio "",
-                   :tempo 100},
-                  :data
-                  [[{:duration 3/2,
-                     :notes
-                     [{:atom {:keyword "Scale", :init {:arguments ["C# phrygian"]}}}
-                      {:atom {:keyword "Chord", :init {:arguments ["C#m"]}}}]}]
-                   [nil]
-                   [{:duration 3/2,
-                     :notes {:atom {:keyword "Chord", :init {:arguments ["Dmaj7"]}}}}]
-                   [nil]]}]
+            want {:headers {:tags [],
+                            :desc "",
+                            :time [3 4],
+                            :total-beats 3N,
+                            :title "Untitled",
+                            :link "",
+                            :ms-per-beat 1800.0,
+                            :lowest-beat 3/4,
+                            :audio "",
+                            :tempo 100},
+                  :data [[{:duration 3/2,
+                           :notes
+                           [{:atom {:keyword "Scale", :init {:arguments ["C# phrygian"]}}}
+                            {:atom {:keyword "Chord", :init {:arguments ["C#m"]}}}]}]
+                         [nil]
+                         [{:duration 3/2,
+                           :notes {:atom {:keyword "Chord", :init {:arguments ["Dmaj7"]}}}}]
+                         [nil]]}]
       ; (clojure.pprint/pprint want)
       ; (clojure.pprint/pprint (compile-track tree))
         (is (= want (compile-track tree))))))
