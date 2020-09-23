@@ -212,17 +212,17 @@
      reduced-track)
     (let [beat-unit (get-beat-unit reduced-track)
           beats-per-measure (get-beats-per-measure reduced-track)
-          time-signature (* beats-per-measure beat-unit)
+          meter (get-meter track)
+          full-measure meter
           lowest-beat @lowest-duration
           lowest-beat-unit (/ 1 (-> lowest-beat
                                     rationalize
                                     clojure.lang.Numbers/toRatio
                                     denominator))
-          lowest-beat-aligns (= 0 (mod (max lowest-beat time-signature)
-                                       (min lowest-beat time-signature)))
-          entire-measure (* beats-per-measure beat-unit)]
+          lowest-beat-aligns (= 0 (mod (max lowest-beat meter)
+                                       (min lowest-beat meter)))]
       (if lowest-beat-aligns
-        (min lowest-beat entire-measure)
+        (min lowest-beat full-measure)
         (min lowest-beat-unit beat-unit)))))
 
 (defn get-normalized-beats-per-measure
@@ -333,9 +333,9 @@
                               measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                           {:measure measure-index :beat local-beat-index}))]
                 (insta/transform
-            ; TODO: Generally rename `notes` to `items`. Makes more sense since a beat can contain more than just notes.
-            ; TODO: Reduce `notes` so that we don't have a pointless wrapper `:atom`
-            ; TODO: Normalize `notes` to a collection
+                ; TODO: Generally rename `notes` to `items`. Makes more sense since a beat can contain more than just notes.
+                ; TODO: Reduce `notes` so that we don't have a pointless wrapper `:atom`
+                ; TODO: Normalize `notes` to a collection
                  {:pair (fn [duration notes]
                           (let [beats (cast-duration duration)
                                 indices (beat-indices beats)
