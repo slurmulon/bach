@@ -10,15 +10,15 @@
   "Converts an instaparse :hiccup tree as a hash map"
   [tree]
   (insta/transform
-    {:list (fn [& [:as all]] all)
-     :set (fn [& [:as all]] all)
-     :atom (fn [& [:as all]] {:atom (apply merge all)})
-     :arguments (fn [& [:as all]] {:arguments (vec all)})
-     :header (fn [& [:as all]] {:header (apply merge all)})
-     :meta (fn [el] {:meta el})
-     :init (fn [el] {:init el})
-     :keyword (fn [el] {:keyword el})
-     :play (fn [el] {:play el})}
+   {:list (fn [& [:as all]] all)
+    :set (fn [& [:as all]] all)
+    :atom (fn [& [:as all]] {:atom (apply merge all)})
+    :arguments (fn [& [:as all]] {:arguments (vec all)})
+    :header (fn [& [:as all]] {:header (apply merge all)})
+    :meta (fn [el] {:meta el})
+    :init (fn [el] {:init el})
+    :keyword (fn [el] {:keyword el})
+    :play (fn [el] {:play el})}
    tree))
 
 (defn hiccup-to-json
