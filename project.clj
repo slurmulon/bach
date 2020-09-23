@@ -1,4 +1,5 @@
-(defproject bach "1.0.0"
+(defproject bach "0.3.0-SNAPSHOT"
+; (defproject bach "1.0.0"
   :description "Semantic music notation"
   :url "https://github.com/slurmulon/bach"
   :license {:name "MIT"
@@ -9,5 +10,6 @@
                  [instaparse "1.4.3"]]
   :main ^:skip-aot bach.cli
   :target-path "target/%s"
-  :plugins [[lein-bin "0.3.5"]]
+  :plugins [[lein-bin "0.3.5"]
+            [lein-cljfmt "0.7.0"]]
   :profiles {:uberjar {:aot :all}})
