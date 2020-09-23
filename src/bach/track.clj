@@ -212,7 +212,7 @@
      reduced-track)
     (let [beat-unit (get-beat-unit reduced-track)
           beats-per-measure (get-beats-per-measure reduced-track)
-          meter (get-meter track)
+          meter (get-meter reduced-track)
           full-measure meter
           lowest-beat @lowest-duration
           lowest-beat-unit (/ 1 (-> lowest-beat
