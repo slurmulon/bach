@@ -693,24 +693,24 @@
     (testing "and total beats spans multiple measures"
       (let [tree [:track
                   [:statement
-                    [:play
+                   [:play
                     [:list
-                      [:pair
+                     [:pair
                       [:div [:number "1"] [:number "2"]]
                       [:atom
-                        [:keyword "Chord"]
-                        [:init [:arguments [:string "'Cmin'"]]]]]
-                      [:pair
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'Cmin'"]]]]]
+                     [:pair
                       [:div [:number "1"] [:number "2"]]
                       [:atom [:keyword "Chord"] [:init [:arguments [:string "'G/B'"]]]]]
-                      [:pair
+                     [:pair
                       [:div [:number "1"] [:number "2"]]
                       [:atom
-                        [:keyword "Chord"]
-                        [:init [:arguments [:string "'Bb'"]]]]]]]]]
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'Bb'"]]]]]]]]]
             want [[{:duration 1/2,
                     :notes {:atom {:keyword "Chord", :init {:arguments ["Cmin"]}}}}
-                    {:duration 1/2,
+                   {:duration 1/2,
                     :notes {:atom {:keyword "Chord", :init {:arguments ["G/B"]}}}}]
                   [{:duration 1/2,
                     :notes {:atom {:keyword "Chord", :init {:arguments ["Bb"]}}}}]]]
@@ -718,17 +718,17 @@
     (testing "and total beats is under a total measure"
       (let [tree [:track
                   [:statement
-                    [:play
+                   [:play
                     [:list
-                      [:pair
+                     [:pair
                       [:div [:number "1"] [:number "2"]]
                       [:atom
-                        [:keyword "Chord"]
-                        [:init [:arguments [:string "'Cmin'"]]]]]]]]]
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'Cmin'"]]]]]]]]]
             want [[{:duration 1/2,
                     :notes {:atom {:keyword "Chord", :init {:arguments ["Cmin"]}}}}
                     ; TODO: Consider (from design perspective) if this trailing nil should be removed.
-                    nil]]]
+                   nil]]]
         (is (= want (normalize-measures tree)))))))
 
   ; FIXME
