@@ -140,14 +140,14 @@
 (defn find-header
   "Generically finds a header entry / meta tag in a parsed track by its label"
   [track label default]
-  (let [result (atom default)]
+  (let [header (atom default)]
     (insta/transform
       {:header (fn [meta-key value]
                  (let [kind (last meta-key)]
                    (when (= kind label)
-                     (reset! result value))))}
+                     (reset! header value))))}
       track)
-    @result))
+    @header))
 
 (defn get-time-signature
   [track]
