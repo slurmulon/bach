@@ -53,8 +53,7 @@
        :div (fn [top-token bottom-token]
               (let [top    (-> top-token    last read-string)
                     bottom (-> bottom-token last read-string)]
-                (cond
-                  (not (some #{bottom} (take 10 powers-of-two)))
+                (when (not (some #{bottom} (take 10 powers-of-two)))
                   (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
        :tempo (fn [& tempo-token]
                 (let [tempo (-> tempo-token last read-string)]
@@ -234,13 +233,8 @@
     (/ (max lowest-beat meter)
        (min lowest-beat meter))))
 
-; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
-; to the lowest common beat found in the track
-; FIXME: Make 1 = 4 1/4 notes (in :trad mode)
-;        Make 1 = 1 measure (in :bar mode)
-;        Make 1 = 1 beat (in :unit mode)
 (defn get-total-beats
-  "Determines the total number of beats in the track (1 = 1 whole note, NOT necessarily 1 measure)"
+  "Determines the total number of beats in the track (1 = 1 whole note, NOT necessarily 1 measure depending on the context)."
   [track]
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
@@ -277,9 +271,7 @@
   [track]
   (let [lowest-beat (get-lowest-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
-        total-beats (get-normalized-total-beats track)
-        ; TODO: Use this instead of total-beats
-        total-measures (get-total-measures track)]
+        total-beats (get-normalized-total-beats track)]
     (/ total-beats beats-per-measure)))
 
 (defn get-total-duration
@@ -303,13 +295,11 @@
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
         lowest-beat (get-lowest-beat reduced-track)
-        ; TODO: Probably break this out into its own function
         scaled-lowest-beat (/ (/ 1 4) lowest-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
     (float norm-ms-per-beat)))
 
-; TODO: Fix tracks where end measure is not equal to the number of bars in the time signature (e.g. 2 beats when time sig is 4|4)
 ; @see: https://lodash.com/docs/#chunk
 ; FIXME: one thing this should do differently is append the result of the original track definition,
 ; that way variables and such are retained properly. otherwise this works great.
@@ -371,10 +361,11 @@
         ms-per-beat (get-ms-per-beat track)
         ; TODO: Either rename as or supplement with `beat-unit` (more clear)
         lowest-beat (get-lowest-beat track)]
-    (assoc headers :time time-sig,
-           :total-beats total-beats,
-           :ms-per-beat ms-per-beat,
-           :lowest-beat lowest-beat)))
+    (assoc headers
+      :time time-sig
+      :total-beats total-beats
+      :ms-per-beat ms-per-beat
+      :lowest-beat lowest-beat)))
 
 ; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
 (defn compile-track
