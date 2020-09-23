@@ -300,10 +300,6 @@
         norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
     (float norm-ms-per-beat)))
 
-; @see: https://lodash.com/docs/#chunk
-; FIXME: one thing this should do differently is append the result of the original track definition,
-; that way variables and such are retained properly. otherwise this works great.
-; FIXME: to achieve above, we could just extract dereferenced notes in :play (from the track) and pass that into insta/transform
 (defn normalize-measures
   "Parses the track data exported via `Play` into a normalized matrix where each row (measure) has the same number of elements (beats).
    Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through."

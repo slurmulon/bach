@@ -136,8 +136,8 @@
                      [:mul [:number "2"] [:div [:number "6"] [:number "8"]]]
                      [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             ; TODO: Eventually, once get-lowest-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
-            ; - Actually, probably abandoning this since things are easier if lowest-beat cannot exceed a measure (e.g. 1)
-            ; want (/ 3 2)
+            ; - Probably abandoning this since things are easier if lowest-beat cannot exceed a measure (e.g. 1)
+            ; want 3/2
             want 3/4]
         (is (= want (get-lowest-beat tree)))))
     (testing "aligned (alt)"
@@ -151,7 +151,7 @@
                      [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             ; LAST
             ; - Only want if we support lowest-common-beat exceeding an entire measure (seems too complicated right now)
-            ; want (/ 6 4)]
+            ; want 6/4]
             want 3/4]
         (is (= want (get-lowest-beat tree)))))
     (testing "misaligned"
@@ -275,13 +275,14 @@
               want 1/3]
           (is (= want (get-normalized-total-measures tree))))))))
 
+; TODO
 ; (deftest normalized-total-measures
 ;   (testing "common time"
 ;     (testing "beat unit matches lowest common beat"
 
+; TODO
 ; (deftest get-normalized-beats-per-measure)
 
-; TODO: Test, then refactor bach/track to use throughout
 (deftest normalized-duration
   (testing "common times"
     (testing "beat unit matches lowest common beat"
@@ -440,11 +441,6 @@
                      [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 250.0] ; because "1", or 4 beats, does not align flushly with the meter
         (is (= want (get-ms-per-beat tree)))))))
-
-; (deftest lowest-beat
-;   (testing "finds the lowest beat amongst all of the pairs"
-;     (let [tree [:track [:statement [:list [:pair [:number "4"]] [:pair [:number "2"]
-;     )
 
 ; FIXME: nested transitive variables are broken (:A = 1, :B = :A, :C = :B)
 (deftest dereference
