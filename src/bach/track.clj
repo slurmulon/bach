@@ -116,15 +116,15 @@
       reduce-values))
 
 (defn normalize-duration
-  "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the lowest common beat.
-  In general, this determines 'How many units of `lowest-beat` does the provided `duration` equal considering the `meter` (i.e. time-sig)?."
-  [duration lowest-beat meter]
+  "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat).
+  In general, this determines 'How many `unit`s` does the provided `duration` equal considering the `meter` (i.e. time-sig)?."
+  [duration unit meter]
   (let [inverse-meter (inverse-ratio (rationalize meter))
-        inverse-lowest-beat (inverse-ratio (rationalize lowest-beat))
+        inverse-unit (inverse-ratio (rationalize unit))
         within-measure? (<= duration meter)]
     (if within-measure?
-      (/ duration lowest-beat)
-      (* duration (max inverse-lowest-beat inverse-meter)))))
+      (/ duration unit)
+      (* duration (max inverse-unit inverse-meter)))))
 
 (defn get-headers
   "Provides the headers (aka meta info) for a parsed track"
