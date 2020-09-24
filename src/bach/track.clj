@@ -120,10 +120,11 @@
   In general, this determines 'How many units of `lowest-beat` does the provided `duration` equal considering the `meter` (i.e. time-sig)?."
   [duration lowest-beat meter]
   (let [inverse-meter (inverse-ratio (rationalize meter))
+        inverse-lowest-beat (inverse-ratio (rationalize lowest-beat))
         within-measure? (<= duration meter)]
     (if within-measure?
       (/ duration lowest-beat)
-      (* duration inverse-meter))))
+      (* duration (max inverse-lowest-beat inverse-meter)))))
 
 (defn get-headers
   "Provides the headers (aka meta info) for a parsed track"

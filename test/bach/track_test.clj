@@ -298,23 +298,30 @@
             want 2]
         (is (= want (normalize-duration duration lowest-beat time-sig))))))
   (testing "beat unit is greater (longer) than lowest common beat"
-    (let [duration 1/2
-          lowest-beat 1/8
-          time-sig 1
-          want 4]
-      (is (= want (normalize-duration duration lowest-beat time-sig)))))
-  (testing "beat unit is greater (longer) than lowest common beat (2|4 time)"
-    (let [duration 1/2
-          lowest-beat 1/8
-          time-sig 2/4
-          want 4]
-      (is (= want (normalize-duration duration lowest-beat time-sig)))))
-  (testing "beat unit is greater (longer) than lowest common beat (misaligned duration)"
-    (let [duration 3/8
-          lowest-beat 1/8
-          time-sig 4/4
-          want 3]
-      (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "common case"
+      (let [duration 1/2
+            lowest-beat 1/8
+            time-sig 1
+            want 4]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "less common case"
+      (let [duration 1/2
+            lowest-beat 1/8
+            time-sig 2/4
+            want 4]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "and duration misaligns with meter"
+      (let [duration 3/8
+            lowest-beat 1/8
+            time-sig 4/4
+            want 3]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "1/16"
+      (let [duration 9
+            lowest-beat 1/16
+            time-sig 4/4
+            want 144]
+        (is (= want (normalize-duration duration lowest-beat time-sig))))))
   (testing "less common times"
     (testing "beat unit matches lowest common beat"
       (testing "duration matches full bar"
@@ -725,6 +732,33 @@
                     :notes {:atom {:keyword "Chord", :init {:arguments ["Cmin"]}}}}
                     ; TODO: Consider (from design perspective) if this trailing nil should be removed.
                    nil]]]
+        (is (= want (normalize-measures tree)))))
+    (testing "when offset by non-trailing beat"
+      (let [tree [:track
+                  [:statement
+                   [:play
+                    [:list
+                     [:pair
+                      [:div [:number "1"] [:number "2"]]
+                      [:atom [:keyword "Chord"] [:init [:arguments [:string "'Bb'"]]]]]
+                     [:pair
+                      [:number "1"]
+                      [:atom
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'A7sus4'"]]]]]
+                     [:pair
+                      [:number "1"]
+                      [:atom
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'A7'"]]]]]]]]]
+            want [[{:duration 1/2,
+                    :notes {:atom {:keyword "Chord", :init {:arguments ["Bb"]}}}}
+                   {:duration 1,
+                    :notes {:atom {:keyword "Chord", :init {:arguments ["A7sus4"]}}}}]
+                  [nil
+                   {:duration 1,
+                    :notes {:atom {:keyword "Chord", :init {:arguments ["A7"]}}}}]
+                  [nil]]]
         (is (= want (normalize-measures tree)))))))
 
   ; FIXME
@@ -732,6 +766,7 @@
   ;   (let [tree [:track [:statement [:assign [:identifier ":A"] [:list [:pair [:number "1"] [:atom [:keyword "Scale"] [:init [:arguments [:string "'C2 Major'"]]]]]]]] [:statement [:assign [:identifier ":B"] [:identifier ":A"]]] [:statement [:play [:identifier ":B"]]]]
   ;         want [[{:duration 1, :notes [:atom [:keyword "Scale"] [:init [:arguments [:string "C2 Major"]]]]}]]]
   ;     (is (= want (normalize-measures tree)))))
+
 
 (deftest provisioning
   (testing "headers"
