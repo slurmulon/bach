@@ -197,7 +197,7 @@
   [track]
   (first (get-time-signature track))) ; AKA numerator
 
-; TODO: Rename to `get-slicer-beat` or `get-base-beat`
+; TODO: Rename to `get-slice-beat` or `get-base-beat`
 (defn get-lowest-beat
   "Despite its name, this determines the greatest common beat (by duration) among every beat in a track.
    Once a this beat is found, a track can be iterated through evenly (and without variance) by its duration.
@@ -222,9 +222,9 @@
                                     rationalize
                                     clojure.lang.Numbers/toRatio
                                     denominator))
-          lowest-beat-aligns (= 0 (mod (max lowest-beat meter)
-                                       (min lowest-beat meter)))]
-      (if lowest-beat-aligns
+          lowest-beat-aligns? (= 0 (mod (max lowest-beat meter)
+                                        (min lowest-beat meter)))]
+      (if lowest-beat-aligns?
         (min lowest-beat full-measure)
         (min lowest-beat-unit beat-unit)))))
 
@@ -306,7 +306,7 @@
   "Parses the track data exported via `Play` into a normalized matrix where each row (measure) has the same number of elements (beats).
    Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through."
   [track]
-  (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
+  (let [beat-cursor (atom 0)
         meter (get-meter track)
         lowest-beat (get-lowest-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
