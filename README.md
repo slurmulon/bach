@@ -1,6 +1,6 @@
 # bach
 
-> :musical_score: Semantic music notation with a focus on readability and productivity
+> :musical_score: Semantic music notation
 
 ---
 
@@ -52,10 +52,9 @@ _This is currently a living document for ideas and should not be considered stab
 
 ## Goals
 
+- Support semantic music constructs such as chords and scales
 - Allow for alternative real-time representations of music (e.g. visual instead of just audio)
 - Seamless synchronization with associated audio data by minimizing the complexities around timing
-- Adhere to traditional Western music theory concepts
-- Support semantic music constructs via scientific notation
 - Easy to read for both humans and computers
 - Easy to translate from sheet music
 - Small learning curve
@@ -78,9 +77,7 @@ The following `bach` track represents the scale progression of a blues song:
 ```
 @Audio = 'http://api.madhax.io/track/q2IBRPmNq9/audio/mp3'
 @Title = 'Jimi Style 12-Bar-Blues Backing Track in A'
-@Key = 'A'
 @Tempo = 42
-@Tags = ['blues', 'rock', 'slow']
 @Instrument = 'guitar'
 
 :A = Scale('A3 minorpentatonic')
@@ -103,7 +100,7 @@ The following `bach` track represents the scale progression of a blues song:
 
 and is interpreted like so:
 
-1. Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure (or whole note), then
+1. Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure, then
 1. Scale `:D`, or `D3 minorpentatonic`, will be played for `1` measure, then
 1. Scale `:A` will be played for `2` measures, then
 1. ...
@@ -164,11 +161,11 @@ The executable currently supports the following actions:
 
 ```clojure
 (ns my.namespace
-  (:require [bach.ast :as ast]
+  (:require [bach.ast :refer [parse]]
             [bach.track :refer [compile-track]]))
 
 ; parses and compiles raw bach data into an interpretable hash-map
-(compile-track (ast/parse ":Foo = []"))
+(compile-track (parse "!Play [1 -> Chord('A'), 1 -> Chord('C')]"))
 ```
 
 ## Documentation
@@ -225,7 +222,7 @@ The duration that a `Beat` is played for is specified using the tuple symbol, `-
 The value of a `Beat`'s `<duration>` can be:
 
 ```
-1    = Whole note (one entire measure)
+1    = Whole note (or one entire measure in 4|4)
 1/2  = Half note
 1/4  = Quarter note
 1/8  = Eighth note
@@ -233,6 +230,14 @@ The value of a `Beat`'s `<duration>` can be:
 ...
 1/512 = Minimum duration
 ```
+
+To adhere with music theory, durations are based on **common time** (4|4).
+
+This means that `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4` time).
+
+The examples in the remainder of this section assume common time, since this is the default when a `@Time` header is not provided.
+
+##### Examples
 
 A `List` playing a `Note('C2')` for an entire measure, starting at the first `Beat`, would be specified like so:
 
@@ -426,7 +431,7 @@ Only one `!Play` definition is allowed per track file.
  - `-` = Subtract
  - `/` = Divide
  - `*` = Multiply
- - `|` = Meter (primarily for time signatures)
+ - `|` = Meter (for time signatures, **not** arbitrary mathematical expressions)
 
 ### Primitives
 
