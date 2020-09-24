@@ -323,37 +323,42 @@
             want 144]
         (is (= want (normalize-duration duration lowest-beat time-sig))))))
   (testing "less common times"
-    (testing "beat unit matches lowest common beat"
-      (testing "duration matches full bar"
-        (let [duration 5/8
-              lowest-beat 1/8
-              time-sig 5/8
-              want 5]
-          (is (= want (normalize-duration duration lowest-beat time-sig)))))
-      (testing "duration is less than full bar (even meter)"
-        (let [duration 4/8
-              lowest-beat 1/8
-              time-sig 6/8
-              want 4]
-          (is (= want (normalize-duration duration lowest-beat time-sig)))))
-      (testing "duration is less than full bar (odd meter)"
-        (let [duration 3/8
-              lowest-beat 1/8
-              time-sig 5/8
-              want 3]
-          (is (= want (normalize-duration duration lowest-beat time-sig)))))
-      (testing "duration is greater than full bar and lowest-beat equals a full bar"
-        (let [duration 6/4
-              lowest-beat 3/4
-              time-sig 3/4
-              want 2]
-          (is (= want (normalize-duration duration lowest-beat time-sig)))))
-      (testing "duration is less than lowest-beat (edge case)"
-        (let [duration 1/16
-              lowest-beat 1/8
-              time-sig 6/8
-              want 1/2]
-          (is (= want (normalize-duration duration lowest-beat time-sig))))))))
+    (testing "duration matches full bar"
+      (let [duration 5/8
+            lowest-beat 1/8
+            time-sig 5/8
+            want 5]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "duration is less than full bar (even meter)"
+      (let [duration 4/8
+            lowest-beat 1/8
+            time-sig 6/8
+            want 4]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "duration is less than full bar (odd meter)"
+      (let [duration 3/8
+            lowest-beat 1/8
+            time-sig 5/8
+            want 3]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "duration is greater than full bar and lowest-beat equals a full bar"
+      (let [duration 6/4
+            lowest-beat 3/4
+            time-sig 3/4
+            want 2]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "duration is less than lowest-beat (edge case)"
+      (let [duration 1/16
+            lowest-beat 1/8
+            time-sig 6/8
+            want 1/2]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+    (testing "beats per measure is greater than beat unit"
+      (let [duration 9/8
+            lowest-beat 1/8
+            time-sig 12/8
+            want 9]
+        (is (= want (normalize-duration duration lowest-beat time-sig)))))))
 
 (deftest duration
   (testing "minutes"
