@@ -197,9 +197,11 @@
   [track]
   (first (get-time-signature track))) ; AKA numerator
 
+; TODO: Rename to `get-slicer-beat` or `get-base-beat`
 (defn get-lowest-beat
-  "Determines the lowest beat unit defined in the track.
-   Serves as the basis for normalization of the track, enabling trivial and optimal interpretation."
+  "Despite its name, this determines the greatest common beat (by duration) among every beat in a track.
+   Once a this beat is found, a track can be iterated through evenly (and without variance) by its duration.
+   This logic serves as the basis for normalization of the track, enabling trivial and optimal interpretation."
   [track]
   ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
   ; @see: https://cljs.github.io/api/syntax/Inf
@@ -270,8 +272,7 @@
 (defn get-normalized-total-measures
   "Determines the total number of measures in a track, normalized to the lowest common beat"
   [track]
-  (let [lowest-beat (get-lowest-beat track)
-        beats-per-measure (get-normalized-beats-per-measure track)
+  (let [beats-per-measure (get-normalized-beats-per-measure track)
         total-beats (get-normalized-total-beats track)]
     (/ total-beats beats-per-measure)))
 
