@@ -1,6 +1,6 @@
 # bach
 
-> :musical_score: Semantic music notation with a focus on readability and productivity
+> :musical_score: Semantic music notation
 
 ---
 
@@ -48,14 +48,13 @@
 
 `bach` is a semantic music notation designed to be both human and computer friendly.
 
-_This is currently a living document for ideas and should not be considered stable!_
+The project is pre-alpha and is not should **not** be considered stable for production use.
 
 ## Goals
 
+- Native support for semantic music constructs such as chords and scales
 - Allow for alternative real-time representations of music (e.g. visual instead of just audio)
 - Seamless synchronization with associated audio data by minimizing the complexities around timing
-- Adhere to traditional Western music theory concepts
-- Support semantic music constructs via scientific notation
 - Easy to read for both humans and computers
 - Easy to translate from sheet music
 - Small learning curve
@@ -78,10 +77,9 @@ The following `bach` track represents the scale progression of a blues song:
 ```
 @Audio = 'http://api.madhax.io/track/q2IBRPmNq9/audio/mp3'
 @Title = 'Jimi Style 12-Bar-Blues Backing Track in A'
-@Key = 'A'
-@Tempo = 42
-@Tags = ['blues', 'rock', 'slow']
 @Instrument = 'guitar'
+@Time = 4|4
+@Tempo = 42
 
 :A = Scale('A3 minorpentatonic')
 :D = Scale('D3 minorpentatonic')
@@ -103,7 +101,7 @@ The following `bach` track represents the scale progression of a blues song:
 
 and is interpreted like so:
 
-1. Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure (or whole note), then
+1. Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure, then
 1. Scale `:D`, or `D3 minorpentatonic`, will be played for `1` measure, then
 1. Scale `:A` will be played for `2` measures, then
 1. ...
@@ -114,11 +112,11 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 
 ### Leinengen/Boot
 
-`[bach "0.3.0-SNAPSHOT"]`
+`[bach "1.0.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "bach:bach:0.3.0-SNAPSHOT"`
+`compile "bach:bach:1.0.0-SNAPSHOT"`
 
 ### Maven
 
@@ -126,17 +124,29 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
 ## Setup
 
-`lein install`
+To setup a development environment, first clone then repo:
+
+```sh
+$ git clone git@github.com:slurmulon/bach.git
+```
+
+Then change your current directory to wherever you cloned `bach`, and:
+
+```sh
+$ lein install
+```
 
 ## Testing
 
-`lein test`
+```sh
+$ lein test
+```
 
 ## Usage
 
@@ -151,7 +161,7 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/bach -i /path/to/track.bach compile
+$ target/default/bach-1.0.0-SNAPSHOT bach -i /path/to/track.bach compile
 ```
 
 The executable currently supports the following actions:
@@ -164,11 +174,11 @@ The executable currently supports the following actions:
 
 ```clojure
 (ns my.namespace
-  (:require [bach.ast :as ast]
+  (:require [bach.ast :refer [parse]]
             [bach.track :refer [compile-track]]))
 
 ; parses and compiles raw bach data into an interpretable hash-map
-(compile-track (ast/parse ":Foo = []"))
+(compile-track (parse "!Play [1 -> Chord('A'), 1 -> Chord('C')]"))
 ```
 
 ## Documentation
@@ -225,7 +235,7 @@ The duration that a `Beat` is played for is specified using the tuple symbol, `-
 The value of a `Beat`'s `<duration>` can be:
 
 ```
-1    = Whole note (one entire measure)
+1    = Whole note (or one entire measure in 4|4)
 1/2  = Half note
 1/4  = Quarter note
 1/8  = Eighth note
@@ -233,6 +243,14 @@ The value of a `Beat`'s `<duration>` can be:
 ...
 1/512 = Minimum duration
 ```
+
+To adhere with music theory, durations are strictly based on **common time** (`4|4`).
+
+This means that `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
+
+The examples in the remainder of this section assume common time, since this is the default when a `@Time` header is not provided.
+
+##### Examples
 
 A `List` playing a `Note('C2')` for an entire measure, starting at the first `Beat`, would be specified like so:
 
@@ -243,12 +261,12 @@ A `List` playing a `Note('C2')` for an entire measure, starting at the first `Be
 If you wanted to start playing the note on the second `Beat` of the measure, then simply rest (`~`) on the first `Beat`:
 
 ```
-[1/4 -> ~, 1 -> Note('C2']
+[1/4 -> ~, 1 -> Note('C2')]
 ```
 
 When a `Beat` tuple is not provided in an an assignment or a `Collection`, both the position and duration of the `Beat` will be implied at run-time to be the index of each respective element as they are played.
 
-The position and duration are both determined by the time signature (the default is common time, or `4|4`)
+The position and duration are both determined by the time signature (the default is common time, or `4|4`).
 
 For instance:
 
@@ -282,7 +300,7 @@ You may also use the `-`, `*` and `/` operators.
 
 #### Instantiation
 
-All `Elements`, unless already nested in a `List` or `Set`, must be instantiated in a `Beat` tuple (or implicitly converted into one, as shown in the previous section)
+All `Elements`, unless already nested in a `List` or `Set`, must be instantiated in a `Beat` tuple (or implicitly converted into one, as shown in the previous section).
 
 The first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
@@ -360,7 +378,7 @@ For instance, colors are useful for succesfully expressing a variety of data to 
 
 Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
 
-Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any primitive type.
+Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any [primitive type](#primitives).
 
 ```
 @Title  = 'My bach track'
@@ -409,14 +427,14 @@ Only one `!Play` definition is allowed per track file.
 
 ### Headers
 
+ - **`Tempo`** (integer, beats per minute)
+ - **`Time`** (meter, time signature. ex: `6|8`, `4|4`)
+ - `Key` (string, key signature)
  - `Audio` (url)
  - `Instrument` (string, arbitrary)
  - `Title` (string, arbitrary)
  - `Artist` (string, arbitrary)
  - `Desc` (string, arbitrary)
- - `Tempo` (integer, beats per minute)
- - `Time` (meter, time signature. ex: `6|8`, `4|4`)
- - `Key` (string, key signature)
  - `Tags` (list or set of strings, arbitrary)
  - `Link` (string, url)
 
@@ -426,12 +444,12 @@ Only one `!Play` definition is allowed per track file.
  - `-` = Subtract
  - `/` = Divide
  - `*` = Multiply
- - `|` = Meter (primarily for time signatures)
+ - `|` = Meter (for time signatures, **not** arbitrary mathematical expressions)
 
 ### Primitives
 
  - `'foo'` or `"bar"` = string
- - `123` = number
+ - `123` or `4.5` = number
  - `#000000` = color
 
 ## Related

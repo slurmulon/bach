@@ -3,18 +3,18 @@ track = statement*
 statement = token (<empty> token)*
 
 <token>    = elem | assign | header | play
-<term>     = [<empty>] number | [<'('>] add-sub [<')'>] [<empty>]
-<elem>     = [<empty>] atom | prim | term | pair | list | set | identifier [<empty>]
+<expr>     = [<empty>] term | add | sub [<empty>]
+<elem>     = [<empty>] atom | prim | expr | pair | list | set | identifier [<empty>]
 <prim>     = [<empty>] string | number | meter | color [<empty>]
 atom       = [<empty>] keyword [<empty>] init [<empty>]
 set        = [<empty>] <'{'> [elem (<','|empty> elem)* [<','>]] <'}'> [<empty>]
 list       = [<empty>] <'['> [elem (<','|empty> elem)* [<','>]] <']'> [<empty>]
-pair       = term <'->'> elem [<empty>,<empty>]
+pair       = expr <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> elem
 header     = meta <'='> elem
 attribute  = word [<empty>] <':'> [<empty>] prim
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
-arguments  = ((identifier | string | attribute | add-sub) [<empty> <','> <empty>])*
+arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
 init       = <'('> arguments <')'>
 meta       = [<empty>] <'@'> #'(Audio|Instrument|Time|Tempo|Key|Delay|Link|Title|Artist|Desc|Tags)' [<empty>]
 keyword    = [<empty>] #'(`|~|Note|Scale|Chord|Mode|Triad)' [<empty>]
@@ -22,14 +22,14 @@ play       = [<empty>] <'!Play'> [<empty>] elem
 meter      = [<empty>] number <'|'> number [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
-number     = #'[0-9]+'
-color      = #'#[a-fA-F0-9xX]{6}'
+number     = #'(0|([1-9][0-9]*))(\.[0-9]+)?'
+color      = #'#[a-fA-F0-9xX]{3,6}'
 <empty>    = #'(\r\n|\n|\r|\s)*'
 
 (* Math *)
-<add-sub>  = mul-div | add | sub
-add        = [<empty>] add-sub [<empty>] <'+'> [<empty>] mul-div [<empty>]
-sub        = [<empty>] add-sub [<empty>] <'-'> [<empty>] mul-div [<empty>]
-<mul-div>  = term | mul | div
-mul        = mul-div <'*'> term
-div        = mul-div <'/'> term
+add = term <'+'> expr
+sub = term <'-'> expr
+<term> = [<empty>] number | mul | div | factor [<empty>]
+mul = factor <'*'> factor
+div = factor <'/'> factor
+<factor> = [<empty>] [<'('>] expr [<')'>] [<empty>]

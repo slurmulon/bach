@@ -1,12 +1,13 @@
 (ns bach.track
   (:require [instaparse.core :as insta]
-            [bach.data :refer [hiccup-to-hash-map ratio-to-vector]]))
+            [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-row inverse-ratio]]))
 
 (defstruct compiled-track :headers :data)
 
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
+; TODO: Remove all but `tempo`, `time`, `total-beats`, `ms-per-beat`, and `lowest-beat`
 (def default-headers {:tempo default-tempo
                       :time default-time-signature
                       :total-beats 0
@@ -37,25 +38,23 @@
 (defn validate
   "Determines if a parsed track is valid or not"
   [track]
-  (variable-scope (fn [variables create-variable _]
-    (insta/transform
+  (variable-scope
+   (fn [variables create-variable _]
+     (insta/transform
       {:assign (fn [label-token value-token]
                  (let [[& label] label-token
                        [& value] value-token
                        [value-type] value-token]
                    (case value-type
                      :identifier
-                       (when (not (contains? (variables) value))
-                         (throw (Exception. (str "variable is not declared before it's used: " value ", " (variables)))))
+                     (when (not (contains? (variables) value))
+                       (throw (Exception. (str "variable is not declared before it's used: " value ", " (variables)))))
                      (create-variable label value))))
        :div (fn [top-token bottom-token]
               (let [top    (-> top-token    last read-string)
                     bottom (-> bottom-token last read-string)]
-                (cond
-                  (not (some #{bottom} (take 10 powers-of-two)))
-                    (throw (Exception. "note divisors must be base 2 and no greater than 512"))
-                  (> top bottom)
-                    (throw (Exception. "numerator cannot be greater than denominator")))))
+                (when (not (some #{bottom} (take 10 powers-of-two)))
+                  (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
        :tempo (fn [& tempo-token]
                 (let [tempo (-> tempo-token last read-string)]
                   (when (not (<= 0 tempo 256))
@@ -70,19 +69,20 @@
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)"
   [track]
-  (variable-scope (fn [variables track-variable _]
-    (insta/transform
+  (variable-scope
+   (fn [variables track-variable _]
+     (insta/transform
       {:assign (fn [label-token value-token]
                  (let [label (last label-token)
                        value (last value-token)
                        [value-type] value-token]
                    (case value-type
                      :identifier
-                       (let [stack-value (get (variables) value)]
-                         (track-variable label stack-value)
-                         [:assign label-token stack-value])
+                     (let [stack-value (get (variables) value)]
+                       (track-variable label stack-value)
+                       [:assign label-token stack-value])
                      (do (track-variable label value-token)
-                       [:assign label-token value-token]))))
+                         [:assign label-token value-token]))))
        :identifier (fn [label]
                      (let [stack-value (get (variables) label)]
                        (if stack-value stack-value [:identifier label])))
@@ -91,29 +91,40 @@
                      [value-type] value-token]
                  (case value-type
                    :identifier
-                    (let [stack-value (get (variables) value)]
-                      [:play stack-value])
+                   (let [stack-value (get (variables) value)]
+                     [:play stack-value])
                    [:play value-token])))}
-    track))))
+      track))))
 
 (defn reduce-values
   "Reduces any primitive values in a parsed track"
   [track]
   (insta/transform
-    {:add +,
-     :sub -,
-     :mul *,
-     :div /,
-     :meter (fn [n d] [n d]),
-     :number clojure.edn/read-string,
-     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
+   {:add +,
+    :sub -,
+    :mul *,
+    :div /,
+    :meter (fn [n d] [n d]),
+    :number clojure.edn/read-string,
+    :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 
 (defn reduce-track
   "Dereferences variables and reduces the primitive values in a parsed track"
   [track]
   (-> track
-     deref-variables
-     reduce-values))
+      deref-variables
+      reduce-values))
+
+(defn normalize-duration
+  "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat).
+  In general, this determines 'How many `unit`s` does the provided `duration` equal considering the `meter` (i.e. time-sig)?."
+  [duration unit meter]
+  (let [inverse-meter (inverse-ratio (rationalize meter))
+        inverse-unit (inverse-ratio (rationalize unit))
+        within-measure? (<= duration meter)]
+    (if within-measure?
+      (/ duration unit)
+      (* duration (max inverse-unit inverse-meter)))))
 
 (defn get-headers
   "Provides the headers (aka meta info) for a parsed track"
@@ -121,30 +132,35 @@
   (let [headers (atom default-headers)
         reduced-track (reduce-track track)] ; TODO: might not want this at this level, should probably be called higher up
     (insta/transform
-      {:header (fn [kind-token value]
-                 (let [kind (last kind-token)
-                       header-key (keyword (clojure.string/lower-case kind))]
-                    (swap! headers assoc header-key value)))}
-      reduced-track)
+     {:header (fn [kind-token value]
+                (let [kind (last kind-token)
+                      header-key (keyword (clojure.string/lower-case kind))]
+                  (swap! headers assoc header-key value)))}
+     reduced-track)
     @headers))
 
 (defn find-header
   "Generically finds a header entry / meta tag in a parsed track by its label"
   [track label default]
-  (let [result (atom default)]
+  (let [header (atom default)]
     (insta/transform
-      {:header (fn [meta-key value]
-                 (let [kind (last meta-key)]
-                   (when (= kind label)
-                     (reset! result value))))}
-      track)
-    @result))
+     {:header (fn [meta-key value]
+                (let [kind (last meta-key)]
+                  (when (= kind label)
+                    (reset! header value))))}
+     track)
+    @header))
 
 (defn get-time-signature
   [track]
   (let [reduced-track (reduce-values track)
         header (find-header reduced-track "Time" default-time-signature)]
     header))
+
+(defn get-meter
+  [track]
+  (let [[beats-per-measure & [beat-unit]] (get-time-signature track)]
+    (/ beats-per-measure beat-unit)))
 
 ; FIXME: Support floating point tempos
 (defn get-tempo
@@ -170,61 +186,71 @@
   [track]
   (/ 4 (last (get-time-signature track))))
 
-(defn get-lowest-beat
-  "Determines the lowest beat unit defined in the track.
-   Serves as the basis for normalization of the track, enabling trivial interpretation"
+(defn get-beat-unit-ratio
+  "Determines the ratio between the beat unit and the number of beats per measure"
   [track]
-  (let [lowest-duration (atom 1)
-        reduced-track (reduce-values track)]
-    (insta/transform
-      ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
-      {:pair (fn [duration _]
-               (when (< duration @lowest-duration)
-                 (reset! lowest-duration duration)))}
-      reduced-track)
-    (let [lowest-beat-unit (/ 1 (-> @lowest-duration
-                                    rationalize
-                                    clojure.lang.Numbers/toRatio
-                                    denominator))]
-      (min 1 lowest-beat-unit))))
-
-(defn get-normalized-lowest-beat
-  "Determines the lowest beat normalized against the beat unit of the track (defined in the time signature"
-  [track]
-  (let [lowest-beat (get-lowest-beat track)
-        ; beat-unit (get-scaled-beat-unit track)]
-        beat-unit (get-beat-unit track)]
-    (* lowest-beat beat-unit)))
+  (let [[beats-per-measure & [beat-unit]] (get-time-signature track)]
+    (mod beat-unit beats-per-measure)))
 
 (defn get-beats-per-measure
   "Determines how many beats are in each measure, based on the time signature"
   [track]
   (first (get-time-signature track))) ; AKA numerator
 
+; TODO: Rename to `get-slice-beat` or `get-base-beat`
+(defn get-lowest-beat
+  "Despite its name, this determines the greatest common beat (by duration) among every beat in a track.
+   Once a this beat is found, a track can be iterated through evenly (and without variance) by its duration.
+   This logic serves as the basis for normalization of the track, enabling trivial and optimal interpretation."
+  [track]
+  ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
+  ; @see: https://cljs.github.io/api/syntax/Inf
+  (let [lowest-duration (atom 1024)
+        reduced-track (reduce-values track)]
+    (insta/transform
+      ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
+     {:pair (fn [duration _]
+              (when (< duration @lowest-duration)
+                (reset! lowest-duration duration)))}
+     reduced-track)
+    (let [beat-unit (get-beat-unit reduced-track)
+          beats-per-measure (get-beats-per-measure reduced-track)
+          meter (get-meter reduced-track)
+          full-measure meter
+          lowest-beat @lowest-duration
+          lowest-beat-unit (/ 1 (-> lowest-beat
+                                    rationalize
+                                    clojure.lang.Numbers/toRatio
+                                    denominator))
+          lowest-beat-aligns? (= 0 (mod (max lowest-beat meter)
+                                        (min lowest-beat meter)))]
+      (if lowest-beat-aligns?
+        (min lowest-beat full-measure)
+        (min lowest-beat-unit beat-unit)))))
+
 (defn get-normalized-beats-per-measure
   "Determines how many beats are in a measure, normalized against the lowest beat of the track"
   [track]
-  (let [lowest-beat (get-lowest-beat track)]
-    (if (< lowest-beat 1) (denominator lowest-beat) lowest-beat)))
+  (let [lowest-beat (get-lowest-beat track)
+        meter (get-meter track)]
+    (/ (max lowest-beat meter)
+       (min lowest-beat meter))))
 
-; NOTE: this can also be interpreted as "total measures" because the beats aren't normalized
-; to the lowest common beat found in the track
 (defn get-total-beats
-  "Determines the total number of beats in the track (1 = 1 whole note / measure)"
+  "Determines the total number of beats in the track (1 = 1 whole note, NOT necessarily 1 measure depending on the context)."
   [track]
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
     (insta/transform
-      {:pair (fn [duration _]
-               (swap! total-beats + duration))}
-      reduced-track)
+     {:pair (fn [duration _]
+              (swap! total-beats + duration))}
+     reduced-track)
     @total-beats))
 
 (defn get-scaled-total-beats
   "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)"
   [track]
   (let [total-beats (get-total-beats track)
-        ; beat-unit (get-scaled-beat-unit track)]
         beat-unit (get-beat-unit track)]
     (/ total-beats beat-unit)))
 
@@ -232,8 +258,9 @@
   "Determines the total beats in a track normalized to the lowest beat of the track"
   [track]
   (let [total-beats (get-total-beats track)
-        lowest-beat (get-normalized-lowest-beat track)]
-    (/ total-beats lowest-beat)))
+        lowest-beat (get-lowest-beat track)]
+    (/ (max total-beats lowest-beat)
+       (min total-beats lowest-beat))))
 
 (defn get-total-measures
   "Determines the total number of measures in the track. Beats and measures are equivelant here
@@ -241,10 +268,13 @@
   [track]
   (get-total-beats track))
 
-(defn get-total-measures-ceiled
-  "Provides the total number of measures in a track, ceiled"
+; TODO: Consider renaming to `get-total-bars`
+(defn get-normalized-total-measures
+  "Determines the total number of measures in a track, normalized to the lowest common beat"
   [track]
-  (Math/ceil (get-total-beats track)))
+  (let [beats-per-measure (get-normalized-beats-per-measure track)
+        total-beats (get-normalized-total-beats track)]
+    (/ total-beats beats-per-measure)))
 
 (defn get-total-duration
   "Determines the total time duration of a track (milliseconds, seconds, minutes)"
@@ -260,57 +290,62 @@
       :minutes duration-minutes)))
 
 ; @see https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te
-; - FIXME: this needs to consider the denominator. 3/4 and 6/8 should produce equal results.
 (defn get-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
    Mostly exists to make parsing easier for the high-level interpreter / player"
   [track]
   (let [reduced-track (reduce-track track)
-        norm-beats-per-measure (get-normalized-beats-per-measure reduced-track)
-        beats-per-measure (get-beats-per-measure reduced-track)
-        divisor (/ norm-beats-per-measure beats-per-measure) ; FIXME: need to multiply this by `get-scaled-beat-unit`
-        scaled-divisor (/ divisor (get-scaled-beat-unit track))
         tempo (get-tempo reduced-track)
+        lowest-beat (get-lowest-beat reduced-track)
+        scaled-lowest-beat (/ (/ 1 4) lowest-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
-        ; norm-ms-per-beat (/ ms-per-beat divisor)]
-        norm-ms-per-beat (/ ms-per-beat scaled-divisor)]
+        norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
     (float norm-ms-per-beat)))
 
-; FIXME: one thing this should do differently is append the result of the original track definition,
-; that way variables and such are retained properly. otherwise this works great.
-; FIXME: to achieve above, we could just extract dereferenced notes in :play (from the track) and pass that into insta/transform
 (defn normalize-measures
   "Parses the track data exported via `Play` into a normalized matrix where each row (measure) has the same number of elements (beats).
-   Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through"
+   Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through."
   [track]
-  (let [beat-cursor (atom 0) ; NOTE: measured in time-scaled/whole notes, NOT normalized to the lowest beat! (makes parsing easier)
+  (let [beat-cursor (atom 0)
+        meter (get-meter track)
+        lowest-beat (get-lowest-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
-        total-measures (get-total-measures-ceiled track)
-        measures (atom (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))) ; ALT: @see pg. 139 of O'Reilly Clojure Programming book
+        total-measures (Math/ceil (get-normalized-total-measures track))
+        total-beats (get-normalized-total-beats track)
+        unused-tail-beats (mod (max total-beats beats-per-measure) (min total-beats beats-per-measure))
+        measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
+        measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
         reduced-track (reduce-track track)]
     (insta/transform
-      ; we only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
-      {:play (fn [play-track]
-        (letfn [(update-cursor [beats]
-                  (swap! beat-cursor + beats))
-                (update-measures [measure-index beat-index notes]
-                  (swap! measures assoc-in [measure-index beat-index] notes))
-                (beat-indices [beat]
-                  (let [lowest-beat (get-lowest-beat track)
-                        global-beat-index (/ @beat-cursor lowest-beat)
-                        local-beat-index (mod global-beat-index beats-per-measure)
-                        measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
-                    {:measure measure-index :beat local-beat-index}))] ; TODO; consider using normalized local beat index instead
-          (insta/transform
-            {:pair (fn [beats notes]
-                     (let [indices (beat-indices beats)
-                           measure-index (:measure indices)
-                           beat-index (:beat indices)
-                           compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}] ; TODO; consider adding: :indices [measure-index beat-index]
-                       (update-measures measure-index beat-index compiled-notes)
-                       (update-cursor beats)))}
-          play-track)))}
-        reduced-track)
+      ; We only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
+     {:play (fn [play-track]
+              (letfn [(cast-duration [duration]
+                        (normalize-duration duration lowest-beat meter))
+                      (update-cursor [beats]
+                        (swap! beat-cursor + beats))
+                      (update-measures [measure-index beat-index notes]
+                        (swap! measures assoc-in [measure-index beat-index] notes))
+                      (beat-indices [beat]
+                        (let [global-beat-index @beat-cursor
+                              local-beat-index (mod global-beat-index beats-per-measure)
+                              measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
+                          {:measure measure-index :beat local-beat-index}))]
+                (insta/transform
+                ; TODO: Generally rename `notes` to `items`. Makes more sense since a beat can contain more than just notes.
+                ; TODO: Reduce `notes` so that we don't have a pointless wrapper `:atom`
+                ; TODO: Normalize `notes` to a collection
+                 {:pair (fn [duration notes]
+                          (let [beats (cast-duration duration)
+                                indices (beat-indices beats)
+                                measure-index (:measure indices)
+                                beat-index (:beat indices)
+                                ; NOTE: Using `duration` instead of `beats` to retain original data
+                                ;       and to avoid normalizing `ms-per-beat`, `total-beats`, etc.
+                                compiled-notes {:duration duration :notes (hiccup-to-hash-map notes)}]
+                            (update-measures measure-index beat-index compiled-notes)
+                            (update-cursor beats)))}
+                 play-track)))}
+     reduced-track)
     @measures))
 
 (defn provision-headers
@@ -318,14 +353,19 @@
   [track]
   (let [headers (get-headers track)
         time-sig (get-time-signature track)
+        ; TODO: Consider changing to `get-normalized-total-beats`
         total-beats (get-total-beats track)
+        ; TODO: Consider changing to `get-normalized-ms-per-beat`
         ms-per-beat (get-ms-per-beat track)
+        ; TODO: Either rename as or supplement with `beat-unit` (more clear)
         lowest-beat (get-lowest-beat track)]
-    (assoc headers :time time-sig,
-                   :total-beats total-beats,
-                   :ms-per-beat ms-per-beat,
-                   :lowest-beat lowest-beat)))
+    (assoc headers
+           :time time-sig
+           :total-beats total-beats
+           :ms-per-beat ms-per-beat
+           :lowest-beat lowest-beat)))
 
+; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
 (defn compile-track
   "Provides a 'compiled' version of a parsed track that contains all of the information necessary to easily
    interpret a track as a single stream of normalized data (no references, all values are resolved)"
