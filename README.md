@@ -52,7 +52,7 @@ The project is pre-alpha and is not should **not** be considered stable for prod
 
 ## Goals
 
-- Support semantic music constructs such as chords and scales
+- Native support for semantic music constructs such as chords and scales
 - Allow for alternative real-time representations of music (e.g. visual instead of just audio)
 - Seamless synchronization with associated audio data by minimizing the complexities around timing
 - Easy to read for both humans and computers
@@ -78,6 +78,7 @@ The following `bach` track represents the scale progression of a blues song:
 @Audio = 'http://api.madhax.io/track/q2IBRPmNq9/audio/mp3'
 @Title = 'Jimi Style 12-Bar-Blues Backing Track in A'
 @Instrument = 'guitar'
+@Time = 4|4
 @Tempo = 42
 
 :A = Scale('A3 minorpentatonic')
@@ -111,11 +112,11 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 
 ### Leinengen/Boot
 
-`[bach "0.3.0-SNAPSHOT"]`
+`[bach "1.0.0"]`
 
 ### Gradle
 
-`compile "bach:bach:0.3.0-SNAPSHOT"`
+`compile "bach:bach:1.0.0"`
 
 ### Maven
 
@@ -123,17 +124,21 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>0.3.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
 ## Setup
 
-`lein install`
+```sh
+$ lein install
+```
 
 ## Testing
 
-`lein test`
+```sh
+$ lein test
+```
 
 ## Usage
 
@@ -416,12 +421,12 @@ Only one `!Play` definition is allowed per track file.
 
  - **`Tempo`** (integer, beats per minute)
  - **`Time`** (meter, time signature. ex: `6|8`, `4|4`)
+ - `Key` (string, key signature)
  - `Audio` (url)
  - `Instrument` (string, arbitrary)
  - `Title` (string, arbitrary)
  - `Artist` (string, arbitrary)
  - `Desc` (string, arbitrary)
- - `Key` (string, key signature)
  - `Tags` (list or set of strings, arbitrary)
  - `Link` (string, url)
 
