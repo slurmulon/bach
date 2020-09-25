@@ -273,11 +273,11 @@
                       [:atom
                        [:keyword "Chord"]
                        [:init [:arguments [:string "'D2min7'"]]]]]
-                      [:pair
-                       [:number "1"]
-                       [:atom
-                        [:keyword "Chord"]
-                        [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
+                     [:pair
+                      [:number "1"]
+                      [:atom
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
             want 2]
         (is (= want (get-normalized-total-beats tree))))))
   (testing "beat unit is greater (longer) than lowest common beat"
@@ -307,13 +307,13 @@
                       [:atom
                        [:keyword "Chord"]
                        [:init [:arguments [:string "'D2min7'"]]]]]
-                      [:pair
-                       [:div
-                        [:number "1"]
-                        [:number "8"]]
-                       [:atom
-                        [:keyword "Chord"]
-                        [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
+                     [:pair
+                      [:div
+                       [:number "1"]
+                       [:number "8"]]
+                      [:atom
+                       [:keyword "Chord"]
+                       [:init [:arguments [:string "'G3maj7'"]]]]]]]]]
             want 9]
         (is (= want (get-normalized-total-beats tree)))))))
 
@@ -322,7 +322,7 @@
     (testing "beat unit matches lowest common beat"
       (let [tree [:track
                   [:statement
-                  [:list
+                   [:list
                     [:pair [:number "1"] [:list]]
                     [:pair [:number "4"] [:list]]
                     [:pair [:div [:number "1"] [:number "4"]] [:list]]
@@ -332,7 +332,7 @@
     (testing "beat unit is less (shorter) than lowest common beat"
       (let [tree [:track
                   [:statement
-                  [:list
+                   [:list
                     [:pair [:div [:number "1"] [:number "2"]] [:list]]
                     [:pair [:div [:number "1"] [:number "2"]] [:list]]]]]
             want 1]
@@ -340,7 +340,7 @@
     (testing "beat unit is greater (longer) than lowest common beat"
       (let [tree [:track
                   [:statement
-                  [:list
+                   [:list
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]
@@ -350,7 +350,7 @@
     (testing "total measures is less than duration of full bar"
       (let [tree [:track
                   [:statement
-                  [:list
+                   [:list
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
             want (rationalize 0.25)]
@@ -665,34 +665,34 @@
   (testing "with whole notes"
     (let [tree [:track
                 [:statement
-                  [:assign
+                 [:assign
                   [:identifier ":ABC"]
                   [:list
-                    [:pair
+                   [:pair
                     [:number "1"]
                     [:atom
-                      [:keyword "Chord"]
-                      [:init [:arguments [:string "'D2min7'"]]]]]
-                    [:pair
+                     [:keyword "Chord"]
+                     [:init [:arguments [:string "'D2min7'"]]]]]
+                   [:pair
                     [:number "1"]
                     [:atom
-                      [:keyword "Chord"]
-                      [:init [:arguments [:string "'G2Maj7'"]]]]]
-                    [:pair
+                     [:keyword "Chord"]
+                     [:init [:arguments [:string "'G2Maj7'"]]]]]
+                   [:pair
                     [:number "1"]
                     [:atom
-                      [:keyword "Chord"]
-                      [:init [:arguments [:string "'C2maj7'"]]]]]]]]
+                     [:keyword "Chord"]
+                     [:init [:arguments [:string "'C2maj7'"]]]]]]]]
                 [:statement [:play [:identifier ":ABC"]]]]
           want [[{:duration 1,
                   :notes {:atom {:keyword "Chord",
-                                  :init {:arguments ["D2min7"]}}}}]
+                                 :init {:arguments ["D2min7"]}}}}]
                 [{:duration 1,
                   :notes {:atom {:keyword "Chord",
-                                  :init {:arguments ["G2Maj7"]}}}}]
+                                 :init {:arguments ["G2Maj7"]}}}}]
                 [{:duration 1,
                   :notes {:atom {:keyword "Chord",
-                                  :init {:arguments ["C2maj7"]}}}}]]]
+                                 :init {:arguments ["C2maj7"]}}}}]]]
       (is (= want (normalize-measures tree)))))
   (testing "with half notes"
     (let [tree [:track

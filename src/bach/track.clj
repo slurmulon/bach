@@ -360,10 +360,10 @@
         ; TODO: Either rename as or supplement with `beat-unit` (more clear)
         lowest-beat (get-lowest-beat track)]
     (assoc headers
-      :time time-sig
-      :total-beats total-beats
-      :ms-per-beat ms-per-beat
-      :lowest-beat lowest-beat)))
+           :time time-sig
+           :total-beats total-beats
+           :ms-per-beat ms-per-beat
+           :lowest-beat lowest-beat)))
 
 ; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
 (defn compile-track
