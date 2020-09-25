@@ -6,6 +6,7 @@ statement = token (<empty> token)*
 <expr>     = [<empty>] term | add | sub [<empty>]
 <elem>     = [<empty>] atom | prim | expr | pair | list | set | identifier [<empty>]
 <prim>     = [<empty>] string | number | meter | color [<empty>]
+<init>     = <'('> arguments <')'>
 atom       = [<empty>] keyword [<empty>] init [<empty>]
 set        = [<empty>] <'{'> [elem (<','|empty> elem)* [<','>]] <'}'> [<empty>]
 list       = [<empty>] <'['> [elem (<','|empty> elem)* [<','>]] <']'> [<empty>]
@@ -15,7 +16,6 @@ header     = meta <'='> elem
 attribute  = word [<empty>] <':'> [<empty>] prim
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
-init       = <'('> arguments <')'>
 meta       = [<empty>] <'@'> #'(Audio|Instrument|Time|Tempo|Key|Delay|Link|Title|Artist|Desc|Tags)' [<empty>]
 keyword    = [<empty>] #'(`|~|Note|Scale|Chord|Mode|Triad)' [<empty>]
 play       = [<empty>] <'!Play'> [<empty>] elem
