@@ -296,7 +296,7 @@
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
         pulse-beat (get-pulse-beat reduced-track)
-        scaled-pulse-beat (/ (/ 1 4) pulse-beat)
+        scaled-pulse-beat (* 4 pulse-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
         norm-ms-per-beat (/ ms-per-beat scaled-pulse-beat)]
     (float norm-ms-per-beat)))
