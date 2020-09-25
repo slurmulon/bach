@@ -288,18 +288,33 @@
       :seconds duration-seconds
       :minutes duration-minutes)))
 
-; @see https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te
 (defn get-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to pulse beat).
-   Mostly exists to make parsing easier for the high-level interpreter / player"
+   Mostly exists to make parsing easier for the high-level interpreter / player.
+
+   References:
+     http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
+     https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te"
   [track]
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
+        ; ORIG
         pulse-beat (get-pulse-beat reduced-track)
-        scaled-pulse-beat (* 4 pulse-beat)
+        scaled-pulse-beat (/ (/ 1 4) pulse-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
         norm-ms-per-beat (/ ms-per-beat scaled-pulse-beat)]
+        ; EXPERIMENT
+        ; - Yep, this is it
+        ; - FIXME: Breaks lots of tracks though, see tests. Seems we may have been on the right path to begin with but it needs a little tweaking (probably multiply by the unit-to-pulse-beat-ratio
+        ; beats-per-second (/ tempo 60)
+        ; seconds-per-beat (/ 1 beats-per-second)
+        ; ms-per-beat (* seconds-per-beat 1000)]
+        ; TODO: Roll with this if we end up normalizing the durations in `normalize-measures`, right now they're strictly based on meter
+        ; norm-ms-per-beat (/ ms-per-beat pulse-beat)]
+    ; ORIG
     (float norm-ms-per-beat)))
+    ; (float ms-per-beat)))
+
 
 (defn normalize-measures
   "Parses the track data exported via `Play` into a normalized matrix where each row (measure) has the same number of elements (beats).

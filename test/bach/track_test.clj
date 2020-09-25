@@ -638,7 +638,9 @@
                        [:atom
                         [:keyword "Note"]
                         [:arguments [:string "'C2'"]]]]]]]
-              want 250.0] ; because "1", or 4 beats, does not align flushly with the meter
+              ; Because "1", or 4 beats, does not align flushly with the meter (uses 1/8 as pulse beat in this case)
+              ; want 250]
+              want 500.0]
           (is (= want (get-ms-per-beat tree)))))
       (testing "3/8"
         (let [tree [:track
@@ -653,7 +655,8 @@
                        [:atom
                         [:keyword "Note"]
                         [:arguments [:string "'C2'"]]]]]]]
-              want 250.0]
+              ; want 250.0]
+              want 500.0]
           (is (= want (get-ms-per-beat tree)))))
       (testing "5/8"
         (let [tree [:track
@@ -668,7 +671,8 @@
                        [:atom
                         [:keyword "Note"]
                         [:arguments [:string "'C2'"]]]]]]]
-              want 250.0]
+              ; want 250.0]
+              want 500.0]
           (is (= want (get-ms-per-beat tree)))))
       (testing "compound"
         (testing "9/8"
@@ -676,11 +680,11 @@
                       [:statement
                        [:header
                         [:meta "Time"]
-                        [:meter [:number "5"] [:number "4"]]]]
+                        [:meter [:number "9"] [:number "8"]]]]
                       [:statement
                        [:list
                         [:pair
-                         [:div [:number "1"] [:number "4"]]
+                         [:div [:number "1"] [:number "8"]]
                          [:atom
                           [:keyword "Note"]
                           [:arguments [:string "'C2'"]]]]]]]
@@ -699,7 +703,8 @@
                          [:atom
                           [:keyword "Note"]
                           [:arguments [:string "'C2'"]]]]]]]
-                want 250.0]
+                ; want 250.0]
+                want 500.0]
             (is (= want (get-ms-per-beat tree))))))
       (testing "complex"
         (testing "5/4"
@@ -730,7 +735,8 @@
                          [:atom
                           [:keyword "Note"]
                           [:arguments [:string "'C2'"]]]]]]]
-                want 250.0]
+                ; want 250.0]
+                want 500.0]
             (is (= want (get-ms-per-beat tree)))))))))
 
 ; TODO: Improve organization of this test, inconsistent (should be method-first)
@@ -1014,7 +1020,8 @@
                     [:list
                      [:pair [:number "1"] [:list]]
                      [:pair [:number "3"] [:list]]]]]]
-            want 2000.0]
+            ; want 2000.0]
+            want 500.0]
         (is (= (:ms-per-beat (provision-headers tree)) want))))
     (testing "pulse beat"
       (let [tree [:track
