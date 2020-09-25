@@ -22,7 +22,6 @@ play       = [<empty>] <'!Play'> [<empty>] elem
 meter      = [<empty>] number <'|'> number [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
-(* number     = #'[0-9]+' *)
 number     = #'(0|([1-9][0-9]*))(\.[0-9]+)?'
 color      = #'#[a-fA-F0-9xX]{3,6}'
 <empty>    = #'(\r\n|\n|\r|\s)*'
@@ -30,10 +29,7 @@ color      = #'#[a-fA-F0-9xX]{3,6}'
 (* Math *)
 add = term <'+'> expr
 sub = term <'-'> expr
-<term> = [<empty>] number | mul | div | factor [<empty>] 
-(* ORIGINAL (but wrong - test more!)
-mul = factor <'*'> term 
-div = factor <'/'> term *)
+<term> = [<empty>] number | mul | div | factor [<empty>]
 mul = factor <'*'> factor
 div = factor <'/'> factor
 <factor> = [<empty>] [<'('>] expr [<')'>] [<empty>]
