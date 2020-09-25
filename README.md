@@ -48,7 +48,7 @@
 
 `bach` is a semantic music notation designed to be both human and computer friendly.
 
-_This is currently a living document for ideas and should not be considered stable!_
+The project is pre-alpha and is not should **not** be considered stable for production use.
 
 ## Goals
 
@@ -77,8 +77,8 @@ The following `bach` track represents the scale progression of a blues song:
 ```
 @Audio = 'http://api.madhax.io/track/q2IBRPmNq9/audio/mp3'
 @Title = 'Jimi Style 12-Bar-Blues Backing Track in A'
-@Tempo = 42
 @Instrument = 'guitar'
+@Tempo = 42
 
 :A = Scale('A3 minorpentatonic')
 :D = Scale('D3 minorpentatonic')
@@ -123,7 +123,7 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -231,9 +231,9 @@ The value of a `Beat`'s `<duration>` can be:
 1/512 = Minimum duration
 ```
 
-To adhere with music theory, durations are based on **common time** (4|4).
+To adhere with music theory, durations are strictly based on **common time** (`4|4`).
 
-This means that `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4` time).
+This means that `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
 
 The examples in the remainder of this section assume common time, since this is the default when a `@Time` header is not provided.
 
@@ -248,12 +248,12 @@ A `List` playing a `Note('C2')` for an entire measure, starting at the first `Be
 If you wanted to start playing the note on the second `Beat` of the measure, then simply rest (`~`) on the first `Beat`:
 
 ```
-[1/4 -> ~, 1 -> Note('C2']
+[1/4 -> ~, 1 -> Note('C2')]
 ```
 
 When a `Beat` tuple is not provided in an an assignment or a `Collection`, both the position and duration of the `Beat` will be implied at run-time to be the index of each respective element as they are played.
 
-The position and duration are both determined by the time signature (the default is common time, or `4|4`)
+The position and duration are both determined by the time signature (the default is common time, or `4|4`).
 
 For instance:
 
@@ -287,7 +287,7 @@ You may also use the `-`, `*` and `/` operators.
 
 #### Instantiation
 
-All `Elements`, unless already nested in a `List` or `Set`, must be instantiated in a `Beat` tuple (or implicitly converted into one, as shown in the previous section)
+All `Elements`, unless already nested in a `List` or `Set`, must be instantiated in a `Beat` tuple (or implicitly converted into one, as shown in the previous section).
 
 The first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
@@ -365,7 +365,7 @@ For instance, colors are useful for succesfully expressing a variety of data to 
 
 Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
 
-Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any primitive type.
+Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any [primitive type](#primitives).
 
 ```
 @Title  = 'My bach track'
@@ -414,13 +414,13 @@ Only one `!Play` definition is allowed per track file.
 
 ### Headers
 
+ - **`Tempo`** (integer, beats per minute)
+ - **`Time`** (meter, time signature. ex: `6|8`, `4|4`)
  - `Audio` (url)
  - `Instrument` (string, arbitrary)
  - `Title` (string, arbitrary)
  - `Artist` (string, arbitrary)
  - `Desc` (string, arbitrary)
- - `Tempo` (integer, beats per minute)
- - `Time` (meter, time signature. ex: `6|8`, `4|4`)
  - `Key` (string, key signature)
  - `Tags` (list or set of strings, arbitrary)
  - `Link` (string, url)
@@ -436,7 +436,7 @@ Only one `!Play` definition is allowed per track file.
 ### Primitives
 
  - `'foo'` or `"bar"` = string
- - `123` = number
+ - `123` or `4.5` = number
  - `#000000` = color
 
 ## Related
