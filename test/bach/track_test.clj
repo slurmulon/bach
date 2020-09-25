@@ -322,6 +322,7 @@
             time-sig 4/4
             want 144]
         (is (= want (normalize-duration duration lowest-beat time-sig))))))
+  ; TODO: Rename to mixed
   (testing "less common times"
     (testing "duration matches full bar"
       (let [duration 5/8
@@ -428,31 +429,101 @@
             want 250.0]
         (is (= want (get-ms-per-beat tree))))))
   ; FIXME: Could improve this by having `get-lowest-beat` look at the reduced values, right now it is using 1/4 when it could use 3/4 if it added 1/2 and 1/4 together first (this should already be happening, actually)
-  (testing "non-default time signature"
-    (testing "3/4"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]]
-                  [:statement
-                   [:list
-                    [:pair
-                     [:add
-                      [:div [:number "1"] [:number "2"]]
-                      [:div [:number "1"] [:number "4"]]]
-                     [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-            want 1500.0]
-        (is (= want (get-ms-per-beat tree)))))
-    (testing "6/8"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]
-                  [:statement
-                   [:list
-                    [:pair
-                     [:number "1"]
-                     [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-            want 250.0] ; because "1", or 4 beats, does not align flushly with the meter
-        (is (= want (get-ms-per-beat tree)))))))
+  (testing "with time signature:"
+    (testing "simple"
+      (testing "3/4"
+        (let [tree [:track
+                    [:statement
+                     [:header [:meta "Time"] [:meter [:number "3"] [:number "4"]]]]
+                    [:statement
+                     [:list
+                      [:pair
+                       [:add
+                        [:div [:number "1"] [:number "2"]]
+                        [:div [:number "1"] [:number "4"]]]
+                       [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+              want 1500.0]
+          (is (= want (get-ms-per-beat tree))))))
+    (testing "mixed"
+      (testing "6/8"
+        (let [tree [:track
+                    [:statement
+                     [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]
+                    [:statement
+                     [:list
+                      [:pair
+                       [:number "1"]
+                       [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+              want 250.0] ; because "1", or 4 beats, does not align flushly with the meter
+          (is (= want (get-ms-per-beat tree)))))
+      (testing "3/8"
+        (let [tree [:track
+                    [:statement
+                     [:header [:meta "Time"] [:meter [:number "3"] [:number "8"]]]]
+                    [:statement
+                     [:list
+                      [:pair
+                       [:div [:number "1"] [:number "8"]]
+                       [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+              want 250.0]
+          (is (= want (get-ms-per-beat tree)))))
+      (testing "5/8"
+        (let [tree [:track
+                    [:statement
+                     [:header [:meta "Time"] [:meter [:number "5"] [:number "8"]]]]
+                    [:statement
+                     [:list
+                      [:pair
+                       [:div [:number "1"] [:number "8"]]
+                       [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+              want 250.0]
+          (is (= want (get-ms-per-beat tree)))))
+      (testing "compound"
+        (testing "9/8"
+          (let [tree [:track
+                      [:statement
+                       [:header [:meta "Time"] [:meter [:number "5"] [:number "4"]]]]
+                      [:statement
+                       [:list
+                        [:pair
+                         [:div [:number "1"] [:number "4"]]
+                         [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+                want 500.0]
+            (is (= want (get-ms-per-beat tree)))))
+        (testing "12/8"
+          (let [tree [:track
+                      [:statement
+                       [:header [:meta "Time"] [:meter [:number "12"] [:number "8"]]]]
+                      [:statement
+                       [:list
+                        [:pair
+                         [:div [:number "1"] [:number "8"]]
+                         [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+                want 250.0]
+            (is (= want (get-ms-per-beat tree))))))
+      (testing "complex"
+        (testing "5/4"
+          (let [tree [:track
+                      [:statement
+                       [:header [:meta "Time"] [:meter [:number "5"] [:number "4"]]]]
+                      [:statement
+                       [:list
+                        [:pair
+                         [:div [:number "1"] [:number "4"]]
+                         [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+                want 500.0]
+            (is (= want (get-ms-per-beat tree)))))
+        (testing "7/8"
+          (let [tree [:track
+                      [:statement
+                       [:header [:meta "Time"] [:meter [:number "7"] [:number "8"]]]]
+                      [:statement
+                       [:list
+                        [:pair
+                         [:div [:number "1"] [:number "8"]]
+                         [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
+                want 250.0]
+            (is (= want (get-ms-per-beat tree)))))))))
 
 ; FIXME: nested transitive variables are broken (:A = 1, :B = :A, :C = :B)
 (deftest dereference
