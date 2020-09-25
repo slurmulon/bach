@@ -138,9 +138,9 @@
         (is (= want (get-scaled-beat-unit tree)))))))
 
 ; FIXME: handle notes that aren't % 2
-; FIXME: Write a test for when the lowest beat is not a modulus of the time signature
+; FIXME: Write a test for when the pulse beat is not a modulus of the time signature
 ;  - e.g. "2 -> Chord('...')" in 6|8
-(deftest lowest-beat
+(deftest pulse-beat
   (testing "whole number"
     (let [tree [:track
                 [:statement
@@ -149,7 +149,7 @@
                   [:pair [:number "2"] [:list]]
                   [:pair [:number "1"] [:list]]]]]
           want 1]
-      (is (= want (get-lowest-beat tree)))))
+      (is (= want (get-pulse-beat tree)))))
   (testing "ratio"
     (let [tree [:track
                 [:statement
@@ -158,7 +158,7 @@
                   [:pair [:div [:number "1"] [:number "4"]] [:list]]
                   [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
           want 1/8]
-      (is (= want (get-lowest-beat tree)))))
+      (is (= want (get-pulse-beat tree)))))
   (testing "complex ratio"
     (let [tree [:track
                 [:statement
@@ -171,7 +171,7 @@
                     [:div [:number "1"] [:number "4"]]]
                    [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
           want 3/4]
-      (is (= want (get-lowest-beat tree)))))
+      (is (= want (get-pulse-beat tree)))))
   (testing "misaligned to ratio"
     (let [tree [:track
                 [:statement
@@ -183,7 +183,7 @@
                    [:div [:number "5"] [:number "8"]]
                    [:atom [:keyword "Note"] [:init [:arguments [:string "'E2'"]]]]]]]]
           want 1/8]
-      (is (= want (get-lowest-beat tree)))))
+      (is (= want (get-pulse-beat tree)))))
   (testing "spanning multiple measures"
     (testing "aligned"
       (let [tree [:track
@@ -194,11 +194,11 @@
                     [:pair
                      [:mul [:number "2"] [:div [:number "6"] [:number "8"]]]
                      [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
-            ; TODO: Eventually, once get-lowest-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
-            ; - Probably abandoning this since things are easier if lowest-beat cannot exceed a measure (e.g. 1)
+            ; TODO: Eventually, once get-pulse-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
+            ; - Probably abandoning this since things are easier if pulse-beat cannot exceed a measure (e.g. 1)
             ; want 3/2
             want 3/4]
-        (is (= want (get-lowest-beat tree)))))
+        (is (= want (get-pulse-beat tree)))))
     (testing "aligned (alt)"
       (let [tree [:track
                   [:statement
@@ -212,7 +212,7 @@
             ; - Only want if we support lowest-common-beat exceeding an entire measure (seems too complicated right now)
             ; want 6/4]
             want 3/4]
-        (is (= want (get-lowest-beat tree)))))
+        (is (= want (get-pulse-beat tree)))))
     (testing "misaligned"
       (let [tree [:track
                   [:statement
@@ -223,7 +223,7 @@
                      [:number "2"]
                      [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 1/8]
-        (is (= want (get-lowest-beat tree)))))))
+        (is (= want (get-pulse-beat tree)))))))
 
 ; TODO: Thoroughly test all meters
 (deftest total-beats
@@ -412,78 +412,78 @@
   (testing "common meter"
     (testing "beat unit matches lowest common beat"
       (let [duration 1/2
-            lowest-beat 1/4
+            pulse-beat 1/4
             time-sig 4/4
             want 2]
-        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (is (= want (normalize-duration duration pulse-beat time-sig)))))
     (testing "beat unit is less (shorter) than lowest common beat"
       (let [duration 1
-            lowest-beat 1
+            pulse-beat 1
             time-sig 2/4
             want 2]
-        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (is (= want (normalize-duration duration pulse-beat time-sig)))))
     (testing "beat unit is greater (longer) than lowest common beat"
       (testing "common case"
         (let [duration 1/2
-              lowest-beat 1/8
+              pulse-beat 1/8
               time-sig 4/4
               want 4]
-          (is (= want (normalize-duration duration lowest-beat time-sig)))))
+          (is (= want (normalize-duration duration pulse-beat time-sig)))))
       (testing "less common case"
         (let [duration 1/2
-              lowest-beat 1/8
+              pulse-beat 1/8
               time-sig 2/4
               want 4]
-          (is (= want (normalize-duration duration lowest-beat time-sig)))))
+          (is (= want (normalize-duration duration pulse-beat time-sig)))))
       (testing "and duration misaligns with meter"
         (let [duration 3/8
-              lowest-beat 1/8
+              pulse-beat 1/8
               time-sig 4/4
               want 3]
-          (is (= want (normalize-duration duration lowest-beat time-sig)))))
+          (is (= want (normalize-duration duration pulse-beat time-sig)))))
       (testing "1/16"
         (let [duration 9
-              lowest-beat 1/16
+              pulse-beat 1/16
               time-sig 4/4
               want 144]
-          (is (= want (normalize-duration duration lowest-beat time-sig)))))))
+          (is (= want (normalize-duration duration pulse-beat time-sig)))))))
   (testing "less common meters"
     (testing "duration matches full bar"
       (let [duration 5/8
-            lowest-beat 1/8
+            pulse-beat 1/8
             time-sig 5/8
             want 5]
-        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (is (= want (normalize-duration duration pulse-beat time-sig)))))
     (testing "duration is less than full bar (even meter)"
       (let [duration 4/8
-            lowest-beat 1/8
+            pulse-beat 1/8
             time-sig 6/8
             want 4]
-        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (is (= want (normalize-duration duration pulse-beat time-sig)))))
     (testing "duration is less than full bar (odd meter)"
       (let [duration 3/8
-            lowest-beat 1/8
+            pulse-beat 1/8
             time-sig 5/8
             want 3]
-        (is (= want (normalize-duration duration lowest-beat time-sig)))))
-    (testing "duration is greater than full bar and lowest-beat equals a full bar"
+        (is (= want (normalize-duration duration pulse-beat time-sig)))))
+    (testing "duration is greater than full bar and pulse-beat equals a full bar"
       (let [duration 6/4
-            lowest-beat 3/4
+            pulse-beat 3/4
             time-sig 3/4
             want 2]
-        (is (= want (normalize-duration duration lowest-beat time-sig)))))
-    (testing "duration is less than lowest-beat (edge case)"
+        (is (= want (normalize-duration duration pulse-beat time-sig)))))
+    (testing "duration is less than pulse-beat (edge case)"
       (let [duration 1/16
-            lowest-beat 1/8
+            pulse-beat 1/8
             time-sig 6/8
             want 1/2]
-        (is (= want (normalize-duration duration lowest-beat time-sig)))))
+        (is (= want (normalize-duration duration pulse-beat time-sig)))))
     (testing "beats per measure is greater than beat unit"
       (let [duration 9/8
-            lowest-beat 1/8
+            pulse-beat 1/8
             time-sig 12/8
             want 9]
-        (is (= want (normalize-duration duration lowest-beat time-sig)))))))
+        (is (= want (normalize-duration duration pulse-beat time-sig)))))))
 
 (deftest duration
   (testing "minutes"
@@ -548,7 +548,7 @@
                      [:atom [:keyword "Note"] [:init [:arguments [:string "'C2'"]]]]]]]]
             want 250.0]
         (is (= want (get-ms-per-beat tree))))))
-  ; FIXME: Could improve this by having `get-lowest-beat` look at the reduced values, right now it is using 1/4 when it could use 3/4 if it added 1/2 and 1/4 together first (this should already be happening, actually)
+  ; FIXME: Could improve this by having `get-pulse-beat` look at the reduced values, right now it is using 1/4 when it could use 3/4 if it added 1/2 and 1/4 together first (this should already be happening, actually)
   (testing "meter"
     (testing "simple"
       (testing "3/4"
@@ -898,7 +898,7 @@
                      [:pair [:number "3"] [:list]]]]]]
             want 2000.0]
         (is (= (:ms-per-beat (provision-headers tree)) want))))
-    (testing "lowest beat"
+    (testing "pulse beat"
       (let [tree [:track
                   [:statement
                    [:assign
@@ -907,7 +907,7 @@
                      [:pair [:div [:number "1"] [:number "4"]] [:list]]
                      [:pair [:number "1"] [:list]]]]]]
             want 1/4]
-        (is (= (:lowest-beat (provision-headers tree)) want))))))
+        (is (= (:pulse-beat (provision-headers tree)) want))))))
 
 ; TODO: Probably just move this suite into its own file, semantically these are integration tests
 (deftest compilation
@@ -941,7 +941,7 @@
                             :title "Untitled",
                             :link "",
                             :ms-per-beat 500.0,
-                            :lowest-beat 1/4,
+                            :pulse-beat 1/4,
                             :audio "",
                             :tempo 120},
                   :data [[{:duration 1/4,
@@ -977,7 +977,7 @@
                             :title "Untitled",
                             :link "",
                             :ms-per-beat 1500.0,
-                            :lowest-beat 3/4,
+                            :pulse-beat 3/4,
                             :audio "",
                             :tempo 120},
                   :data [[{:duration 3/4,
@@ -1018,7 +1018,7 @@
                             :title "Untitled",
                             :link "",
                             :ms-per-beat 1800.0,
-                            :lowest-beat 3/4,
+                            :pulse-beat 3/4,
                             :audio "",
                             :tempo 100},
                   :data [[{:duration 3/2,
@@ -1062,7 +1062,7 @@
                  :title "Untitled",
                  :link "",
                  :ms-per-beat 400.0,
-                 :lowest-beat 1/8,
+                 :pulse-beat 1/8,
                  :audio "",
                  :tempo 75},
                 :data

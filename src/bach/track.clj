@@ -7,12 +7,12 @@
 (def default-tempo 120)
 (def default-scale "C2 Major")
 (def default-time-signature [4 4])
-; TODO: Remove all but `tempo`, `time`, `total-beats`, `ms-per-beat`, and `lowest-beat`
+; TODO: Remove all but `tempo`, `time`, `total-beats`, `ms-per-beat`, and `pulse-beat`
 (def default-headers {:tempo default-tempo
                       :time default-time-signature
                       :total-beats 0
                       :ms-per-beat 0
-                      :lowest-beat [1 4]
+                      :pulse-beat [1 4]
                       :title "Untitled"
                       :audio ""
                       :desc ""
@@ -198,9 +198,9 @@
   (first (get-time-signature track))) ; AKA numerator
 
 ; TODO: Rename to `get-slice-beat` or `get-base-beat`
-(defn get-lowest-beat
-  "Despite its name, this determines the greatest common beat (by duration) among every beat in a track.
-   Once a this beat is found, a track can be iterated through evenly (and without variance) by its duration.
+(defn get-pulse-beat
+  "Determines the greatest common beat (by duration) among every beat in a track.
+   Once this beat is found, a track can be iterated through evenly (and without variance) by its duration.
    This logic serves as the basis for normalization of the track, enabling trivial and optimal interpretation."
   [track]
   ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
@@ -217,24 +217,24 @@
           beats-per-measure (get-beats-per-measure reduced-track)
           meter (get-meter reduced-track)
           full-measure meter
-          lowest-beat @lowest-duration
-          lowest-beat-unit (/ 1 (-> lowest-beat
-                                    rationalize
-                                    clojure.lang.Numbers/toRatio
-                                    denominator))
-          lowest-beat-aligns? (= 0 (mod (max lowest-beat meter)
-                                        (min lowest-beat meter)))]
-      (if lowest-beat-aligns?
-        (min lowest-beat full-measure)
-        (min lowest-beat-unit beat-unit)))))
+          pulse-beat @lowest-duration
+          pulse-beat-unit (/ 1 (-> pulse-beat
+                                   rationalize
+                                   clojure.lang.Numbers/toRatio
+                                   denominator))
+          pulse-beat-aligns? (= 0 (mod (max pulse-beat meter)
+                                       (min pulse-beat meter)))]
+      (if pulse-beat-aligns?
+        (min pulse-beat full-measure)
+        (min pulse-beat-unit beat-unit)))))
 
 (defn get-normalized-beats-per-measure
-  "Determines how many beats are in a measure, normalized against the lowest beat of the track"
+  "Determines how many beats are in a measure, normalized against the pulse beat of the track"
   [track]
-  (let [lowest-beat (get-lowest-beat track)
+  (let [pulse-beat (get-pulse-beat track)
         meter (get-meter track)]
-    (/ (max lowest-beat meter)
-       (min lowest-beat meter))))
+    (/ (max pulse-beat meter)
+       (min pulse-beat meter))))
 
 (defn get-total-beats
   "Determines the total number of beats in the track (1 = 1 whole note, NOT necessarily 1 measure depending on the context)."
@@ -255,22 +255,22 @@
     (/ total-beats beat-unit)))
 
 (defn get-normalized-total-beats
-  "Determines the total beats in a track normalized to the lowest beat of the track"
+  "Determines the total beats in a track normalized to the pulse beat of the track"
   [track]
   (let [total-beats (get-total-beats track)
-        lowest-beat (get-lowest-beat track)]
-    (/ (max total-beats lowest-beat)
-       (min total-beats lowest-beat))))
+        pulse-beat (get-pulse-beat track)]
+    (/ (max total-beats pulse-beat)
+       (min total-beats pulse-beat))))
 
 (defn get-total-measures
   "Determines the total number of measures in the track. Beats and measures are equivelant here
-   since the beats are not normalized to the lowest common beat"
+   since the beats are not normalized to the pulse beat"
   [track]
   (get-total-beats track))
 
 ; TODO: Consider renaming to `get-total-bars`
 (defn get-normalized-total-measures
-  "Determines the total number of measures in a track, normalized to the lowest common beat"
+  "Determines the total number of measures in a track, normalized to the pulse beat"
   [track]
   (let [beats-per-measure (get-normalized-beats-per-measure track)
         total-beats (get-normalized-total-beats track)]
@@ -291,15 +291,15 @@
 
 ; @see https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te
 (defn get-ms-per-beat
-  "Determines the number of milliseconds each beat should be played for (normalized to lowest common beat).
+  "Determines the number of milliseconds each beat should be played for (normalized to pulse beat).
    Mostly exists to make parsing easier for the high-level interpreter / player"
   [track]
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
-        lowest-beat (get-lowest-beat reduced-track)
-        scaled-lowest-beat (/ (/ 1 4) lowest-beat)
+        pulse-beat (get-pulse-beat reduced-track)
+        scaled-pulse-beat (/ (/ 1 4) pulse-beat)
         ms-per-beat (* (/ 60 tempo) 1000)
-        norm-ms-per-beat (/ ms-per-beat scaled-lowest-beat)]
+        norm-ms-per-beat (/ ms-per-beat scaled-pulse-beat)]
     (float norm-ms-per-beat)))
 
 (defn normalize-measures
@@ -308,7 +308,7 @@
   [track]
   (let [beat-cursor (atom 0)
         meter (get-meter track)
-        lowest-beat (get-lowest-beat track)
+        pulse-beat (get-pulse-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
         total-measures (Math/ceil (get-normalized-total-measures track))
         total-beats (get-normalized-total-beats track)
@@ -320,7 +320,7 @@
       ; We only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
      {:play (fn [play-track]
               (letfn [(cast-duration [duration]
-                        (normalize-duration duration lowest-beat meter))
+                        (normalize-duration duration pulse-beat meter))
                       (update-cursor [beats]
                         (swap! beat-cursor + beats))
                       (update-measures [measure-index beat-index notes]
@@ -357,13 +357,12 @@
         total-beats (get-total-beats track)
         ; TODO: Consider changing to `get-normalized-ms-per-beat`
         ms-per-beat (get-ms-per-beat track)
-        ; TODO: Either rename as or supplement with `beat-unit` (more clear)
-        lowest-beat (get-lowest-beat track)]
+        pulse-beat (get-pulse-beat track)]
     (assoc headers
            :time time-sig
            :total-beats total-beats
            :ms-per-beat ms-per-beat
-           :lowest-beat lowest-beat)))
+           :pulse-beat pulse-beat)))
 
 ; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
 (defn compile-track
