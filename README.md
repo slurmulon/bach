@@ -112,11 +112,11 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 
 ### Leinengen/Boot
 
-`[bach "1.0.0"]`
+`[bach "1.0.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "bach:bach:1.0.0"`
+`compile "bach:bach:1.0.0-SNAPSHOT"`
 
 ### Maven
 
@@ -124,11 +124,19 @@ To find a list of every construct supported by `bach` (such as `Note`, `Chord`, 
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
 ## Setup
+
+To setup a development environment, first clone then repo:
+
+```sh
+$ git clone git@github.com:slurmulon/bach.git
+```
+
+Then change your current directory to wherever you cloned `bach`, and:
 
 ```sh
 $ lein install
@@ -153,7 +161,7 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/bach -i /path/to/track.bach compile
+$ target/default/bach-1.0.0-SNAPSHOT bach -i /path/to/track.bach compile
 ```
 
 The executable currently supports the following actions:
