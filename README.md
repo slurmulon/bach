@@ -161,7 +161,7 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/default/bach-1.0.0-SNAPSHOT bach -i /path/to/track.bach compile
+$ target/default/bach-1.0.0-SNAPSHOT -i /path/to/track.bach compile
 ```
 
 The executable currently supports the following actions:
