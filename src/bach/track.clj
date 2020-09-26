@@ -308,10 +308,12 @@
         ; - FIXME: Breaks lots of tracks though, see tests. Seems we may have been on the right path to begin with but it needs a little tweaking (probably multiply by the unit-to-pulse-beat-ratio
         ; beats-per-second (/ tempo 60)
         ; seconds-per-beat (/ 1 beats-per-second)
-        ; ms-per-beat (* seconds-per-beat 1000)]
-        ; TODO: Roll with this if we end up normalizing the durations in `normalize-measures`, right now they're strictly based on meter
+        ; ms-per-beat (* seconds-per-beat 1000)
+        ; ; TODO: Roll with this if we end up normalizing the durations in `normalize-measures`, right now they're strictly based on meter
+        ; ;   - TEST THIS
         ; norm-ms-per-beat (/ ms-per-beat pulse-beat)]
     ; ORIG
+    ;  - Still want to use this in EXPERIMENT, since duration is now going to be normalized to pulse-beat
     (float norm-ms-per-beat)))
     ; (float ms-per-beat)))
 
@@ -356,6 +358,8 @@
                                 ; NOTE: Using `duration` instead of `beats` to retain original data
                                 ;       and to avoid normalizing `ms-per-beat`, `total-beats`, etc.
                                 compiled-notes {:duration duration :notes (hiccup-to-hash-map notes)}]
+                                ; EXPERMENT - doing the opposite of above line's comment
+                                ; compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}]
                             (update-measures measure-index beat-index compiled-notes)
                             (update-cursor beats)))}
                  play-track)))}
