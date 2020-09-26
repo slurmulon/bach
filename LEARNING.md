@@ -1,5 +1,9 @@
 # Learning & Help
 
+## Music
+
+ - Time Calculations in Music: http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
+
 ## General
  - http://xahlee.info/clojure/clojure_instaparse.html
  - http://xahlee.info/clojure/clojure_instaparse_output_format.html
