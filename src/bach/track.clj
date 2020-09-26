@@ -288,6 +288,15 @@
       :seconds duration-seconds
       :minutes duration-minutes)))
 
+(defn get-ms-per-unit
+  [track]
+  (let [reduced-track (reduce-track track)
+        tempo (get-tempo reduced-track)
+        beats-per-second (/ tempo 60)
+        seconds-per-beat (/ 1 beats-per-second)
+        ms-per-beat (* seconds-per-beat 1000)]
+   ms-per-beat))
+
 (defn get-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to pulse beat).
    Mostly exists to make parsing easier for the high-level interpreter / player.
@@ -299,21 +308,46 @@
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
         ; ORIG
-        pulse-beat (get-pulse-beat reduced-track)
-        scaled-pulse-beat (/ (/ 1 4) pulse-beat)
-        ms-per-beat (* (/ 60 tempo) 1000)
-        norm-ms-per-beat (/ ms-per-beat scaled-pulse-beat)]
+        ; pulse-beat (get-pulse-beat reduced-track)
+        ; scaled-pulse-beat (/ (/ 1 4) pulse-beat)
+        ; ms-per-beat (* (/ 60 tempo) 1000)
+        ; norm-ms-per-beat (/ ms-per-beat scaled-pulse-beat)]
         ; EXPERIMENT
         ; - Yep, this is it
         ; - FIXME: Breaks lots of tracks though, see tests. Seems we may have been on the right path to begin with but it needs a little tweaking (probably multiply by the unit-to-pulse-beat-ratio
-        ; beats-per-second (/ tempo 60)
-        ; seconds-per-beat (/ 1 beats-per-second)
-        ; ms-per-beat (* seconds-per-beat 1000)
-        ; ; TODO: Roll with this if we end up normalizing the durations in `normalize-measures`, right now they're strictly based on meter
-        ; ;   - TEST THIS
+        beats-per-second (/ tempo 60)
+        seconds-per-beat (/ 1 beats-per-second)
+        ms-per-beat (* seconds-per-beat 1000)
+        ; TODO: Roll with this if we end up normalizing the durations in `normalize-measures`, right now they're strictly based on meter
+        ;   - TEST THIS
         ; norm-ms-per-beat (/ ms-per-beat pulse-beat)]
+        beat-unit (get-beat-unit reduced-track)
+        pulse-beat (get-pulse-beat reduced-track)
+        ; pulse-to-unit-beat-ratio (/ 1 (/ (max beat-unit pulse-beat)
+        ;                                  (min beat-unit pulse-beat)))
+        ; pulse-to-unit-beat-ratio (/ 1 (max beat-unit pulse-beat)
+        ;                               (min beat-unit pulse-beat))
+        ; pulse-to-unit-beat-ratio (/ (max pulse-beat beat-unit)
+        ;                             (min pulse-beat beat-unit))
+        ; PERFECT
+        pulse-to-unit-beat-ratio (/ pulse-beat beat-unit)
+        norm-ms-per-beat (* ms-per-beat pulse-to-unit-beat-ratio)]
+        ; norm-ms-per-beat (cond
+        ;                    (= 1 pulse-to-unit-beat-ratio) ms-per-beat
+        ;                    :else (* ms-per-beat pulse-to-unit-beat-ratio))]
+
+        ; norm-ms-per-beat (* ms-per-beat pulse-to-unit-beat-ratio)]
+        ; norm-ms-per-beat (if (> 1 pulse-to-unit-beat-ratio)
+        ;                    (/ ms-per-beat pulse-to-unit-beat-ratio)
+        ;                    (* ms-per-beat pulse-to-unit-beat-ratio))]
     ; ORIG
     ;  - Still want to use this in EXPERIMENT, since duration is now going to be normalized to pulse-beat
+    (println "beats-per-second" beats-per-second)
+    (println "ms-per-beat" ms-per-beat)
+    (println "beat-unit" beat-unit)
+    (println "pulse-unit" pulse-beat)
+    (println "pulse-to-unit-beat-ratio" pulse-to-unit-beat-ratio)
+    (println " --- result" (float norm-ms-per-beat))
     (float norm-ms-per-beat)))
     ; (float ms-per-beat)))
 
@@ -357,9 +391,9 @@
                                 beat-index (:beat indices)
                                 ; NOTE: Using `duration` instead of `beats` to retain original data
                                 ;       and to avoid normalizing `ms-per-beat`, `total-beats`, etc.
-                                compiled-notes {:duration duration :notes (hiccup-to-hash-map notes)}]
+                                ; compiled-notes {:duration duration :notes (hiccup-to-hash-map notes)}]
                                 ; EXPERMENT - doing the opposite of above line's comment
-                                ; compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}]
+                                compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}]
                             (update-measures measure-index beat-index compiled-notes)
                             (update-cursor beats)))}
                  play-track)))}
@@ -373,13 +407,15 @@
         time-sig (get-time-signature track)
         ; TODO: Consider changing to `get-normalized-total-beats`
         total-beats (get-total-beats track)
-        ; TODO: Consider changing to `get-normalized-ms-per-beat`
+        ; TODO: Consider changing to `ms-per-pulse`
         ms-per-beat (get-ms-per-beat track)
+        ms-per-unit (get-ms-per-unit track)
         pulse-beat (get-pulse-beat track)]
     (assoc headers
            :time time-sig
            :total-beats total-beats
            :ms-per-beat ms-per-beat
+           :ms-per-unit ms-per-unit
            :pulse-beat pulse-beat)))
 
 ; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
