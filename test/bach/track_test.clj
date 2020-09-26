@@ -116,30 +116,6 @@
   ;     (is (= true true))))) ; FIXME/TODO
   )
 
-(deftest beat-unit
-  (testing "basic"
-    (let [tree [:track
-                [:statement
-                 [:header [:meta "Time"] [:meter [:number "4"] [:number "4"]]]]]
-          want 1/4]
-      (is (= want (get-beat-unit tree)))))
-  (testing "scaled"
-    (testing "4/4"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta "Time"] [:meter [:number "4"] [:number "4"]]]]]
-            want 1]
-        (is (= want (get-scaled-beat-unit tree)))))
-    (testing "6/8"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta "Time"] [:meter [:number "6"] [:number "8"]]]]]
-            want 1/2]
-        (is (= want (get-scaled-beat-unit tree)))))))
-
-; FIXME: handle notes that aren't % 2
-; FIXME: Write a test for when the pulse beat is not a modulus of the time signature
-;  - e.g. "2 -> Chord('...')" in 6|8
 (deftest pulse-beat
   (testing "whole number"
     (let [tree [:track
