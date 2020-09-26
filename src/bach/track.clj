@@ -117,7 +117,7 @@
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat).
-  In general, this determines 'How many `unit`s` does the provided `duration` equal considering the `meter` (i.e. time-sig)?."
+  In general, this determines 'How many `unit`s` does the provided `duration` in this `meter` (i.e. time-sig)?'."
   [duration unit meter]
   (let [inverse-meter (inverse-ratio (rationalize meter))
         inverse-unit (inverse-ratio (rationalize unit))
@@ -179,12 +179,6 @@
   "Determines the reference unit to use for beats, based on time signature"
   [track]
   (/ 1 (last (get-time-signature track)))) ; AKA 1/denominator
-
-(defn get-scaled-beat-unit
-  "Determines the reference unit to use for beats, scaled to a quarter note
-   @see https://music.stackexchange.com/a/24141"
-  [track]
-  (/ 4 (last (get-time-signature track))))
 
 (defn get-beat-unit-ratio
   "Determines the ratio between the beat unit and the number of beats per measure"
@@ -288,35 +282,42 @@
       :seconds duration-seconds
       :minutes duration-minutes)))
 
-; TODO: Use in get-ms-per-beat
 ; TODO: Write tests
-(defn get-ms-per-unit
+(defn get-scaled-ms-per-beat
+  "Determines the number of milliseconds each beat should be played for (scaled to the beat unit)"
   [track]
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
         beats-per-second (/ tempo 60)
         seconds-per-beat (/ 1 beats-per-second)
         ms-per-beat (* seconds-per-beat 1000)]
-   ms-per-beat))
+    (float ms-per-beat)))
 
-(defn get-ms-per-beat
-  "Determines the number of milliseconds each beat should be played for (normalized to pulse beat).
-   Mostly exists to make parsing easier for the high-level interpreter / player.
+(defn get-normalized-ms-per-beat
+  "Determines the number of milliseconds each beat should be played for (normalized to the pulse beat).
+   Primarily exists to make parsing simple and optimized in the high-level interpreter / player.
+   Referred to generally as 'beat' because, as of now, all compiled beat durations (via `compile-track`) are normalized to the pulse beat.
 
    References:
      http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
      https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te"
   [track]
   (let [reduced-track (reduce-track track)
-        tempo (get-tempo reduced-track)
-        beats-per-second (/ tempo 60)
-        seconds-per-beat (/ 1 beats-per-second)
-        ms-per-beat (* seconds-per-beat 1000)
+        ms-per-beat-unit (get-scaled-ms-per-beat reduced-track)
         beat-unit (get-beat-unit reduced-track)
         pulse-beat (get-pulse-beat reduced-track)
         pulse-to-unit-beat-ratio (/ pulse-beat beat-unit)
-        norm-ms-per-beat (* ms-per-beat pulse-to-unit-beat-ratio)]
-    (float norm-ms-per-beat)))
+        ms-per-pulse-beat (* ms-per-beat-unit pulse-to-unit-beat-ratio)]
+    (float ms-per-pulse-beat)))
+
+(defn get-ms-per-beat
+  "Dynamically determines the ms-per-beat based on the kind of the beat, either :pulse (default) or :unit."
+  ([track kind]
+   (case kind
+     :pulse (get-normalized-ms-per-beat track)
+     :unit (get-scaled-ms-per-beat track)))
+  ([track]
+   (get-normalized-ms-per-beat track)))
 
 (defn normalize-measures
   "Parses the track data exported via `Play` into a normalized matrix where each row (measure) has the same number of elements (beats).
@@ -371,8 +372,8 @@
         ; TODO: Consider changing to `get-normalized-total-beats`
         total-beats (get-total-beats track)
         ; TODO: Consider changing to `ms-per-pulse`
-        ms-per-beat (get-ms-per-beat track)
-        ms-per-unit (get-ms-per-unit track)
+        ms-per-beat (get-normalized-ms-per-beat track)
+        ms-per-unit (get-scaled-ms-per-beat track)
         pulse-beat (get-pulse-beat track)]
     (assoc headers
            :time time-sig
