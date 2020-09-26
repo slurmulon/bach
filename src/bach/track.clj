@@ -194,8 +194,8 @@
 ; TODO: Rename to `get-slice-beat` or `get-base-beat`
 (defn get-pulse-beat
   "Determines the greatest common beat (by duration) among every beat in a track.
-   Once this beat is found, a track can be iterated through evenly (and without variance) by its duration.
-   This logic serves as the basis for normalization of the track, enabling trivial and optimal interpretation."
+   Once this beat is found, a track can be iterated through evenly (and without variance) via an arbitrary interval, timer, etc.
+   This differs from the common frame approach which frequently queries the current measure/beat on each frame tick (potentially hundreds of times per second depending on the user's hardware)."
   [track]
   ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
   ; @see: https://cljs.github.io/api/syntax/Inf
