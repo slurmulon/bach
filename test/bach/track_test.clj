@@ -764,14 +764,14 @@
                 [:statement
                  [:play [:identifier ":ABC"]]]]
           want [[{:duration 1,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["D2min7"]}}}]
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["D2min7"]}}]}]
                 [{:duration 1,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["G2Maj7"]}}}]
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["G2Maj7"]}}]}]
                 [{:duration 1,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["C2maj7"]}}}]]]
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["C2maj7"]}}]}]]]
       (is (= want (normalize-measures tree)))))
   (testing "with half notes"
     (let [tree [:track
@@ -796,14 +796,14 @@
                      [:arguments [:string "'C2maj7'"]]]]]]]
                 [:statement [:play [:identifier ":ABC"]]]]
           want [[{:duration 1,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["D2min7"]}}}
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["D2min7"]}}]}
                  {:duration 1,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["G2Maj7"]}}}]
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["G2Maj7"]}}]}]
                 [{:duration 2,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["C2maj7"]}}}
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["C2maj7"]}}]}
                  nil]]]
       (is (= want (normalize-measures tree)))))
   (testing "with quarter notes"
@@ -830,15 +830,15 @@
                 [:statement
                  [:play [:identifier ":ABC"]]]]
           want [[{:duration 1,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["D2min7"]}}}
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["D2min7"]}}]}
                  {:duration 2,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["G2Maj7"]}}}
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["G2Maj7"]}}]}
                  nil
                  {:duration 1,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["C2maj7"]}}}]]]
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["C2maj7"]}}]}]]]
       (is (= want (normalize-measures tree)))))
   (testing "with eigth notes"
     (let [tree [:track
@@ -860,15 +860,15 @@
                      [:keyword "Chord"]
                      [:arguments [:string "Emin7"]]]]]]]]
           want [[{:duration 5,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["Dmin7"]}}}
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["Dmin7"]}}]}
                  nil
                  nil
                  nil
                  nil
                  {:duration 3,
-                  :notes {:atom {:keyword "Chord",
-                                 :arguments ["Emin7"]}}}
+                  :notes [{:atom {:keyword "Chord",
+                                 :arguments ["Emin7"]}}]}
                  nil
                  nil]]]
       (is (= want (normalize-measures tree)))))
@@ -900,14 +900,14 @@
                        [:keyword "Chord"]
                        [:arguments [:string "'Bb'"]]]]]]]]
             want [[{:duration 1,
-                    :notes {:atom {:keyword "Chord",
-                                   :arguments ["Cmin"]}}}
+                    :notes [{:atom {:keyword "Chord",
+                                   :arguments ["Cmin"]}}]}
                    {:duration 1,
-                    :notes {:atom {:keyword "Chord",
-                                   :arguments ["G/B"]}}}]
+                    :notes [{:atom {:keyword "Chord",
+                                   :arguments ["G/B"]}}]}]
                   [{:duration 1,
-                    :notes {:atom {:keyword "Chord",
-                                   :arguments ["Bb"]}}}]]]
+                    :notes [{:atom {:keyword "Chord",
+                                   :arguments ["Bb"]}}]}]]]
         (is (= want (normalize-measures tree)))))
     (testing "and total beats is under a total measure"
       (let [tree [:track
@@ -920,8 +920,8 @@
                        [:keyword "Chord"]
                        [:arguments [:string "'Cmin'"]]]]]]]]
             want [[{:duration 1,
-                    :notes {:atom {:keyword "Chord",
-                                   :arguments ["Cmin"]}}}
+                    :notes [{:atom {:keyword "Chord",
+                                   :arguments ["Cmin"]}}]}
                     ; TODO: Consider (from design perspective) if this trailing nil should be removed.
                    nil]]]
         (is (= want (normalize-measures tree)))))
@@ -946,15 +946,15 @@
                        [:keyword "Chord"]
                        [:arguments [:string "'A7'"]]]]]]]]
             want [[{:duration 1,
-                    :notes {:atom {:keyword "Chord",
-                                   :arguments ["Bb"]}}}
+                    :notes [{:atom {:keyword "Chord",
+                                   :arguments ["Bb"]}}]}
                    {:duration 2,
-                    :notes {:atom {:keyword "Chord",
-                                   :arguments ["A7sus4"]}}}]
+                    :notes [{:atom {:keyword "Chord",
+                                   :arguments ["A7sus4"]}}]}]
                   [nil
                    {:duration 2,
-                    :notes {:atom {:keyword "Chord",
-                                   :arguments ["A7"]}}}]
+                    :notes [{:atom {:keyword "Chord",
+                                   :arguments ["A7"]}}]}]
                   [nil]]]
         (is (= want (normalize-measures tree)))))))
 

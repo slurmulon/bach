@@ -1,7 +1,7 @@
 (ns bach.track
   (:require [instaparse.core :as insta]
             [bach.ast :refer [parse]]
-            [bach.data :refer [hiccup-to-hash-map
+            [bach.data :refer [hiccup-to-vector
                                ratio-to-vector
                                trim-matrix-row
                                inverse-ratio
@@ -366,8 +366,9 @@
                                 indices (beat-indices beats)
                                 measure-index (:measure indices)
                                 beat-index (:beat indices)
-                                ; TODO: Consider adding `duration` here as well, as `unit-duration`
-                                compiled-notes {:duration beats :notes (hiccup-to-hash-map notes)}]
+                                ; TODO: Consider binding/exporting `duration` here as well, as `unit-duration`
+                                compiled-notes {:duration beats
+                                                :notes (hiccup-to-vector notes)}]
                             (update-measures measure-index beat-index compiled-notes)
                             (update-cursor beats)))}
                  play-track)))}
