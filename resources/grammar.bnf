@@ -16,15 +16,21 @@ header     = meta <'='> elem
 attribute  = word [<empty>] <':'> [<empty>] prim
 identifier = [<empty>] #':[a-zA-Z]+' [<empty>]
 arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
-meta       = [<empty>] <'@'> #'(Audio|Instrument|Time|Tempo|Key|Delay|Link|Title|Artist|Desc|Tags)' [<empty>]
+(* TODO: Loosen up and allow any [a-zA-Z0-9]+ instead *)
+meta       = [<empty>] <'@'> #'(Audio|Instrument|Meter|Tempo|Key|Delay|Link|Title|Artist|Desc|Tags)' [<empty>]
+(* TODO: Loosen up and allow any [a-zA-Z0-9]+ (and ~) instead *)
 keyword    = [<empty>] #'(`|~|Note|Scale|Chord|Mode|Triad)' [<empty>]
 play       = [<empty>] <'!Play'> [<empty>] elem
+(* FIXME: Only support `int` here *)
 meter      = [<empty>] number <'|'> number [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
-number     = #'(0|([1-9][0-9]*))(\.[0-9]+)?'
+<int>      = #'(0|([1-9][0-9]*))'
+<float>    = #'(0|([1-9][0-9]*))(\.[0-9]+)?'
+number     = int | float
 color      = #'#[a-fA-F0-9xX]{3,6}'
 <empty>    = #'(\r\n|\n|\r|\s)*'
+(* TODO: Support comments *)
 
 (* Math *)
 add = term <'+'> expr
