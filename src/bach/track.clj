@@ -1,20 +1,21 @@
 (ns bach.track
   (:require [instaparse.core :as insta]
             [bach.ast :refer [parse]]
-            [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-row inverse-ratio]]))
+            [bach.data :refer [hiccup-to-hash-map
+                               ratio-to-vector
+                               trim-matrix-row
+                               inverse-ratio]]))
 
 (defstruct playable-track :headers :data)
 
 (def default-tempo 120)
 (def default-meter [4 4])
-; TODO: Remove all but `tempo`, `time`, `total-beats`, `ms-per-beat`, and `pulse-beat`
+(def default-beat-unit (/ 1 (last default-meter)))
+(def default-pulse-beat default-beat-unit)
 (def default-headers {:tempo default-tempo
-                      ; :time default-time-signature
-                      ; :total-beats 0
-                      ; :ms-per-beat 0
                       :meter default-meter
-                      :beat-unit 1/4
-                      :pulse-beat 1/4
+                      :beat-unit default-beat-unit
+                      :pulse-beat default-pulse-beat
                       :total-beats 0
                       :total-beat-units 0
                       :total-pulse-beats 0
@@ -154,18 +155,21 @@
     @header))
 
 (defn get-meter
+  "Determines the global meter, or time signature, of the track. Localized meters are NOT supported yet."
   [track]
   (let [reduced-track (reduce-values track)
         header (find-header reduced-track "Meter" default-meter)]
     header))
 
 (defn get-meter-ratio
+  "Determines the global meter ratio of the track.
+   For example: The ratio of the 6|8 meter is 3/4."
   [track]
   (let [[beats-per-measure & [beat-unit]] (get-meter track)]
     (/ beats-per-measure beat-unit)))
 
-; FIXME: Support floating point tempos
 (defn get-tempo
+  "Determines the global tempo of the track. Localized tempos are NOT supported yet."
   [track]
   (find-header track "Tempo" default-tempo))
 
@@ -386,9 +390,6 @@
            :pulse-beat pulse-beat)))
 
 ; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
-; (defn compile-track
-; (defn play
-; (defn build
 (defn provision
   "Provisions a parsed track, generating and organizating all of the information necessary to easily
    interpret a track as a single stream of normalized data (no references, all values are resolved and optimized)."
@@ -397,15 +398,9 @@
     (let [headers (provision-headers track)
           data (normalize-measures track)]
           ; TODO: version
-      ; (struct compiled-track headers data))))
       (struct playable-track headers data))))
 
 (defn compose
-; defn build
-; defn usable
-; defn playable
-; defn export
-; (defn make
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
    A 'playable' track is formatted so that it is easily iterated over by a high-level Bach engine."
   [track]
@@ -415,4 +410,4 @@
     (string? track)
       (-> track parse provision)
     :else
-      (throw (Exception. (str "Cannot compose track, provided unsupported data format (must be a parsed AST vector or a UTF-8 string)")))))
+      (throw (Exception. (str "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))))
