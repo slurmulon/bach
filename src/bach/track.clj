@@ -1,23 +1,25 @@
 (ns bach.track
   (:require [instaparse.core :as insta]
+            [bach.ast :refer [parse]]
             [bach.data :refer [hiccup-to-hash-map ratio-to-vector trim-matrix-row inverse-ratio]]))
 
-(defstruct compiled-track :headers :data)
+(defstruct playable-track :headers :data)
 
 (def default-tempo 120)
-(def default-scale "C2 Major")
-(def default-time-signature [4 4])
+(def default-meter [4 4])
 ; TODO: Remove all but `tempo`, `time`, `total-beats`, `ms-per-beat`, and `pulse-beat`
 (def default-headers {:tempo default-tempo
-                      :time default-time-signature
+                      ; :time default-time-signature
+                      ; :total-beats 0
+                      ; :ms-per-beat 0
+                      :meter default-meter
+                      :beat-unit 1/4
+                      :pulse-beat 1/4
                       :total-beats 0
-                      :ms-per-beat 0
-                      :pulse-beat [1 4]
-                      :title "Untitled"
-                      :audio ""
-                      :desc ""
-                      :link ""
-                      :tags []})
+                      :total-beat-units 0
+                      :total-pulse-beats 0
+                      :ms-per-pulse-beat 0
+                      :ms-per-beat-unit 0})
 
 (def powers-of-two (iterate (partial * 2) 1))
 
@@ -116,7 +118,7 @@
       reduce-values))
 
 (defn normalize-duration
-  "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat).
+  "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
   In general, this determines 'How many `unit`s` does the provided `duration` in this `meter` (i.e. time-sig)?'."
   [duration unit meter]
   (let [inverse-meter (inverse-ratio (rationalize meter))
@@ -151,15 +153,15 @@
      track)
     @header))
 
-(defn get-time-signature
-  [track]
-  (let [reduced-track (reduce-values track)
-        header (find-header reduced-track "Time" default-time-signature)]
-    header))
-
 (defn get-meter
   [track]
-  (let [[beats-per-measure & [beat-unit]] (get-time-signature track)]
+  (let [reduced-track (reduce-values track)
+        header (find-header reduced-track "Meter" default-meter)]
+    header))
+
+(defn get-meter-ratio
+  [track]
+  (let [[beats-per-measure & [beat-unit]] (get-meter track)]
     (/ beats-per-measure beat-unit)))
 
 ; FIXME: Support floating point tempos
@@ -167,35 +169,26 @@
   [track]
   (find-header track "Tempo" default-tempo))
 
-(defn get-tags
-  [track]
-  (find-header track "Tags" []))
-
-(defn get-title
-  [track]
-  (find-header track "Title" [:string "Untitled"]))
-
 (defn get-beat-unit
   "Determines the reference unit to use for beats, based on time signature"
   [track]
-  (/ 1 (last (get-time-signature track)))) ; AKA 1/denominator
+  (/ 1 (last (get-meter track)))) ; AKA 1/denominator
 
 (defn get-beat-unit-ratio
   "Determines the ratio between the beat unit and the number of beats per measure"
   [track]
-  (let [[beats-per-measure & [beat-unit]] (get-time-signature track)]
+  (let [[beats-per-measure & [beat-unit]] (get-meter track)]
     (mod beat-unit beats-per-measure)))
 
 (defn get-beats-per-measure
   "Determines how many beats are in each measure, based on the time signature"
   [track]
-  (first (get-time-signature track))) ; AKA numerator
+  (first (get-meter track))) ; AKA numerator
 
-; TODO: Rename to `get-slice-beat` or `get-base-beat`
 (defn get-pulse-beat
   "Determines the greatest common beat (by duration) among every beat in a track.
    Once this beat is found, a track can be iterated through evenly (and without variance) via an arbitrary interval, timer, etc.
-   This differs from the common frame approach which frequently queries the current measure/beat on each frame tick (potentially hundreds of times per second depending on the user's hardware)."
+   This differs from the frame spotting approach which queries the current measure/beat on each frame tick."
   [track]
   ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
   ; @see: https://cljs.github.io/api/syntax/Inf
@@ -208,7 +201,7 @@
                 (reset! lowest-duration duration)))}
      reduced-track)
     (let [beat-unit (get-beat-unit reduced-track)
-          meter (get-meter reduced-track)
+          meter (get-meter-ratio reduced-track)
           full-measure meter
           pulse-beat @lowest-duration
           pulse-beat-unit (/ 1 (-> pulse-beat
@@ -225,7 +218,7 @@
   "Determines how many beats are in a measure, normalized against the pulse beat of the track"
   [track]
   (let [pulse-beat (get-pulse-beat track)
-        meter (get-meter track)]
+        meter (get-meter-ratio track)]
     (/ (max pulse-beat meter)
        (min pulse-beat meter))))
 
@@ -288,6 +281,7 @@
   [track]
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
+        beat-unit (get-beat-unit reduced-track)
         beats-per-second (/ tempo 60)
         seconds-per-beat (/ 1 beats-per-second)
         ms-per-beat (* seconds-per-beat 1000)]
@@ -296,8 +290,7 @@
 (defn get-normalized-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to the pulse beat).
    Primarily exists to make parsing simple and optimized in the high-level interpreter / player.
-   Referred to generally as 'beat' because, as of now, all compiled beat durations (via `compile-track`) are normalized to the pulse beat.
-
+   Referred to as 'normalized' because, as of now, all compiled beat durations (via `compile-track`) are normalized to the pulse beat.
    References:
      http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
      https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te"
@@ -324,7 +317,7 @@
    Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through."
   [track]
   (let [beat-cursor (atom 0)
-        meter (get-meter track)
+        meter (get-meter-ratio track)
         pulse-beat (get-pulse-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
         total-measures (Math/ceil (get-normalized-total-measures track))
@@ -365,29 +358,61 @@
     @measures))
 
 (defn provision-headers
-  "Combines default static meta information with dynamic meta information to provide a provisioned set of headers"
+  "Combines default static meta information with dynamic meta information to provide a provisioned set of headers.
+  Several headers could easily be calculated by a client interpreter, but they are intentionally defined here to refine rhythmic semantics and simplify synchronization."
   [track]
   (let [headers (get-headers track)
-        time-sig (get-time-signature track)
+        meter (get-meter track)
         ; TODO: Consider changing to `get-normalized-total-beats`
+        ; TODO: Rename to `total-beat-units` or `total-units`
         total-beats (get-total-beats track)
-        ; TODO: Consider changing to `ms-per-pulse`
-        ms-per-beat (get-normalized-ms-per-beat track)
-        ms-per-unit (get-scaled-ms-per-beat track)
+        ; FIXME: Need to handle divide by 0 properly (or error in `validate` instead)
+        ; total-beat-units (get-scaled-total-beats track)
+        ; total-pulse-beats (get-normalized-total-beats track)
+        ms-per-pulse-beat (get-ms-per-beat track :pulse)
+        ms-per-beat-unit (get-ms-per-beat track :unit)
+        beat-unit (get-beat-unit track)
         pulse-beat (get-pulse-beat track)]
     (assoc headers
-           :time time-sig
+           :meter meter
            :total-beats total-beats
-           :ms-per-beat ms-per-beat
-           :ms-per-unit ms-per-unit
+           ; :total-beat-units total-beat-units
+           ; :total-pulse-beats total-pulse-beats
+           ; :ms-per-pulse-beat ms-per-pulse-beat
+           ; :ms-per-beat-unit ms-per-beat-unit
+           :ms-per-pulse-beat ms-per-pulse-beat
+           :ms-per-beat-unit ms-per-beat-unit
+           :beat-unit beat-unit
            :pulse-beat pulse-beat)))
 
 ; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
-(defn compile-track
-  "Provides a 'compiled' version of a parsed track that contains all of the information necessary to easily
-   interpret a track as a single stream of normalized data (no references, all values are resolved)"
+; (defn compile-track
+; (defn play
+; (defn build
+(defn provision
+  "Provisions a parsed track, generating and organizating all of the information necessary to easily
+   interpret a track as a single stream of normalized data (no references, all values are resolved and optimized)."
   [track]
   (when (validate track)
     (let [headers (provision-headers track)
           data (normalize-measures track)]
-      (struct compiled-track headers data))))
+          ; TODO: version
+      ; (struct compiled-track headers data))))
+      (struct playable-track headers data))))
+
+(defn compose
+; defn build
+; defn usable
+; defn playable
+; defn export
+; (defn make
+  "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
+   A 'playable' track is formatted so that it is easily iterated over by a high-level Bach engine."
+  [track]
+  (cond
+    (vector? track)
+      (provision track)
+    (string? track)
+      (-> track parse provision)
+    :else
+      (throw (Exception. (str "Cannot compose track, provided unsupported data format (must be a parsed AST vector or a UTF-8 string)")))))

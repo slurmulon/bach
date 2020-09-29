@@ -92,13 +92,13 @@
                   [:meta "Title"]
                   [:string "'Test Track'"]]]]]
       (is (= want (parse "@Title = 'Test Track'")))))
-  (testing "time"
+  (testing "meter"
     (let [want [:track
                 [:statement
                  [:header
-                  [:meta "Time"]
+                  [:meta "Meter"]
                   [:meter [:number "6"] [:number "8"]]]]]]
-      (is (= want (parse "@Time = 6|8")))))
+      (is (= want (parse "@Meter = 6|8")))))
   (testing "tags"
     (let [want [:track
                 [:statement
