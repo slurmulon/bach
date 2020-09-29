@@ -1,8 +1,8 @@
 (ns bach.cli
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as string]
-            [bach.ast :as ast]
-            [bach.track :refer [compile-track]]
+            [bach.ast :refer [parse]]
+            [bach.track :refer [compose]]
             [bach.data :refer [to-json]])
   (:gen-class))
 
@@ -15,12 +15,14 @@
 (def handlers
   {:parse (fn [data]
             (let [input (:input data)
-                  output (ast/parse (slurp input))]
+                  output (-> input slurp parse)]
               (println output)))
    :compile (fn [data]
               (let [input (:input data)
-                    parsed (ast/parse (slurp input))
-                    output (-> parsed compile-track to-json)]
+                    output (-> input
+                               slurp
+                               compose
+                               to-json)]
                 (println output)))})
 
 (defn help [options]
@@ -32,8 +34,8 @@
         options
         ""
         "Actions:"
-        "  parse        Parses plain-text bach data into an Abstract Syntax Tree (AST)"
-        "  compile      Compiles plain-text bach data into bach.json, an easy to interpret JSON micro-format"]
+        "  parse        Parses UTF-8 encoded bach data into an Abstract Syntax Tree (AST)"
+        "  compile      Compiles UTF-8 bach data into bach.json, an easy to interpret JSON micro-format"]
        (string/join \newline)))
 
 (defn error-msg [errors]
