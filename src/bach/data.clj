@@ -44,6 +44,14 @@
     (let [[ratio-numerator & [ratio-denominator]] (ratio-to-vector ratio)]
       (/ ratio-denominator ratio-numerator))))
 
+(defn safe-ratio
+  "Divides two numeric values in a safe way that defaults to 0 during exceptions.
+   Ideal when y might be 0 and you want to avoid explicitly handling this case."
+  [x y]
+  (try (/ x y)
+    (catch ArithmeticException _
+      0)))
+
 (defn trim-matrix-row
   "Trims columns from a specified row in a matrix (i.e nested array of depth 2)"
   [matrix row cols]

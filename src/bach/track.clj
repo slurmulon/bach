@@ -4,7 +4,8 @@
             [bach.data :refer [hiccup-to-hash-map
                                ratio-to-vector
                                trim-matrix-row
-                               inverse-ratio]]))
+                               inverse-ratio
+                               safe-ratio]]))
 
 (defstruct playable-track :headers :data)
 
@@ -23,6 +24,12 @@
                       :ms-per-beat-unit 0})
 
 (def powers-of-two (iterate (partial * 2) 1))
+
+; (defn safe-ratio
+;   [x y]
+;   (try (/ x y)
+;     (catch ArithmeticException _
+;       0)))
 
 (defn variable-scope
   "Provides a localized scope/stack for tracking variables"
@@ -223,11 +230,14 @@
   [track]
   (let [pulse-beat (get-pulse-beat track)
         meter (get-meter-ratio track)]
-    (/ (max pulse-beat meter)
-       (min pulse-beat meter))))
+    (safe-ratio
+      (max pulse-beat meter)
+      (min pulse-beat meter))))
 
 (defn get-total-beats
-  "Determines the total number of beats in the track (1 = 1 whole note, NOT necessarily 1 measure depending on the context)."
+  "Determines the total number of beats in the track.
+   Beats are represented in traditional semibreves/whole notes and crotchet/quarternotes.
+   In other words, a beat with a duration of 1 is equivalant to 4 quarter notes, or 1 measure in 4|4 time."
   [track]
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
@@ -240,34 +250,37 @@
 (defn get-scaled-total-beats
   "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)"
   [track]
-  (let [total-beats (get-total-beats track)
-        beat-unit (get-beat-unit track)]
-    (/ total-beats beat-unit)))
+  (safe-ratio
+    (get-total-beats track)
+    (get-beat-unit track)))
 
 (defn get-normalized-total-beats
   "Determines the total beats in a track normalized to the pulse beat of the track"
   [track]
   (let [total-beats (get-total-beats track)
         pulse-beat (get-pulse-beat track)]
-    (/ (max total-beats pulse-beat)
-       (min total-beats pulse-beat))))
+    (safe-ratio
+      (max total-beats pulse-beat)
+      (min total-beats pulse-beat))))
 
+; TODO: Just remove this, only beneficial in 4|4 time. Pointless elswhere since already handled by get-normalized-total-measures and get-normalized-total-beats.
 (defn get-total-measures
-  "Determines the total number of measures in the track. Beats and measures are equivelant here
-   since the beats are not normalized to the pulse beat"
+  "Determines the total number of measures in the track.
+   Beats and measures are equivelant here since the beats are normalized to traditional semibreves/whole notes and crotchet/quarternotes.
+  In other words, a beat with a duration of 1 is equivalant to 4 quarter notes, or 1 measure in 4|4 time."
   [track]
   (get-total-beats track))
 
 ; TODO: Consider renaming to `get-total-bars`
 (defn get-normalized-total-measures
-  "Determines the total number of measures in a track, normalized to the pulse beat"
+  "Determines the total number of measures in a track, normalized to the pulse beat."
   [track]
-  (let [beats-per-measure (get-normalized-beats-per-measure track)
-        total-beats (get-normalized-total-beats track)]
-    (/ total-beats beats-per-measure)))
+  (let [total-beats (get-normalized-total-beats track)
+        beats-per-measure (get-normalized-beats-per-measure track)]
+    (safe-ratio total-beats beats-per-measure)))
 
 (defn get-total-duration
-  "Determines the total time duration of a track (milliseconds, seconds, minutes)"
+  "Determines the total time duration of a track (milliseconds, seconds, minutes)."
   [track unit]
   (let [total-beats (get-scaled-total-beats track) ; using scaled because it's adjusted based on time signature, which is important for comparing against tempo
         tempo-bpm (get-tempo track)
@@ -281,7 +294,7 @@
 
 ; TODO: Write tests
 (defn get-scaled-ms-per-beat
-  "Determines the number of milliseconds each beat should be played for (scaled to the beat unit)"
+  "Determines the number of milliseconds each beat should be played for (scaled to the beat unit)."
   [track]
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
@@ -297,7 +310,7 @@
    Referred to as 'normalized' because, as of now, all compiled beat durations (via `compile-track`) are normalized to the pulse beat.
    References:
      http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
-     https://music.stackexchange.com/questions/24140/how-can-i-find-the-length-in-seconds-of-a-quarter-note-crotchet-if-i-have-a-te"
+     https://music.stackexchange.com/a/24141"
   [track]
   (let [reduced-track (reduce-track track)
         ms-per-beat-unit (get-scaled-ms-per-beat reduced-track)
@@ -370,9 +383,8 @@
         ; TODO: Consider changing to `get-normalized-total-beats`
         ; TODO: Rename to `total-beat-units` or `total-units`
         total-beats (get-total-beats track)
-        ; FIXME: Need to handle divide by 0 properly (or error in `validate` instead)
-        ; total-beat-units (get-scaled-total-beats track)
-        ; total-pulse-beats (get-normalized-total-beats track)
+        total-beat-units (get-scaled-total-beats track)
+        total-pulse-beats (get-normalized-total-beats track)
         ms-per-pulse-beat (get-ms-per-beat track :pulse)
         ms-per-beat-unit (get-ms-per-beat track :unit)
         beat-unit (get-beat-unit track)
@@ -380,10 +392,8 @@
     (assoc headers
            :meter meter
            :total-beats total-beats
-           ; :total-beat-units total-beat-units
-           ; :total-pulse-beats total-pulse-beats
-           ; :ms-per-pulse-beat ms-per-pulse-beat
-           ; :ms-per-beat-unit ms-per-beat-unit
+           :total-beat-units total-beat-units
+           :total-pulse-beats total-pulse-beats
            :ms-per-pulse-beat ms-per-pulse-beat
            :ms-per-beat-unit ms-per-beat-unit
            :beat-unit beat-unit
