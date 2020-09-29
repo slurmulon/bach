@@ -21,15 +21,23 @@
     :play (fn [el] {:play el})}
    tree))
 
+(defn hiccup-to-vector
+  "Converts an instaparse :hiccup tree into a flat vector."
+  [tree]
+  (-> [tree]
+      hiccup-to-hash-map
+      flatten
+      vec))
+
 (defn hiccup-to-json
-  "Converts an instaparse :hiccup tree into JSON"
+  "Converts an instaparse :hiccup tree into JSON."
   [tree]
   (-> tree
       hiccup-to-hash-map
       to-json))
 
 (defn ratio-to-vector
-  "Converts a ratio to a vector"
+  "Converts a ratio to a vector."
   [ratio]
   (cond
     (ratio? ratio) [(numerator ratio) (denominator ratio)]
@@ -37,7 +45,7 @@
     :else (throw (Exception. "input must be a ratio or a vector"))))
 
 (defn inverse-ratio
-  "Calculates the inverse of a ratio"
+  "Calculates the inverse of a ratio."
   [ratio]
   (if (integer? ratio)
     (/ 1 ratio)
@@ -53,7 +61,7 @@
       0)))
 
 (defn trim-matrix-row
-  "Trims columns from a specified row in a matrix (i.e nested array of depth 2)"
+  "Trims tail columns from a specified row in a matrix (i.e nested array of depth 2)."
   [matrix row cols]
   (if (> cols 0)
     (let [clip #(->> % (drop-last cols) (into []))]
