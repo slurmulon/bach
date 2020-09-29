@@ -2,6 +2,7 @@
   (:require [instaparse.core :as insta]
             [bach.ast :refer [parse]]
             [bach.data :refer [hiccup-to-vector
+                               hiccup-to-hash-map
                                ratio-to-vector
                                trim-matrix-row
                                inverse-ratio
@@ -347,7 +348,9 @@
       ; We only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
      {:play (fn [play-track]
               (letfn [(cast-duration [duration]
-                        (normalize-duration duration pulse-beat meter))
+                        (int (normalize-duration duration pulse-beat meter)))
+                      (compile-notes [notes]
+                        (->> [notes] hiccup-to-hash-map flatten (map :atom) vec))
                       (update-cursor [beats]
                         (swap! beat-cursor + beats))
                       (update-measures [measure-index beat-index notes]
@@ -368,7 +371,7 @@
                                 beat-index (:beat indices)
                                 ; TODO: Consider binding/exporting `duration` here as well, as `unit-duration`
                                 compiled-notes {:duration beats
-                                                :notes (hiccup-to-vector notes)}]
+                                                :notes (compile-notes notes)}]
                             (update-measures measure-index beat-index compiled-notes)
                             (update-cursor beats)))}
                  play-track)))}
