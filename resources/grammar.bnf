@@ -13,23 +13,17 @@ list       = [<empty>] <'['> [elem (<','|empty> elem)* [<','>]] <']'> [<empty>]
 pair       = expr <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> elem
 header     = meta <'='> elem
-(* attribute  = word [<empty>] <':'> [<empty>] prim *)
 attribute  = name [<empty>] <':'> [<empty>] prim 
-(* identifier = [<empty>] #':[a-zA-Z]+' [<empty>] *)
 identifier = [<empty>] <':'> name [<empty>]
 arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
-(* TODO: Loosen up and allow any [a-zA-Z0-9]+ instead *)
-(* meta       = [<empty>] <'@'> #'(Audio|Instrument|Meter|Tempo|Key|Delay|Link|Title|Artist|Desc|Tags)' [<empty>] *)
 meta       = [<empty>] <'@'> name [<empty>]
-(* TODO: Loosen up and allow any [a-zA-Z0-9]+ (and ~) instead *)
-(* keyword    = [<empty>] #'(`|~|Note|Scale|Chord|Mode|Triad)' [<empty>] *)
 keyword    = [<empty>] <'~'> | name [<empty>]
 play       = [<empty>] <'!Play'> [<empty>] elem
 (* FIXME: Only support `int` here *)
 meter      = [<empty>] number <'|'> number [<empty>]
 string     = #'[\'|\"](.*?)[\"|\']'
 word       = #'[a-zA-Z]+'
-name       = #'[a-zA-Z0-9_-]+'
+name       = #'[a-zA-Z_][a-zA-Z0-9_-]+'
 <int>      = #'(0|([1-9][0-9]*))'
 <float>    = #'(0|([1-9][0-9]*))(\.[0-9]+)?'
 number     = int | float
