@@ -27,7 +27,7 @@
 (def powers-of-two (iterate (partial * 2) 1))
 
 (defn variable-scope
-  "Provides a localized scope/stack for tracking variables"
+  "Provides a localized scope/stack for tracking variables."
   [scope]
   (let [context (atom {})]
     (letfn [(variables []
@@ -41,7 +41,7 @@
 ; TODO: check for :play
 ; TODO: validate any variables in :play
 (defn validate
-  "Determines if a parsed track is valid or not"
+  "Determines if a parsed track is valid or not."
   [track]
   (variable-scope
    (fn [variables create-variable _]
@@ -70,7 +70,7 @@
 (def validate-memo (memoize validate))
 
 (defn deref-variables
-  "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)"
+  "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
   [track]
   (variable-scope
    (fn [variables track-variable _]
@@ -100,7 +100,7 @@
       track))))
 
 (defn reduce-values
-  "Reduces any primitive values in a parsed track"
+  "Reduces any primitive values in a parsed track."
   [track]
   (insta/transform
    {:add +,
@@ -114,7 +114,7 @@
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 
 (defn reduce-track
-  "Dereferences variables and reduces the primitive values in a parsed track"
+  "Dereferences variables and reduces the primitive values in a parsed track."
   [track]
   (-> track
       deref-variables
@@ -124,8 +124,8 @@
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
   In general, this determines 'How many `unit`s` does the provided `duration` in this `meter` (i.e. time-sig)?'."
   [duration unit meter]
-  (let [inverse-meter (inverse-ratio (rationalize meter))
-        inverse-unit (inverse-ratio (rationalize unit))
+  (let [inverse-unit (inverse-ratio (rationalize unit))
+        inverse-meter (inverse-ratio (rationalize meter))
         within-measure? (<= duration meter)]
     (if within-measure?
       (/ duration unit)
@@ -181,13 +181,13 @@
   (/ 1 (last (get-meter track)))) ; AKA 1/denominator
 
 (defn get-beat-unit-ratio
-  "Determines the ratio between the beat unit and the number of beats per measure"
+  "Determines the ratio between the beat unit and the number of beats per measure."
   [track]
   (let [[beats-per-measure & [beat-unit]] (get-meter track)]
     (mod beat-unit beats-per-measure)))
 
 (defn get-beats-per-measure
-  "Determines how many beats are in each measure, based on the time signature"
+  "Determines how many beats are in each measure, based on the time signature."
   [track]
   (first (get-meter track))) ; AKA numerator
 
@@ -221,7 +221,7 @@
         (min pulse-beat-unit beat-unit)))))
 
 (defn get-normalized-beats-per-measure
-  "Determines how many beats are in a measure, normalized against the pulse beat of the track"
+  "Determines how many beats are in a measure, normalized against the pulse beat of the track."
   [track]
   (let [pulse-beat (get-pulse-beat track)
         meter (get-meter-ratio track)]
@@ -243,14 +243,14 @@
     @total-beats))
 
 (defn get-scaled-total-beats
-  "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)"
+  "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)."
   [track]
   (safe-ratio
    (get-total-beats track)
    (get-beat-unit track)))
 
 (defn get-normalized-total-beats
-  "Determines the total beats in a track normalized to the pulse beat of the track"
+  "Determines the total beats in a track normalized to the pulse beat of the track."
   [track]
   (let [total-beats (get-total-beats track)
         pulse-beat (get-pulse-beat track)]
@@ -258,7 +258,7 @@
      (max total-beats pulse-beat)
      (min total-beats pulse-beat))))
 
-; TODO: Just remove this, only beneficial in 4|4 time. Pointless elswhere since already handled by get-normalized-total-measures and get-normalized-total-beats.
+; TODO: Either rename and replace with `get-scaled-total-measures` or just remove altogether.
 (defn get-total-measures
   "Determines the total number of measures in the track.
    Beats and measures are equivelant here since the beats are normalized to traditional semibreves/whole notes and crotchet/quarternotes.
@@ -266,7 +266,6 @@
   [track]
   (get-total-beats track))
 
-; TODO: Consider renaming to `get-total-bars`
 (defn get-normalized-total-measures
   "Determines the total number of measures in a track, normalized to the pulse beat."
   [track]
@@ -361,7 +360,7 @@
                                 indices (beat-indices beats)
                                 measure-index (:measure indices)
                                 beat-index (:beat indices)
-                                compiled-notes {:duration beats ; i.e. pulses
+                                compiled-notes {:duration beats ; i.e. # of pulses
                                                 :notes (compile-notes notes)}]
                             (update-measures measure-index beat-index compiled-notes)
                             (update-cursor beats)))}
