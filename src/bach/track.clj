@@ -26,12 +26,6 @@
 
 (def powers-of-two (iterate (partial * 2) 1))
 
-; (defn safe-ratio
-;   [x y]
-;   (try (/ x y)
-;     (catch ArithmeticException _
-;       0)))
-
 (defn variable-scope
   "Provides a localized scope/stack for tracking variables"
   [scope]
@@ -75,8 +69,6 @@
 
 (def validate-memo (memoize validate))
 
-; TODO variable-map (call deref-variables, return (:vars context)
-
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)"
   [track]
@@ -117,6 +109,8 @@
     :div /,
     :meter (fn [n d] [n d]),
     :number clojure.edn/read-string,
+    ; TODO: Determine if this is necessary with our math grammar (recommended in instaparse docs)
+    ; :expr identity,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 
 (defn reduce-track
@@ -362,15 +356,12 @@
                           {:measure measure-index :beat local-beat-index}))]
                 (insta/transform
                 ; TODO: Generally rename `notes` to `items`. Makes more sense since a beat can contain more than just notes.
-                ; TODO: Reduce `notes` so that we don't have a pointless wrapper `:atom`
-                ; TODO: Normalize `notes` to a collection
                  {:pair (fn [duration notes]
                           (let [beats (cast-duration duration)
                                 indices (beat-indices beats)
                                 measure-index (:measure indices)
                                 beat-index (:beat indices)
-                                ; TODO: Consider binding/exporting `duration` here as well, as `unit-duration`
-                                compiled-notes {:duration beats
+                                compiled-notes {:duration beats ; i.e. pulses
                                                 :notes (compile-notes notes)}]
                             (update-measures measure-index beat-index compiled-notes)
                             (update-cursor beats)))}
@@ -384,8 +375,6 @@
   [track]
   (let [headers (get-headers track)
         meter (get-meter track)
-        ; TODO: Consider changing to `get-normalized-total-beats`
-        ; TODO: Rename to `total-beat-units` or `total-units`
         total-beats (get-total-beats track)
         total-beat-units (get-scaled-total-beats track)
         total-pulse-beats (get-normalized-total-beats track)
@@ -403,7 +392,7 @@
            :beat-unit beat-unit
            :pulse-beat pulse-beat)))
 
-; TODO: Allow track to be compiled in flat/stream mode (i.e. no measures, just evenly sized beats)
+; TODO: Allow track to be provisioned in flat/stream mode (i.e. no measures, just evenly sized beats)
 (defn provision
   "Provisions a parsed track, generating and organizating all of the information necessary to easily
    interpret a track as a single stream of normalized data (no references, all values are resolved and optimized)."
