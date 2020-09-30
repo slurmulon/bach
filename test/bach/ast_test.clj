@@ -7,7 +7,10 @@
   (testing "can be assigned"
     (let [want [:track
                 [:statement
-                 [:assign [:identifier ":Test"] [:number "1"]]]]]
+                 [:assign
+                  [:identifier
+                   [:name "Test"]]
+                  [:number "1"]]]]]
       (is (= want (parse ":Test = 1"))))))
 
 (deftest primitives
@@ -82,28 +85,28 @@
     (let [want [:track
                 [:statement
                  [:header
-                  [:meta "Tempo"]
+                  [:meta [:name "Tempo"]]
                   [:number "90"]]]]]
       (is (= want (parse "@Tempo = 90")))))
   (testing "title"
     (let [want [:track
                 [:statement
                  [:header
-                  [:meta "Title"]
+                  [:meta [:name "Title"]]
                   [:string "'Test Track'"]]]]]
       (is (= want (parse "@Title = 'Test Track'")))))
   (testing "meter"
     (let [want [:track
                 [:statement
                  [:header
-                  [:meta "Meter"]
+                  [:meta [:name "Meter"]]
                   [:meter [:number "6"] [:number "8"]]]]]]
       (is (= want (parse "@Meter = 6|8")))))
   (testing "tags"
     (let [want [:track
                 [:statement
                  [:header
-                  [:meta "Tags"]
+                  [:meta [:name "Tags"]]
                   [:list [:string "'rock'"] [:string "'funk'"]]]]]]
       (is (= want (parse "@Tags = ['rock', 'funk']"))))))
 
@@ -171,7 +174,7 @@
     (testing "missing value"
       (is (= true (insta/failure? (parse "abc ->")))))))
 
-(deftest arrays
+(deftest lists
   (testing "emptiness"
     (let [want [:track [:statement [:list]]]]
       (is (= want (parse "[]")))))
@@ -186,17 +189,17 @@
                  [:list
                   [:pair
                    [:number "1"]
-                   [:identifier ":Foo"]]
+                   [:identifier [:name "Foo"]]]
                   [:pair
                    [:number "2"]
-                   [:identifier ":Bar"]]]]]]
+                   [:identifier [:name "Bar"]]]]]]]
       (is (= want (parse "[1 -> :Foo, 2 -> :Bar]")))))
-  ; TODO: Ensure nesting of lists can only be 1 level deep!
-  (testing "can be nested"
-    (let [want [:track
-                [:statement
-                 [:list [:list]]]]]
-      (is (= want (parse "[[]]")))))
+  ; TODO: Enforce opposite of this - nesting should not be allowed in lists, for simplicity
+  ; (testing "can be nested"
+  ;   (let [want [:track
+  ;               [:statement
+  ;                [:list [:list]]]]]
+  ;     (is (= want (parse "[[]]")))))
   (testing "can contain nested tuples"
     (let [want [:track
                 [:statement
@@ -211,27 +214,27 @@
     (let [want [:track
                 [:statement
                  [:atom
-                  [:keyword "Note"]
+                  [:keyword [:name "Note"]]
                   [:arguments [:string "'C2'"]]]]]]
       (is (= want (parse "Note('C2')")))))
   (testing "scale"
     (let [want [:track
                 [:statement
                  [:atom
-                  [:keyword "Scale"]
+                  [:keyword [:name "Scale"]]
                   [:arguments [:string "'C2 Major'"]]]]]]
       (is (= want (parse "Scale('C2 Major')")))))
   (testing "multiple arguments"
     (let [want [:track
                 [:statement
                  [:atom
-                  [:keyword "Scale"]
+                  [:keyword [:name "Scale"]]
                   [:arguments
                    [:string "'C2 Minor'"]
                    [:div
                     [:number "1"]
                     [:number "4"]]
                    [:attribute
-                    [:word "color"]
+                    [:name "color"]
                     [:color "#FF0000"]]]]]]]
       (is (= want (parse "Scale('C2 Minor', 1/4, color: #FF0000)"))))))
