@@ -767,13 +767,13 @@
                 [:statement
                  [:play [:identifier ":ABC"]]]]
           want [[{:duration 1,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["D2min7"]}]}]
                 [{:duration 1,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["G2Maj7"]}]}]
                 [{:duration 1,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["C2maj7"]}]}]]]
       (is (= want (normalize-measures tree)))))
   (testing "with half notes"
@@ -799,13 +799,13 @@
                      [:arguments [:string "'C2maj7'"]]]]]]]
                 [:statement [:play [:identifier ":ABC"]]]]
           want [[{:duration 1,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["D2min7"]}]}
                  {:duration 1,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["G2Maj7"]}]}]
                 [{:duration 2,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["C2maj7"]}]}
                  nil]]]
       (is (= want (normalize-measures tree)))))
@@ -833,14 +833,14 @@
                 [:statement
                  [:play [:identifier ":ABC"]]]]
           want [[{:duration 1,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["D2min7"]}]}
                  {:duration 2,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["G2Maj7"]}]}
                  nil
                  {:duration 1,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["C2maj7"]}]}]]]
       (is (= want (normalize-measures tree)))))
   (testing "with eigth notes"
@@ -863,14 +863,14 @@
                      [:keyword "Chord"]
                      [:arguments [:string "Emin7"]]]]]]]]
           want [[{:duration 5,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["Dmin7"]}]}
                  nil
                  nil
                  nil
                  nil
                  {:duration 3,
-                  :notes [{:keyword "Chord",
+                  :items [{:keyword "Chord",
                            :arguments ["Emin7"]}]}
                  nil
                  nil]]]
@@ -903,13 +903,13 @@
                        [:keyword "Chord"]
                        [:arguments [:string "'Bb'"]]]]]]]]
             want [[{:duration 1,
-                    :notes [{:keyword "Chord",
+                    :items [{:keyword "Chord",
                              :arguments ["Cmin"]}]}
                    {:duration 1,
-                    :notes [{:keyword "Chord",
+                    :items [{:keyword "Chord",
                              :arguments ["G/B"]}]}]
                   [{:duration 1,
-                    :notes [{:keyword "Chord",
+                    :items [{:keyword "Chord",
                              :arguments ["Bb"]}]}]]]
         (is (= want (normalize-measures tree)))))
     (testing "and total beats is under a total measure"
@@ -923,7 +923,7 @@
                        [:keyword "Chord"]
                        [:arguments [:string "'Cmin'"]]]]]]]]
             want [[{:duration 1,
-                    :notes [{:keyword "Chord",
+                    :items [{:keyword "Chord",
                              :arguments ["Cmin"]}]}
                     ; TODO: Consider (from design perspective) if this trailing nil should be removed.
                    nil]]]
@@ -949,14 +949,14 @@
                        [:keyword "Chord"]
                        [:arguments [:string "'A7'"]]]]]]]]
             want [[{:duration 1,
-                    :notes [{:keyword "Chord",
+                    :items [{:keyword "Chord",
                              :arguments ["Bb"]}]}
                    {:duration 2,
-                    :notes [{:keyword "Chord",
+                    :items [{:keyword "Chord",
                              :arguments ["A7sus4"]}]}]
                   [nil
                    {:duration 2,
-                    :notes [{:keyword "Chord",
+                    :items [{:keyword "Chord",
                              :arguments ["A7"]}]}]
                   [nil]]]
         (is (= want (normalize-measures tree)))))))

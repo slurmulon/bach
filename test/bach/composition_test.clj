@@ -37,10 +37,10 @@
                  :meter [4 4],
                  :tempo 120},
                 :data
-                [[{:duration 1, :notes [{:keyword "Chord", :arguments ["D2min7"]}]}
-                  {:duration 2, :notes [{:keyword "Chord", :arguments ["G2Maj7"]}]}
+                [[{:duration 1, :items [{:keyword "Chord", :arguments ["D2min7"]}]}
+                  {:duration 2, :items [{:keyword "Chord", :arguments ["G2Maj7"]}]}
                   nil
-                  {:duration 1, :notes [{:keyword "Chord", :arguments ["C2maj7"]}]}]]}]
+                  {:duration 1, :items [{:keyword "Chord", :arguments ["C2maj7"]}]}]]}]
       (is (= want (compose tree)))))
   (testing "less common meter"
     (let [tree [:track
@@ -80,9 +80,9 @@
                           :total-beat-units 24N,
                           :meter [6 8],
                           :tempo 120},
-                :data [[{:duration 1, :notes [{:keyword "Chord", :arguments ["F#m"]}]}]
-                       [{:duration 1, :notes [{:keyword "Chord", :arguments ["E"]}]}]
-                       [{:duration 2, :notes [{:keyword "Chord", :arguments ["D"]}]}]
+                :data [[{:duration 1, :items [{:keyword "Chord", :arguments ["F#m"]}]}]
+                       [{:duration 1, :items [{:keyword "Chord", :arguments ["E"]}]}]
+                       [{:duration 2, :items [{:keyword "Chord", :arguments ["D"]}]}]
                        [nil]]}]
       (is (= want (compose tree))))))
 
@@ -121,10 +121,10 @@
                           :meter [3 4],
                           :tempo 100},
                 :data [[{:duration 2,
-                         :notes [{:keyword "Scale", :arguments ["C# phrygian"]}
+                         :items [{:keyword "Scale", :arguments ["C# phrygian"]}
                                  {:keyword "Chord", :arguments ["C#m"]}]}]
                        [nil]
                        [{:duration 2,
-                         :notes [{:keyword "Chord", :arguments ["Dmaj7"]}]}]
+                         :items [{:keyword "Chord", :arguments ["Dmaj7"]}]}]
                        [nil]]}]
       (is (= want (compose tree))))))

@@ -258,7 +258,7 @@
      (max total-beats pulse-beat)
      (min total-beats pulse-beat))))
 
-; TODO: Either rename and replace with `get-scaled-total-measures` or just remove altogether.
+; TODO: Consider removing. Useful for consistency and predictability but otherwise redundant.
 (defn get-total-measures
   "Determines the total number of measures in the track.
    Beats and measures are equivelant here since the beats are normalized to traditional semibreves/whole notes and crotchet/quarternotes.
@@ -266,17 +266,27 @@
   [track]
   (get-total-beats track))
 
+(defn get-scaled-total-measures
+  "Determines the total number of measures in a track scaled to the beat unit (e.g. 6|8 time, 12 eigth notes = 2 measures)."
+  [track]
+  (safe-ratio
+   (get-scaled-total-beats track)
+   (get-beats-per-measure track)))
+
 (defn get-normalized-total-measures
   "Determines the total number of measures in a track, normalized to the pulse beat."
   [track]
-  (let [total-beats (get-normalized-total-beats track)
-        beats-per-measure (get-normalized-beats-per-measure track)]
-    (safe-ratio total-beats beats-per-measure)))
+  (safe-ratio
+    (get-normalized-total-beats track)
+    (get-normalized-beats-per-measure track)))
 
 (defn get-total-duration
-  "Determines the total time duration of a track (milliseconds, seconds, minutes)."
+  "Determines the total time duration of a track (milliseconds, seconds, minutes).
+   Uses scaled total beats (i.e. normalized to the track's beat unit) to properly adjust
+   the value based on the time signature, important for comparing against BPM in all meters."
   [track unit]
-  (let [total-beats (get-scaled-total-beats track) ; using scaled because it's adjusted based on time signature, which is important for comparing against tempo
+  ; Using scaled total beats because it's adjusted based on time signature, which is important for comparing against tempo
+  (let [total-beats (get-scaled-total-beats track)
         tempo-bpm (get-tempo track)
         duration-minutes (/ total-beats tempo-bpm)
         duration-seconds (* duration-minutes 60)
@@ -342,27 +352,26 @@
      {:play (fn [play-track]
               (letfn [(cast-duration [duration]
                         (int (normalize-duration duration pulse-beat meter)))
-                      (compile-notes [notes]
-                        (->> [notes] hiccup-to-hash-map flatten (map :atom) vec))
+                      (compile-elements [elements]
+                        (->> [elements] hiccup-to-hash-map flatten (map :atom) vec))
                       (update-cursor [beats]
                         (swap! beat-cursor + beats))
-                      (update-measures [measure-index beat-index notes]
-                        (swap! measures assoc-in [measure-index beat-index] notes))
+                      (update-measures [measure-index beat-index elements]
+                        (swap! measures assoc-in [measure-index beat-index] elements))
                       (beat-indices [beat]
                         (let [global-beat-index @beat-cursor
                               local-beat-index (mod global-beat-index beats-per-measure)
                               measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                           {:measure measure-index :beat local-beat-index}))]
                 (insta/transform
-                ; TODO: Generally rename `notes` to `items`. Makes more sense since a beat can contain more than just notes.
-                 {:pair (fn [duration notes]
+                 {:pair (fn [duration elements]
                           (let [beats (cast-duration duration)
                                 indices (beat-indices beats)
                                 measure-index (:measure indices)
                                 beat-index (:beat indices)
-                                compiled-notes {:duration beats ; i.e. # of pulses
-                                                :notes (compile-notes notes)}]
-                            (update-measures measure-index beat-index compiled-notes)
+                                compiled-items {:duration beats ; i.e. # of pulses to play items for
+                                                :items (compile-elements elements)}]
+                            (update-measures measure-index beat-index compiled-items)
                             (update-cursor beats)))}
                  play-track)))}
      reduced-track)
