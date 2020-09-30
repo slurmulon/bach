@@ -108,6 +108,7 @@
     :div /,
     :meter (fn [n d] [n d]),
     :number clojure.edn/read-string,
+    :name clojure.edn/read-string,
     ; TODO: Determine if this is necessary with our math grammar (recommended in instaparse docs)
     ; :expr identity,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
