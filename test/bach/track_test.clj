@@ -9,7 +9,7 @@
     (is (= [4 4] default-meter))))
 
 ; TODO: change the values from strings to keywords, naturally supported in clojure. derp.
-(deftest validatation
+(deftest validation
   (testing "assignment"
     (let [tree [:track [:statement [:assign [:identifier ":Test"] [:number "1"]]]]]
       (is (= (validate tree) true))))
@@ -29,7 +29,22 @@
       (is (= (validate tree) true))))
   (testing "basic div (valid numerator, invalid denominator)"
     (let [tree [:track [:statement [:div [:number "1"] [:number "3"]]]]]
-      (is (thrown-with-msg? Exception #"note divisors must be base 2 and no greater than 512" (validate tree))))))
+      (is (thrown-with-msg? Exception #"note divisors must be base 2 and no greater than 512" (validate tree)))))
+  (testing "lists"
+    (testing "flat"
+      (let [tree [:track [:statement [:list [:number "1"] [:number "2"]]]]]
+        (is (= (validate tree) true))))))
+    ; TODO: Add this check to `bach.track/validate`. This restriction makes things simpler for everybody.
+    ; (testing "nested"
+    ;   (let [tree [:track
+    ;               [:statement
+    ;                [:list
+    ;                 [:number "1"]
+    ;                 [:number "2"]
+    ;                 [:list
+    ;                  [:number "3"]
+    ;                  [:number "4"]]]]]]
+    ;     (is (thrown-with-msg? Exception #"lists cannot be nested in other lists" (validate tree)))))))
 
 (deftest reduction
   (testing "number"
@@ -612,8 +627,6 @@
                         [:keyword "Note"]
                         [:arguments [:string "'C2'"]]]]]]]
               ; Because "1", or 4 beats, does not align flushly with the meter (uses 1/8 as pulse beat in this case)
-              ; want 250.0]
-              ; TODO: Work towards this value (properly normalized to pulse-beat)
               want 500.0]
           (is (= want (get-normalized-ms-per-beat tree)))))
       (testing "3/8"
@@ -629,8 +642,6 @@
                        [:atom
                         [:keyword "Note"]
                         [:arguments [:string "'C2'"]]]]]]]
-              ; want 250.0]
-              ; TODO: Work towards this value (properly normalized to pulse-beat)
               want 500.0]
           (is (= want (get-normalized-ms-per-beat tree)))))
       (testing "5/8"
@@ -646,8 +657,6 @@
                        [:atom
                         [:keyword "Note"]
                         [:arguments [:string "'C2'"]]]]]]]
-              ; want 250.0]
-              ; TODO: Work towards this value (properly normalized to pulse-beat)
               want 500.0]
           (is (= want (get-normalized-ms-per-beat tree)))))
       (testing "compound"
@@ -664,8 +673,6 @@
                          [:atom
                           [:keyword "Note"]
                           [:arguments [:string "'C2'"]]]]]]]
-                ; want 250.0]
-                ; TODO: Work towards this value (properly normalized to pulse-beat)
                 want 500.0]
             (is (= want (get-normalized-ms-per-beat tree)))))
         (testing "12/8"
@@ -681,8 +688,6 @@
                          [:atom
                           [:keyword "Note"]
                           [:arguments [:string "'C2'"]]]]]]]
-                ; want 250.0]
-                ; TODO: Work towards this value (properly normalized to pulse-beat)
                 want 500.0]
             (is (= want (get-normalized-ms-per-beat tree))))))
       (testing "complex"
@@ -714,8 +719,6 @@
                          [:atom
                           [:keyword "Note"]
                           [:arguments [:string "'C2'"]]]]]]]
-                ; want 250.0]
-                ; ; TODO: Work towards this value (properly normalized to pulse-beat)
                 want 500.0]
             (is (= want (get-normalized-ms-per-beat tree)))))))))
 
