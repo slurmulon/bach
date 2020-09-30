@@ -287,7 +287,11 @@ The executable currently supports the following actions:
 (compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
 
-#### Repl
+### Repl
+
+```sh
+$ lein repl
+```
 
 ```clojure
 (use 'bach.track :reload)
@@ -337,7 +341,7 @@ The rules are simple:
  - `Lists` may **not** contain other `Lists`
  - `Sets` may **not** contain `Sets` or `Lists`
 
-As a result, `Lists` **cannot** be nested in any other `Collection`.
+As a result, `Lists` **cannot** be nested in another `Collection` at _any_ level.
 
 #### Durations
 
@@ -538,7 +542,7 @@ Only one `!Play` definition is allowed per track file.
 
 #### Reserved
 
- - **`Tempo`** (integer, beats per minute)
+ - **`Tempo`** (number, beats per minute)
  - **`Time`** (meter, time signature. ex: `6|8`, `4|4`)
 
 #### Useful
@@ -564,7 +568,7 @@ Only one `!Play` definition is allowed per track file.
 
  - `'foo'` or `"bar"` = string
  - `123` or `4.5` = number
- - `#000000` = color
+ - `#000000` or `#fff` = color
 
 ## Related
 
