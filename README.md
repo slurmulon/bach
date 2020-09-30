@@ -219,11 +219,11 @@ To find a list of every reserved construct supported by `bach` (such as `Note`, 
 
 ### Leinengen/Boot
 
-`[bach "1.0.0-SNAPSHOT"]`
+`[bach "2.0.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "bach:bach:1.0.0-SNAPSHOT"`
+`compile "bach:bach:2.0.0-SNAPSHOT"`
 
 ### Maven
 
@@ -231,7 +231,7 @@ To find a list of every reserved construct supported by `bach` (such as `Note`, 
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -268,7 +268,7 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/default/bach-1.0.0-SNAPSHOT -i /path/to/track.bach compile
+$ target/default/bach-2.0.0-SNAPSHOT -i /path/to/track.bach compile
 ```
 
 The executable currently supports the following actions:
@@ -345,23 +345,27 @@ As a result, `Lists` **cannot** be nested in another `Collection` at _any_ level
 
 #### Durations
 
-The value of a `Beat`'s `<duration>` can be:
+The value of a `Beat`'s `<duration>` can be an integer, a fraction, or a mathematical expression composed of either.
 
 ```
-1    = Whole note (or one entire measure in 4|4)
+1    = Whole note (or one entire measure when `@Meter = 4|4`)
 1/2  = Half note
 1/4  = Quarter note
 1/8  = Eighth note
 1/16 = Sixteenth note
-...
+
 1/512 = Minimum duration
+1024  = Maximum duration
+
+2 + (1/2) = Two and a half whole notes
+2 * (6/8) = Two and a half measures when `@Meter = 6|8`
 ```
 
-To adhere with music theory, durations are strictly based on **common time** (`4|4`).
+To adhere with music theory, durations are strictly based on **common time** (`@Meter = 4|4`).
 
 This means that, in your definitions, `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
 
-The examples in the remainder of this section assume common time, since this is the default when a `@Time` header is not provided.
+The examples in the remainder of this section assume common time, since this is the default when a `@Meter` header is not provided.
 
 ##### Examples
 
@@ -402,7 +406,7 @@ is the same as:
 This is usefeul for specifying more complicated rhythms, like those seen in jazz.
 
 ```
-:Mutliple = [
+:PartA = [
   1/2   -> Chord('D2min7')
   1+1/2 -> Chord('E2maj7')
   1+1/2 -> Chord('C2maj7')
@@ -494,9 +498,9 @@ Optional header information, including the **tempo** and **time signature**, is 
 Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any [primitive type](#primitives).
 
 ```
-@Title  = 'My bach track'
-@Time   = 4|4
+@Meter  = 4|4
 @Tempo  = 90
+@Title  = 'My bach track'
 @Tags   = ['test', 'lullaby']
 @Custom = 'so special'
 
@@ -543,7 +547,7 @@ Only one `!Play` definition is allowed per track file.
 #### Reserved
 
  - **`Tempo`** (number, beats per minute)
- - **`Time`** (meter, time signature. ex: `6|8`, `4|4`)
+ - **`Meter`** (meter, time signature. ex: `6|8`, `4|4`)
 
 #### Useful
 
@@ -598,10 +602,6 @@ Contributions are always welcome. Simply fork, make your changes and then create
  - [ ] Expandable / destructured scales and chords (i.e. `[... 1/4 -> Scale('C2')]`)
  - [ ] Application of collection variables (i.e. dereference and flatten value into surrounding list)
  - [ ] Allow user to define sections of a track that should loop forever
- - [ ] Allow track linking with Hypermedia
  - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress, or specify areas to loop
- - [X] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
- - [x] Arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
+ - [x] Arbitrary classification of elements (i.e. `Note('C2', class: "blue")`)
  - [x] Chord voicings/inversions (i.e. `Chord('C2maj7', inversion: 1)`)
- - [x] Traids (root, 1st, 2nd)
- - [ ] Sort out complexities around `Beats` in nested `List`s (i.e. should nested `Beats` / `Elements` be able to surpass their parents?)
