@@ -1,8 +1,7 @@
 (ns bach.track
   (:require [instaparse.core :as insta]
             [bach.ast :refer [parse]]
-            [bach.data :refer [hiccup-to-vector
-                               hiccup-to-hash-map
+            [bach.data :refer [hiccup-to-hash-map
                                ratio-to-vector
                                trim-matrix-row
                                inverse-ratio
@@ -176,7 +175,7 @@
   (find-header track "Tempo" default-tempo))
 
 (defn get-beat-unit
-  "Determines the reference unit to use for beats, based on time signature"
+  "Determines the reference unit to use for beats, based on time signature."
   [track]
   (/ 1 (last (get-meter track)))) ; AKA 1/denominator
 
@@ -231,8 +230,8 @@
 
 (defn get-total-beats
   "Determines the total number of beats in the track.
-   Beats are represented in traditional semibreves/whole notes and crotchet/quarternotes.
-   In other words, a beat with a duration of 1 is equivalant to 4 quarter notes, or 1 measure in 4|4 time."
+   Beats are represented in traditional semibreves/whole notes and crotchets/quarternotes.
+   In other words, a beat with a duration of 1 is strictly equivalant to 4 quarter notes, or 1 measure in 4|4 time."
   [track]
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
@@ -334,8 +333,10 @@
    (get-normalized-ms-per-beat track)))
 
 (defn normalize-measures
-  "Parses the track data exported via `Play` into a normalized matrix where each row (measure) has the same number of elements (beats).
-   Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through."
+  "Parses the track data exported via `!Play` into a normalized matrix where each row (measure) has the same number of elements (beats).
+   Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through.
+   Bach players can simply iterate one measure and beat at a time for `ms-per-pulse-beat` milliseconds on each interval.
+   This strongly favors applications that must optimize and minimize their synchronization points."
   [track]
   (let [beat-cursor (atom 0)
         meter (get-meter-ratio track)
@@ -352,7 +353,7 @@
      {:play (fn [play-track]
               (letfn [(cast-duration [duration]
                         (int (normalize-duration duration pulse-beat meter)))
-                      (compile-elements [elements]
+                      (cast-elements [elements]
                         (->> [elements] hiccup-to-hash-map flatten (map :atom) vec))
                       (update-cursor [beats]
                         (swap! beat-cursor + beats))
@@ -369,9 +370,9 @@
                                 indices (beat-indices beats)
                                 measure-index (:measure indices)
                                 beat-index (:beat indices)
-                                compiled-items {:duration beats ; i.e. # of pulses to play items for
-                                                :items (compile-elements elements)}]
-                            (update-measures measure-index beat-index compiled-items)
+                                normalized-items {:duration beats ; i.e. # of pulses to play items for
+                                                  :items (cast-elements elements)}]
+                            (update-measures measure-index beat-index normalized-items)
                             (update-cursor beats)))}
                  play-track)))}
      reduced-track)
