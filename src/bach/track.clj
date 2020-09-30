@@ -279,8 +279,8 @@
   "Determines the total number of measures in a track, normalized to the pulse beat."
   [track]
   (safe-ratio
-    (get-normalized-total-beats track)
-    (get-normalized-beats-per-measure track)))
+   (get-normalized-total-beats track)
+   (get-normalized-beats-per-measure track)))
 
 (defn get-total-duration
   "Determines the total time duration of a track (milliseconds, seconds, minutes).
