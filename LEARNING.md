@@ -3,6 +3,8 @@
 ## Music
 
  - Time Calculations in Music: http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
+ - https://sites.uci.edu/camp2014/2014/05/19/its-about-time
+ - https://music.stackexchange.com/a/24141
 
 ## General
  - http://xahlee.info/clojure/clojure_instaparse.html
