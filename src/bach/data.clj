@@ -57,8 +57,8 @@
    Ideal when y might be 0 and you want to avoid explicitly handling this case."
   [x y]
   (try (/ x y)
-    (catch ArithmeticException _
-      0)))
+       (catch ArithmeticException _
+         0)))
 
 (defn trim-matrix-row
   "Trims tail columns from a specified row in a matrix (i.e nested array of depth 2)."

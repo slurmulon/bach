@@ -226,8 +226,8 @@
   (let [pulse-beat (get-pulse-beat track)
         meter (get-meter-ratio track)]
     (safe-ratio
-      (max pulse-beat meter)
-      (min pulse-beat meter))))
+     (max pulse-beat meter)
+     (min pulse-beat meter))))
 
 (defn get-total-beats
   "Determines the total number of beats in the track.
@@ -246,8 +246,8 @@
   "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)"
   [track]
   (safe-ratio
-    (get-total-beats track)
-    (get-beat-unit track)))
+   (get-total-beats track)
+   (get-beat-unit track)))
 
 (defn get-normalized-total-beats
   "Determines the total beats in a track normalized to the pulse beat of the track"
@@ -255,8 +255,8 @@
   (let [total-beats (get-total-beats track)
         pulse-beat (get-pulse-beat track)]
     (safe-ratio
-      (max total-beats pulse-beat)
-      (min total-beats pulse-beat))))
+     (max total-beats pulse-beat)
+     (min total-beats pulse-beat))))
 
 ; TODO: Just remove this, only beneficial in 4|4 time. Pointless elswhere since already handled by get-normalized-total-measures and get-normalized-total-beats.
 (defn get-total-measures
@@ -408,9 +408,6 @@
    A 'playable' track is formatted so that it is easily iterated over by a high-level Bach engine."
   [track]
   (cond
-    (vector? track)
-      (provision track)
-    (string? track)
-      (-> track parse provision)
-    :else
-      (throw (Exception. (str "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))))
+    (vector? track) (provision track)
+    (string? track) (-> track parse provision)
+    :else (throw (Exception. "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string."))))
