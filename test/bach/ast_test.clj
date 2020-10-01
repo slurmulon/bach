@@ -25,7 +25,7 @@
                          [:assign
                           [:identifier
                            [:name var-name]]
-                           [:number "1"]]]]]
+                          [:number "1"]]]]]
               (is (= want (parse (format ":%s = 4" var-name))))))))
       (testing "disallowed"
         (for [var-name (clojure.string/split "0!@#$%^&*(){}[]<>~/\\'\"" #"")

@@ -26,21 +26,24 @@
                      [:arguments [:string "'C2maj7'"]]]]]]]
                 [:statement
                  [:play [:identifier ":ABC"]]]]
-          want {:headers
-                {:ms-per-beat-unit 500.0,
-                 :pulse-beat 1/4,
-                 :ms-per-pulse-beat 500.0,
-                 :total-beats 1N,
-                 :total-pulse-beats 4N,
-                 :beat-unit 1/4,
-                 :total-beat-units 4N,
-                 :meter [4 4],
-                 :tempo 120},
-                :data
-                [[{:duration 1, :items [{:keyword "Chord", :arguments ["D2min7"]}]}
-                  {:duration 2, :items [{:keyword "Chord", :arguments ["G2Maj7"]}]}
-                  nil
-                  {:duration 1, :items [{:keyword "Chord", :arguments ["C2maj7"]}]}]]}]
+          want {:headers {:ms-per-beat-unit 500.0,
+                          :beat-units-per-measure 4,
+                          :pulse-beat 1/4,
+                          :ms-per-pulse-beat 500.0,
+                          :total-beats 1N,
+                          :total-pulse-beats 4N,
+                          :beat-unit 1/4,
+                          :total-beat-units 4N,
+                          :pulse-beats-per-measure 4N,
+                          :meter [4 4],
+                          :tempo 120},
+                :data [[{:duration 1,
+                         :items [{:keyword "Chord", :arguments ["D2min7"]}]}
+                        {:duration 2,
+                         :items [{:keyword "Chord", :arguments ["G2Maj7"]}]}
+                        nil
+                        {:duration 1,
+                         :items [{:keyword "Chord", :arguments ["C2maj7"]}]}]]}]
       (is (= want (compose tree)))))
   (testing "less common meter"
     (let [tree [:track
@@ -72,17 +75,22 @@
                     [:keyword "Chord"]
                     [:arguments [:string "'D'"]]]]]]]
           want {:headers {:ms-per-beat-unit 500.0,
+                          :beat-units-per-measure 6,
                           :pulse-beat 3/4,
                           :ms-per-pulse-beat 3000.0,
                           :total-beats 3N,
                           :total-pulse-beats 4N,
                           :beat-unit 1/8,
                           :total-beat-units 24N,
+                          :pulse-beats-per-measure 1N,
                           :meter [6 8],
                           :tempo 120},
-                :data [[{:duration 1, :items [{:keyword "Chord", :arguments ["F#m"]}]}]
-                       [{:duration 1, :items [{:keyword "Chord", :arguments ["E"]}]}]
-                       [{:duration 2, :items [{:keyword "Chord", :arguments ["D"]}]}]
+                :data [[{:duration 1,
+                         :items [{:keyword "Chord", :arguments ["F#m"]}]}]
+                       [{:duration 1,
+                         :items [{:keyword "Chord", :arguments ["E"]}]}]
+                       [{:duration 2,
+                         :items [{:keyword "Chord", :arguments ["D"]}]}]
                        [nil]]}]
       (is (= want (compose tree))))))
 
@@ -112,12 +120,14 @@
                      [:keyword "Chord"]
                      [:arguments [:string "'Dmaj7'"]]]]]]]]
           want {:headers {:ms-per-beat-unit 600.0,
+                          :beat-units-per-measure 3,
                           :pulse-beat 3/4,
                           :ms-per-pulse-beat 1800.0,
                           :total-beats 3N,
                           :total-pulse-beats 4N,
                           :beat-unit 1/4,
                           :total-beat-units 12N,
+                          :pulse-beats-per-measure 1N,
                           :meter [3 4],
                           :tempo 100},
                 :data [[{:duration 2,

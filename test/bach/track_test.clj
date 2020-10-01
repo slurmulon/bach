@@ -129,6 +129,13 @@
   ;     (is (= true true))))) ; FIXME/TODO
   )
 
+; TODO
+; (deftest finds-tempo
+;   )
+
+; TODO
+; (deftest finds-meter)
+
 (deftest pulse-beat
   (testing "whole number"
     (let [tree [:track
