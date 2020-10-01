@@ -377,14 +377,13 @@
                           {:measure measure-index :beat local-beat-index}))]
                 (insta/transform
                  {:pair (fn [duration elements]
-                          (let [normalized-beat-duration (cast-duration duration)
-                                indices (beat-indices)
+                          (let [indices (beat-indices)
                                 measure-index (:measure indices)
                                 beat-index (:beat indices)
-                                normalized-items {:duration normalized-beat-duration
+                                normalized-items {:duration (cast-duration duration)
                                                   :items (cast-elements elements)}]
                             (update-measures measure-index beat-index normalized-items)
-                            (update-cursor normalized-beat-duration)))}
+                            (update-cursor (:duration normalized-items))))}
                  play-track)))}
      reduced-track)
     @measures))
