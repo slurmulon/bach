@@ -17,6 +17,8 @@
                       :meter default-meter
                       :beat-unit default-beat-unit
                       :pulse-beat default-pulse-beat
+                      :beat-units-per-measure 4
+                      :pulse-beats-per-measure 4
                       :total-beats 0
                       :total-beat-units 0
                       :total-pulse-beats 0
@@ -151,7 +153,7 @@
     (insta/transform
      {:header (fn [meta-key value]
                 (let [kind (last meta-key)]
-                  (when (= kind label)
+                  (when (= (str kind) (str label))
                     (reset! header value))))}
      track)
     @header))
@@ -185,11 +187,6 @@
   (let [[beats-per-measure & [beat-unit]] (get-meter track)]
     (mod beat-unit beats-per-measure)))
 
-(defn get-beats-per-measure
-  "Determines how many beats are in each measure, based on the time signature."
-  [track]
-  (first (get-meter track))) ; AKA numerator
-
 (defn get-pulse-beat
   "Determines the greatest common beat (by duration) among every beat in a track.
    Once this beat is found, a track can be iterated through evenly (and without variance) via an arbitrary interval, timer, etc.
@@ -219,6 +216,26 @@
         (min pulse-beat full-measure)
         (min pulse-beat-unit beat-unit)))))
 
+(defn get-beats-per-measure
+  "Determines how many beats are in each measure, based on the time signature."
+  [track]
+  (first (get-meter track))) ; AKA numerator
+
+(def get-scaled-beats-per-measure get-beats-per-measure)
+(def get-beat-units-per-measure get-beats-per-measure)
+
+; WORKS
+; (defn get-scaled-beats-per-measure
+;   "Determines how many beats are in a measure, normalized against the beat unit of the track."
+;   [track]
+;   (let [beat-unit (get-beat-unit track)
+;         meter (get-meter-ratio track)]
+;     (safe-ratio
+;       (max beat-unit meter)
+;       (min beat-unit meter))))
+
+; (def get-beat-units-per-measure get-scaled-beats-per-measure)
+
 (defn get-normalized-beats-per-measure
   "Determines how many beats are in a measure, normalized against the pulse beat of the track."
   [track]
@@ -227,6 +244,8 @@
     (safe-ratio
      (max pulse-beat meter)
      (min pulse-beat meter))))
+
+(def get-pulse-beats-per-measure get-normalized-beats-per-measure)
 
 (defn get-total-beats
   "Determines the total number of beats in the track.
@@ -391,6 +410,8 @@
         total-beats (get-total-beats track)
         total-beat-units (get-total-beat-units track)
         total-pulse-beats (get-total-pulse-beats track)
+        beat-units-per-measure (get-beat-units-per-measure track)
+        pulse-beats-per-measure (get-pulse-beats-per-measure track)
         ms-per-beat-unit (get-ms-per-beat track :unit)
         ms-per-pulse-beat (get-ms-per-beat track :pulse)
         beat-unit (get-beat-unit track)
@@ -400,6 +421,8 @@
            :total-beats total-beats
            :total-beat-units total-beat-units
            :total-pulse-beats total-pulse-beats
+           :beat-units-per-measure beat-units-per-measure
+           :pulse-beats-per-measure pulse-beats-per-measure
            :ms-per-beat-unit ms-per-beat-unit
            :ms-per-pulse-beat ms-per-pulse-beat
            :beat-unit beat-unit
