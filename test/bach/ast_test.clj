@@ -11,7 +11,26 @@
                   [:identifier
                    [:name "Test"]]
                   [:number "1"]]]]]
-      (is (= want (parse ":Test = 1"))))))
+      (is (= want (parse ":Test = 1")))))
+  (testing "name bindings"
+    (testing "must be at least one characer"
+      (is (= true (insta/failure? (parse ": = 1")))))
+    (testing "leading character"
+      (testing "allowed"
+        (testing "alphabet"
+          (for [var-name (clojure.string/split "abcdefghijklmnopqrstuvwyxz_" #"")
+                bach-source (format ":%s = 4" var-name)]
+            (let [want [:track
+                        [:statement
+                         [:assign
+                          [:identifier
+                           [:name var-name]]
+                           [:number "1"]]]]]
+              (is (= want (parse (format ":%s = 4" var-name))))))))
+      (testing "disallowed"
+        (for [var-name (clojure.string/split "0!@#$%^&*(){}[]<>~/\\'\"" #"")
+              bach-source (format ":%s = 1" var-name)]
+          (is (= true (insta/failure? (parse bach-source)))))))))
 
 (deftest primitives
   (testing "integer"
@@ -19,7 +38,7 @@
                 [:statement
                  [:number "1"]]]]
       (is (= want (parse "1")))))
-  (testing "double"
+  (testing "float"
     (let [want [:track
                 [:statement
                  [:number "2.5"]]]]
