@@ -224,18 +224,6 @@
 (def get-scaled-beats-per-measure get-beats-per-measure)
 (def get-beat-units-per-measure get-beats-per-measure)
 
-; WORKS
-; (defn get-scaled-beats-per-measure
-;   "Determines how many beats are in a measure, normalized against the beat unit of the track."
-;   [track]
-;   (let [beat-unit (get-beat-unit track)
-;         meter (get-meter-ratio track)]
-;     (safe-ratio
-;       (max beat-unit meter)
-;       (min beat-unit meter))))
-
-; (def get-beat-units-per-measure get-scaled-beats-per-measure)
-
 (defn get-normalized-beats-per-measure
   "Determines how many beats are in a measure, normalized against the pulse beat of the track."
   [track]
