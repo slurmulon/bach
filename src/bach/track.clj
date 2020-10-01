@@ -137,7 +137,7 @@
   "Provides the headers (aka meta info) for a parsed track"
   [track]
   (let [headers (atom default-headers)
-        reduced-track (reduce-track track)] ; TODO: might not want this at this level, should probably be called higher up
+        reduced-track (reduce-track track)]
     (insta/transform
      {:header (fn [kind-token value]
                 (let [kind (last kind-token)
@@ -238,7 +238,7 @@
 (defn get-total-beats
   "Determines the total number of beats in the track.
    Beats are represented in traditional semibreves/whole notes and crotchets/quarternotes.
-   In other words, a beat with a duration of 1 is strictly equivalant to 4 quarter notes, or 1 measure in 4|4 time."
+   In other words, a beat with a duration of 1 is strictly equivalent to 4 quarter notes, or 1 measure in 4|4 time."
   [track]
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
