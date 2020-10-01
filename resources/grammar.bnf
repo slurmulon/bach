@@ -13,7 +13,7 @@ list       = [<empty>] <'['> [elem (<','|empty> elem)* [<','>]] <']'> [<empty>]
 pair       = expr <'->'> elem [<empty>,<empty>]
 assign     = identifier <'='> elem
 header     = meta <'='> elem
-attribute  = name [<empty>] <':'> [<empty>] prim 
+attribute  = name [<empty>] <':'> [<empty>] prim
 identifier = [<empty>] <':'> name [<empty>]
 arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
 meta       = [<empty>] <'@'> name [<empty>]
