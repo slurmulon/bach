@@ -318,6 +318,8 @@
         ms-per-beat (* seconds-per-beat 1000)]
     (float ms-per-beat)))
 
+(def get-ms-per-beat-unit get-scaled-ms-per-beat)
+
 (defn get-normalized-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to the pulse beat).
    Primarily exists to make parsing simple and optimized in the high-level interpreter / player.
@@ -333,6 +335,8 @@
         pulse-to-unit-beat-ratio (/ pulse-beat beat-unit)
         ms-per-pulse-beat (* ms-per-beat-unit pulse-to-unit-beat-ratio)]
     (float ms-per-pulse-beat)))
+
+(def get-ms-per-pulse-beat get-normalized-ms-per-beat)
 
 (defn get-ms-per-beat
   "Dynamically determines the ms-per-beat based on the kind of the beat, either :pulse (default) or :unit."
