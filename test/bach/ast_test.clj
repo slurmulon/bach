@@ -28,7 +28,7 @@
                           [:number "1"]]]]]
               (is (= want (parse (format ":%s = 4" var-name))))))))
       (testing "disallowed"
-        (for [var-name (clojure.string/split "0!@#$%^&*(){}[]<>~/\\'\"" #"")
+        (for [var-name (clojure.string/split "01234567890`~!@#$%^&*(){}[]<>?:;/\\'\"" #"")
               bach-source (format ":%s = 1" var-name)]
           (is (= true (insta/failure? (parse bach-source)))))))))
 
