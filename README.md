@@ -227,7 +227,7 @@ To find a list of every reserved construct supported by `bach` (such as `Note`, 
 
 ### Maven
 
-```
+```xml
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
@@ -296,7 +296,7 @@ $ lein repl
 ```clojure
 (use 'bach.track :reload)
 
-(compose "!Play [1 -> Chord('A', 1 -> Chord('C')]")
+(compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
 
 ## Documentation
