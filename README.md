@@ -14,7 +14,7 @@
 - [What](#what)
 - [Goals](#goals)
 - [Design](#design)
-- [Example](#example)
+- [Examples](#examples)
 - [Install](#install)
 - [Setup](#setup)
 - [Testing](#testing)
@@ -48,19 +48,20 @@
 
 `bach` is a semantic music notation designed to be both human and computer friendly.
 
+Although its primary domain is music, `bach` enables the synchronization of rhythmic timelines with just about anything.
+
 The project is pre-alpha and is not should **not** be considered stable for production use.
 
 ## Goals
 
-- Native support for semantic music constructs such as chords and scales
+- Easily support semantic music constructs such as chords and scales
+- Seamless synchronization with associated data by minimizing the complexities around timing
 - Allow for alternative real-time representations of music (e.g. visual instead of just audio)
-- Seamless synchronization with associated audio data by minimizing the complexities around timing
 - Easy to read for both humans and computers
 - Easy to translate from sheet music
 - Small learning curve
 - Highly productive
 - Trivial to interpret compiled output. Writing `bach` engines should be easy!
-- Keeps your definitions DRY
 
 ## Design
 
@@ -70,22 +71,23 @@ This module, by itself, can only parse and compile plaintext `bach` data into [`
 
 `bach.json` is a JSON micro-format that makes it trivial for `bach` engines to sequentially process a `bach` music track and synchronize it in real-time with audio.
 
-## Example
+## Examples
 
-The following `bach` track represents the scale progression of a blues song:
+For the sake of brevity, the examples found in this document all represent short and repeatable loops of music.
 
-```
-@Audio = 'http://api.madhax.io/track/q2IBRPmNq9/audio/mp3'
-@Title = 'Jimi Style 12-Bar-Blues Backing Track in A'
-@Instrument = 'guitar'
-@Time = 4|4
+### Intro
+
+The following `bach` track represents a loopable scale progression for a blues song:
+
+```bach
+@Meter = 4|4
 @Tempo = 42
 
 :A = Scale('A3 minorpentatonic')
 :D = Scale('D3 minorpentatonic')
 :E = Scale('E3 minorpentatonic')
 
-:Track = [
+!Play [
   1 -> :A
   1 -> :D
   2 -> :A
@@ -95,8 +97,6 @@ The following `bach` track represents the scale progression of a blues song:
   1 -> :D
   2 -> :A
 ]
-
-!Play :Track
 ```
 
 and is interpreted like so:
@@ -104,27 +104,134 @@ and is interpreted like so:
 1. Scale `:A`, or `A3 minorpentatonic`, will be played for `1` measure, then
 1. Scale `:D`, or `D3 minorpentatonic`, will be played for `1` measure, then
 1. Scale `:A` will be played for `2` measures, then
-1. ...
+1. ... and so on
 
-To find a list of every construct supported by `bach` (such as `Note`, `Chord`, etc.), please refer to the ["Constructs"](https://github.com/slurmulon/bach#constructs) section.
+To find a list of every reserved construct supported by `bach` (such as `Note`, `Chord`, etc.), please refer to the ["Constructs"](https://github.com/slurmulon/bach#constructs) section.
+
+### Basic
+
+```bach
+@Meter = 4|4
+@Tempo = 44
+
+:B = Chord('Bm')
+:E = Chord('Em')
+:F = Chord('F#m7')
+
+!Play [
+  4 -> {
+    Scale('B minor')
+    :B
+  }
+  2 -> :E
+  2 -> :B
+  2 -> :F
+  2 -> :B
+]
+```
+
+```bach
+@Meter = 4|4
+@Tempo = 169
+
+!Play [
+  7/8 -> {
+    Scale('A aeolian')
+    Chord('F')
+  }
+  1 -> Chord('G')
+  2 + (1/8) -> Chord('Am')
+]
+```
+
+```bach
+@Meter = 4|4
+@Tempo = 130
+
+!Play [
+  3/8 -> {
+    Scale('G aeolian')
+    Chord('Gmin')
+  }
+  5/8 -> Chord('Eb')
+  3/8 -> Chord('Cmin7')
+  5/8 -> Chord('Bb')
+]
+```
+
+### Advanced
+
+#### Compound meters
+
+```bach
+@Meter = 12|8
+@Tempo = 150
+
+!Play [
+  12/8 -> {
+    Scale('A minor')
+    Chord('A')
+  }
+  12/8 -> Chord('A7')
+  12/8 -> Chord('D7')
+  12/8 -> Chord('D#7')
+
+  6/8 -> Chord('A')
+  6/8 -> Chord('F#m7')
+
+  6/8 -> Chord('Bm7')
+  6/8 -> Chord('E7')
+
+  6/8 -> Chord('A7')
+  6/8 -> Chord('D7')
+]
+```
+
+#### Mixed meters
+
+```bach
+@Meter = 5|8
+@Tempo = 150
+
+!Play [
+  3/8 -> {
+    Scale('D dorian')
+    Chord('Dm9')
+  }
+  2/8 -> Chord('Am9')
+]
+```
+
+```bach
+@Meter = 3|4
+@Tempo = 100
+
+!Play [
+  6/4 -> {
+    Scale('C# phrygian')
+    Chord('C#m')
+  }
+  6/4 -> Chord('Dmaj7')
+]
+```
 
 ## Install
 
 ### Leinengen/Boot
 
-`[bach "1.0.0-SNAPSHOT"]`
+`[bach "2.0.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "bach:bach:1.0.0-SNAPSHOT"`
+`compile "bach:bach:2.0.0-SNAPSHOT"`
 
 ### Maven
 
-```
+```xml
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -161,7 +268,7 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/default/bach-1.0.0-SNAPSHOT -i /path/to/track.bach compile
+$ target/default/bach-2.0.0-SNAPSHOT -i /path/to/track.bach compile
 ```
 
 The executable currently supports the following actions:
@@ -174,11 +281,22 @@ The executable currently supports the following actions:
 
 ```clojure
 (ns my.namespace
-  (:require [bach.ast :refer [parse]]
-            [bach.track :refer [compile-track]]))
+  (:require [bach.track :refer [compose]]))
 
-; parses and compiles raw bach data into an interpretable hash-map
-(compile-track (parse "!Play [1 -> Chord('A'), 1 -> Chord('C')]"))
+; Parses, optimizes and compiles bach data into an interpretable hash-map
+(compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
+```
+
+### Repl
+
+```sh
+$ lein repl
+```
+
+```clojure
+(use 'bach.track :reload)
+
+(compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
 
 ## Documentation
@@ -215,40 +333,39 @@ The duration that a `Beat` is played for is specified using the tuple symbol, `-
 
 #### Nesting
 
-`Sets` or `Lists` defined in other `Sets` (i.e. nested `Sets`) may be defined without a duration.
+Nesting functionality is limited by design, as it helps keep high-level interpretation as linear and simple as possible.
 
-```
-{
-  [
-    <duration> -> <element>
-    <duration> -> <element>
-  ],
-  [
-    <duration> -> <element>
-    <duration> -> <element>
-  ]
-}
-```
+The rules are simple:
+
+ - `Lists` may contain `Sets`
+ - `Lists` may **not** contain other `Lists`
+ - `Sets` may **not** contain `Sets` or `Lists`
+
+As a result, `Lists` **cannot** be nested in another `Collection` at _any_ level.
 
 #### Durations
 
-The value of a `Beat`'s `<duration>` can be:
+The value of a `Beat`'s `<duration>` can be an integer, a fraction, or a mathematical expression composed of either.
 
 ```
-1    = Whole note (or one entire measure in 4|4)
+1    = Whole note (or one entire measure when `@Meter = 4|4`)
 1/2  = Half note
 1/4  = Quarter note
 1/8  = Eighth note
 1/16 = Sixteenth note
-...
+
 1/512 = Minimum duration
+1024  = Maximum duration
+
+2 + (1/2) = Two and a half whole notes
+2 * (6/8) = Two and a half measures when `@Meter = 6|8`
 ```
 
-To adhere with music theory, durations are strictly based on **common time** (`4|4`).
+To adhere with music theory, durations are strictly based on **common time** (`@Meter = 4|4`).
 
-This means that `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
+This means that, in your definitions, `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
 
-The examples in the remainder of this section assume common time, since this is the default when a `@Time` header is not provided.
+The examples in the remainder of this section assume common time, since this is the default when a `@Meter` header is not provided.
 
 ##### Examples
 
@@ -289,7 +406,7 @@ is the same as:
 This is usefeul for specifying more complicated rhythms, like those seen in jazz.
 
 ```
-:Mutliple = [
+:PartA = [
   1/2   -> Chord('D2min7')
   1+1/2 -> Chord('E2maj7')
   1+1/2 -> Chord('C2maj7')
@@ -381,9 +498,9 @@ Optional header information, including the **tempo** and **time signature**, is 
 Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any [primitive type](#primitives).
 
 ```
-@Title  = 'My bach track'
-@Time   = 4|4
+@Meter  = 4|4
 @Tempo  = 90
+@Title  = 'My bach track'
 @Tags   = ['test', 'lullaby']
 @Custom = 'so special'
 
@@ -427,8 +544,13 @@ Only one `!Play` definition is allowed per track file.
 
 ### Headers
 
- - **`Tempo`** (integer, beats per minute)
- - **`Time`** (meter, time signature. ex: `6|8`, `4|4`)
+#### Reserved
+
+ - **`Tempo`** (number, beats per minute)
+ - **`Meter`** (meter, time signature. ex: `6|8`, `4|4`)
+
+#### Useful
+
  - `Key` (string, key signature)
  - `Audio` (url)
  - `Instrument` (string, arbitrary)
@@ -450,7 +572,7 @@ Only one `!Play` definition is allowed per track file.
 
  - `'foo'` or `"bar"` = string
  - `123` or `4.5` = number
- - `#000000` = color
+ - `#000000` or `#fff` = color
 
 ## Related
 
@@ -480,10 +602,6 @@ Contributions are always welcome. Simply fork, make your changes and then create
  - [ ] Expandable / destructured scales and chords (i.e. `[... 1/4 -> Scale('C2')]`)
  - [ ] Application of collection variables (i.e. dereference and flatten value into surrounding list)
  - [ ] Allow user to define sections of a track that should loop forever
- - [ ] Allow track linking with Hypermedia
  - [ ] Linkable sections with unique namespaces so that end users may bookmark and/or track progress, or specify areas to loop
- - [X] Hide Chord or Scale (so it's only functionally relevant and not highlighted to the user)
- - [x] Arbitrary classification of notes (i.e. `Note('C2', class: "blue")`)
+ - [x] Arbitrary classification of elements (i.e. `Note('C2', class: "blue")`)
  - [x] Chord voicings/inversions (i.e. `Chord('C2maj7', inversion: 1)`)
- - [x] Traids (root, 1st, 2nd)
- - [ ] Sort out complexities around `Beats` in nested `List`s (i.e. should nested `Beats` / `Elements` be able to surpass their parents?)
