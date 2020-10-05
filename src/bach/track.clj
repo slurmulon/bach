@@ -61,6 +61,7 @@
                     bottom (-> bottom-token last read-string)]
                 (when (not (some #{bottom} (take 10 powers-of-two)))
                   (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
+       ; TODO: :meter, ensure integers
        :tempo (fn [& tempo-token]
                 (let [tempo (-> tempo-token last read-string)]
                   (when (not (<= 0 tempo 256))
@@ -114,6 +115,18 @@
     ; TODO: Determine if this is necessary with our math grammar (recommended in instaparse docs)
     ; :expr identity,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
+
+(defn collapse-repeaters
+  "Dereferences, reduces and flattens any repeaters defined in the track"
+  [track]
+  (insta/transform
+    {:repeater (fn [times element]
+                 (let [[kind & values] value-token
+                       repeated #(repeat (int times) %)
+                       elements (if (coll? values) (vec values) [values])]
+                   ; (clojure.pprint/pprint [kind (into [] cat (repeated section))])
+                   [kind (into [] cat (repeated elements))]))}
+    (reduce-values track)))
 
 (defn reduce-track
   "Dereferences variables and reduces the primitive values in a parsed track."
