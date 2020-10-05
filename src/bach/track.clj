@@ -62,6 +62,7 @@
                 (when (not (some #{bottom} (take 10 powers-of-two)))
                   (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
        ; TODO: :meter, ensure integers
+       ; TODO: :repeater, ensure `times` ends up being an integer (post reduction, though, which happens before this method right now)
        :tempo (fn [& tempo-token]
                 (let [tempo (-> tempo-token last read-string)]
                   (when (not (<= 0 tempo 256))
@@ -121,10 +122,9 @@
   [track]
   (insta/transform
     {:repeater (fn [times element]
-                 (let [[kind & values] value-token
+                 (let [[kind & values] element
                        repeated #(repeat (int times) %)
                        elements (if (coll? values) (vec values) [values])]
-                   ; (clojure.pprint/pprint [kind (into [] cat (repeated section))])
                    [kind (into [] cat (repeated elements))]))}
     (reduce-values track)))
 
@@ -134,6 +134,7 @@
   (-> track
       deref-variables
       reduce-values))
+; TODO: Add collapse-repeaters to reduce-track
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
