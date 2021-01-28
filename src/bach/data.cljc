@@ -2,7 +2,14 @@
   (:require [instaparse.core :as insta]
             [clojure.data.json :as json]))
 
+(def to-string #?(:clj clojure.edn/read-string :cljs cljs.reader/read-string))
+
 (def to-json json/write-str)
+
+; REMOVE (unnecessary, if we install this clj-math lib)
+; @see https://github.com/exupero/clj-math/blob/master/src/math/core.cljc#L24
+(def math-floor #?(:clj #(Math/floor %) :cljs js/Math.floor))
+(def math-ceil #?(:clj #(Math/ceil %) :cljs js/Math.ceil))
 
 ; TODO: make sure this returns an array when appropriate
 ; @see bach.track-test/compilation

@@ -5,7 +5,10 @@
                                ratio-to-vector
                                trim-matrix-row
                                inverse-ratio
-                               safe-ratio]]))
+                               safe-ratio
+                               to-string
+                               math-floor
+                               math-ceil]]))
 
 (defstruct playable-track :headers :data)
 
@@ -57,12 +60,15 @@
                        (throw (Exception. (str "variable is not declared before it's used: " value ", " (variables)))))
                      (create-variable label value))))
        :div (fn [top-token bottom-token]
-              (let [top    (-> top-token    last read-string)
-                    bottom (-> bottom-token last read-string)]
+              (let [top    (-> top-token    last to-string)
+                    bottom (-> bottom-token last to-string)]
+              ; (let [top    (-> top-token    last read-string)
+              ;       bottom (-> bottom-token last read-string)]
                 (when (not (some #{bottom} (take 10 powers-of-two)))
                   (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
        :tempo (fn [& tempo-token]
-                (let [tempo (-> tempo-token last read-string)]
+                ; (let [tempo (-> tempo-token last read-string)]
+                (let [tempo (-> tempo-token last to-string)]
                   (when (not (<= 0 tempo 256))
                     (throw (Exception. "tempos must be between 0 and 256 beats per minute")))))}
       track)))
@@ -109,8 +115,19 @@
     :mul *,
     :div /,
     :meter (fn [n d] [n d]),
-    :number clojure.edn/read-string,
-    :name clojure.edn/read-string,
+    ; TODO:
+    ; name: #?(:clj clojure.edn/read-string :cljs js/parseFloat
+    ;  or
+    ; TODO:
+    ; :number #?(:clj clojure.edn/read-string :cljs cljs.reader/read-string),
+    :number to-string,
+    ; ORIG:
+    ; :number clojure.edn/read-string,
+    ; TODO:
+    ; :name #?(:clj clojure.edn/read-string :cljs cljs.reader/read-string)
+    :name to-string,
+    ; ORIG:
+    ; :name clojure.edn/read-string,
     ; TODO: Determine if this is necessary with our math grammar (recommended in instaparse docs)
     ; :expr identity,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
@@ -357,6 +374,8 @@
         meter (get-meter-ratio track)
         pulse-beat (get-pulse-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
+        ; TODO
+        ; total-measures (#?(:clj Math/ceil :cljs js/Math.ceil) (get-normalized-total-measures track))
         total-measures (Math/ceil (get-normalized-total-measures track))
         total-beats (get-normalized-total-beats track)
         unused-tail-beats (mod (max total-beats beats-per-measure) (min total-beats beats-per-measure))
@@ -377,7 +396,11 @@
                       (beat-indices []
                         (let [global-beat-index @beat-cursor
                               local-beat-index (mod global-beat-index beats-per-measure)
-                              measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
+                              ; TODO
+                              ; measure-index (int (#?(:clj Math/floor :cljs js/Math.floor) (/ global-beat-index beats-per-measure)))]
+                              measure-index (int (math-floor (/ global-beat-index beats-per-measure)))]
+                              ; ORIG
+                              ; measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                           {:measure measure-index :beat local-beat-index}))]
                 (insta/transform
                  {:pair (fn [duration elements]
