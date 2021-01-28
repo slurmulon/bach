@@ -4,7 +4,7 @@
             [bach.ast :refer [parse]]
             [bach.track :refer [compose]]
             [bach.data :refer [to-json]])
-  (:gen-class))
+  #?(:clj (:gen-class)))
 
 (def cli-options
   [["-i" "--input DATA" "The bach file to use as input"

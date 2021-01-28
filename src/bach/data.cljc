@@ -1,17 +1,20 @@
 (ns bach.data
   (:require [instaparse.core :as insta]
-            [clojure.data.json :as json]))
+            #?(:clj [clojure.data.json :as json])))
 
 (def to-string #?(:clj clojure.edn/read-string :cljs cljs.reader/read-string))
 
-(def to-json json/write-str)
+; (def to-json json/write-str)
+(def to-json #?(:clj json/write-str :cljs cljs->js))
 
 ; REMOVE (unnecessary, if we install this clj-math lib)
 ; @see https://github.com/exupero/clj-math/blob/master/src/math/core.cljc#L24
 (def math-floor #?(:clj #(Math/floor %) :cljs js/Math.floor))
 (def math-ceil #?(:clj #(Math/ceil %) :cljs js/Math.ceil))
 
-; TODO: make sure this returns an array when appropriate
+(defmacro inline-resource [resource-path]
+  (slurp (clojure.java.io/resource resource-path)))
+
 ; @see bach.track-test/compilation
 (defn hiccup-to-hash-map
   "Converts an instaparse :hiccup tree as a hash map"
