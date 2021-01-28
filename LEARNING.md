@@ -33,3 +33,11 @@
 
  - https://yobriefca.se/blog/2014/03/02/building-command-line-apps-with-clojure/
  - http://markwoodhall.com/26-06-2014-command-line-applications-in-clojure/
+
+## ClojureScript
+
+ - https://clojurescript.org/community/libraries
+ - https://github.com/magomimmo/modern-cljs
+ - https://github.com/athensresearch/athens/blob/master/src/cljc/athens/parser.cljc
+ - https://github.com/Engelberg/instaparse/blob/master/src/instaparse/abnf.cljc#L175
+ - https://github.com/Engelberg/instaparse/blob/master/project.clj
