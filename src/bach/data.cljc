@@ -5,13 +5,23 @@
 (def to-string #?(:clj clojure.edn/read-string :cljs cljs.reader/read-string))
 
 ; (def to-json json/write-str)
-(def to-json #?(:clj json/write-str :cljs cljs->js))
+(def to-json #?(:clj json/write-str :cljs clj->js))
 
 ; REMOVE (unnecessary, if we install this clj-math lib)
 ; @see https://github.com/exupero/clj-math/blob/master/src/math/core.cljc#L24
 (def math-floor #?(:clj #(Math/floor %) :cljs js/Math.floor))
 (def math-ceil #?(:clj #(Math/ceil %) :cljs js/Math.ceil))
 
+(defn gcd [a b]
+  (if (zero? b)
+    a
+    (recur b (mod a b))))
+
+(def powers-of-two (iterate (partial * 2) 1))
+
+; TODO: May need to enhance how we work with slurp here
+;  - Compiler warns but oddly we can access and use bach/ast from the cljsbuild repl
+; @see: https://gist.github.com/noprompt/9086232
 (defmacro inline-resource [resource-path]
   (slurp (clojure.java.io/resource resource-path)))
 
@@ -46,13 +56,28 @@
       hiccup-to-hash-map
       to-json))
 
+#?(:clj
 (defn ratio-to-vector
   "Converts a ratio to a vector."
   [ratio]
   (cond
+    ; TODO: Update to use `cljs`
+    ; WARN: ratio isn't supported, probably need to provide a backup here
+    ;  - Likely explains why we don't see `bach.data` and `bach.track` as namespaces!
+    ;  - https://clojurescript.org/about/differences#_the_reader
+    ;  - https://github.com/pbaille/cljs-ratios/blob/master/src/cljs_ratios/ratios.cljs
     (ratio? ratio) [(numerator ratio) (denominator ratio)]
     (vector? ratio) ratio
     :else (throw (Exception. "input must be a ratio or a vector"))))
+
+:cljs
+(defn ratio-to-vector
+  "Converts a ratio to a vector."
+  [ratio]
+  (cond
+    (js/parseFloat ratio) [(* ratio 10) 10])
+    (vector? ratio) ratio
+    :else (throw (js/Error. "input must be a ratio or a vector"))))
 
 (defn inverse-ratio
   "Calculates the inverse of a ratio."
@@ -66,9 +91,18 @@
   "Divides two numeric values in a safe way that defaults to 0 during exceptions.
    Ideal when y might be 0 and you want to avoid explicitly handling this case."
   [x y]
-  (try (/ x y)
-       (catch ArithmeticException _
-         0)))
+  #?(:clj
+     (try (/ x y)
+          (catch ArithmeticException _
+            0))
+     :cljs
+     (try (let [r (/ x y)]
+            (case r
+              (js/Infinity 0)
+              (js/NaN 0)
+              r))
+          (catch js/Error _
+            0))))
 
 (defn trim-matrix-row
   "Trims tail columns from a specified row in a matrix (i.e nested array of depth 2)."

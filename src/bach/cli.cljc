@@ -2,8 +2,8 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as string]
             [bach.ast :refer [parse]]
-            [bach.track :refer [compose]]
-            [bach.data :refer [to-json]])
+            [bach.track :as track :refer [compose]]
+            [bach.data :as data :refer [to-json]])
   #?(:clj (:gen-class)))
 
 (def cli-options
