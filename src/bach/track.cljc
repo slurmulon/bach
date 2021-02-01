@@ -169,8 +169,17 @@
         reduced-track (reduce-track track)]
     (insta/transform
      {:header (fn [kind-token value]
+                (println "-------------")
+                (println "kind: " (last kind-token))
+                (println "value: " value)
+                (println "type of kind: " (type (last kind-token)))
+                ; (println "header key" (keyword (clojure.string/lower-case (last kind-token))))
+                ; (println "alt header key" (keyword (name (last kind-token))))
+                (println "alt2 header key" (keyword (clojure.string/lower-case (name (last kind-token)))))
                 (let [kind (last kind-token)
-                      header-key (keyword (clojure.string/lower-case kind))]
+                      header-key (-> kind name clojure.string/lower-case keyword)]
+                      ; header-key (keyword (clojure.string/lower-case kind))]
+                      ; header-key (keyword (name kind))]
                   (swap! headers assoc header-key value)))}
      reduced-track)
     @headers))
@@ -235,8 +244,6 @@
           meter (get-meter-ratio reduced-track)
           full-measure meter
           pulse-beat @lowest-duration
-          ; pulse-beat-unit (/ 1 (gcd pulse-beat meter))
-          ; WORKS!
           pulse-beat-unit (gcd pulse-beat meter)
           pulse-beat-aligns? (= 0 (mod (max pulse-beat meter)
                                        (min pulse-beat meter)))]
@@ -489,4 +496,8 @@
   (cond
     (vector? track) (provision track)
     (string? track) (-> track parse provision)
-    :else (throw (Exception. "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string."))))
+    :else (let [error "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string."]
+            #?(:clj
+               (throw (Exception. error))
+               :cljs
+               (throw (js/Error. error))))))

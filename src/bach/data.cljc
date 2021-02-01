@@ -1,8 +1,10 @@
 (ns bach.data
   (:require [instaparse.core :as insta]
-            #?(:clj [clojure.data.json :as json])))
+            #?(:clj [clojure.data.json :as json]
+               :cljs [cljs.reader :as reader])))
+  ; (:refer-clojure :exclude [slurp]))
 
-(def to-string #?(:clj clojure.edn/read-string :cljs cljs.reader/read-string))
+(def to-string #?(:clj clojure.edn/read-string :cljs reader/read-string))
 
 ; (def to-json json/write-str)
 (def to-json #?(:clj json/write-str :cljs clj->js))
@@ -18,6 +20,9 @@
     (recur b (mod a b))))
 
 (def powers-of-two (iterate (partial * 2) 1))
+
+; (defmacro slurp [file]
+;   (clojure.core/slurp file))
 
 ; TODO: May need to enhance how we work with slurp here
 ;  - Compiler warns but oddly we can access and use bach/ast from the cljsbuild repl
@@ -75,9 +80,9 @@
   "Converts a ratio to a vector."
   [ratio]
   (cond
-    (js/parseFloat ratio) [(* ratio 10) 10])
+    (not (js/isNaN ratio)) [(* ratio 10) 10]
     (vector? ratio) ratio
-    :else (throw (js/Error. "input must be a ratio or a vector"))))
+    :else (throw (js/Error. "input must be a ratio or a vector")))))
 
 (defn inverse-ratio
   "Calculates the inverse of a ratio."
