@@ -169,17 +169,8 @@
         reduced-track (reduce-track track)]
     (insta/transform
      {:header (fn [kind-token value]
-                (println "-------------")
-                (println "kind: " (last kind-token))
-                (println "value: " value)
-                (println "type of kind: " (type (last kind-token)))
-                ; (println "header key" (keyword (clojure.string/lower-case (last kind-token))))
-                ; (println "alt header key" (keyword (name (last kind-token))))
-                (println "alt2 header key" (keyword (clojure.string/lower-case (name (last kind-token)))))
                 (let [kind (last kind-token)
                       header-key (-> kind name clojure.string/lower-case keyword)]
-                      ; header-key (keyword (clojure.string/lower-case kind))]
-                      ; header-key (keyword (name kind))]
                   (swap! headers assoc header-key value)))}
      reduced-track)
     @headers))
