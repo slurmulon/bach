@@ -21,6 +21,7 @@
 - [Usage](#usage)
   * [CLI](#cli)
   * [Library](#library)
+- [JavaScript](#javascript)
 - [Documentation](#documentation)
   * [Beats](#beats)
     - [Lists](#lists)
@@ -303,7 +304,7 @@ $ lein -U repl
 
 ## JavaScript
 
-If using Clojure or the JVM in general is not an option, `bach` can also be used via ClojureScript and `nodejs`.
+If using Clojure or the JVM in general is not an option, `bach` can also be used via ClojureScript and/or `nodejs`.
 
 Since installation and usage is identical between Clojure and ClojureScript, this section focuses on using `bach` in `nodejs` via `npm`.
 
@@ -321,7 +322,7 @@ You should now see `bach-cljs` under `dependencies` in `package.json`.
 
 ```node
 const bach = require('bach-cljs')
-const json = bach("@Tempo = 65 !Play [ 1 -> { Scale('E lydian') Chord('E') } 1/2 -> Chord('G#min') 1/2 -> Chord('B') ]")
+const json = bach("@Tempo = 65 !Play [1 -> Chord('E') 1/2 -> Chord('G#min') 1/2 -> Chord('B')]")
 
 console.log(JSON.stringify(json, null, 2))
 ```
@@ -338,7 +339,6 @@ $ lein clean && npx shadow-cljs compile lib
 ```sh
 $ lein clean && npx shadow-cljs release lib
 ```
-
 
 ## Documentation
 
