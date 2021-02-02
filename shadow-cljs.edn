@@ -1,0 +1,12 @@
+{:source-paths ["src"]
+ :dependencies [[instaparse "1.4.10"]
+                [org.clojure/tools.cli "1.0.194"]]
+ :dev-http {8080 "target/"}
+ :builds {:code
+          {:target :npm-module
+           :output-dir "target/"
+           :entries [bach.track]}}}
+ ; :builds {:app {:output-dir "target/"
+ ;                :target :esm
+ ;                :asset-path "."
+ ;                :modules {:main {:init-fn bach.core/main!}}}}}

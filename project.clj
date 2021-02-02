@@ -22,12 +22,15 @@
 
   :cljsbuild {:builds [{:id "prod"
                         :source-paths ["src"]
-                        :modules {:bach {:exports {track bach.track}}}
+                        ; :modules {:bach {:exports {track bach.track}}}
+                        ; :modules {:bach {:exports {track bach.track}}}
+                        :modules {:bach {:exports {compose bach.core/compose}}}
                         :compiler {:main bach.core
                                    :output-to "package/index.js"
                                    :target :nodejs
                                    :output-dir "target"
                                    ;; :externs ["externs.js"]
+                                  ; :modules {:bach {:exports {compose bach.core/compose}}}
                                    :optimizations :advanced
                                    :pretty-print true
                                    :parallel-build true}}]}
