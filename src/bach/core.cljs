@@ -7,61 +7,18 @@
 ; @see http://webcache.googleusercontent.com/search?q=cache:TNyqrhVeNekJ:www.matthewstump.com/misc/2012/06/04/writing-nodejs-modules-in-clojurescript+&cd=3&hl=en&ct=clnk&gl=us&client=ubuntu
 
 (ns bach.core
-  (:require [bach.track :as track]
-            [bach.data :as data]
-            [bach.ast :as ast]
-            ; [bach.track :refer [compose]]
-            ; [bach.ast :refer [parse]]
-            ; [bach.track :as bach-track]
-            ; [bach.data :as bach-data]
-            ; [bach.ast :as bach-ast]
+  ; (:require [bach.track :as track]
+  ;           [bach.data :as data]
+  ;           [bach.ast :as ast]
+            [bach.track]
             [clojure.string :as str]
             [cljs.nodejs :as nodejs]))
 
-; (defn ^:export square [x]
-;   (* x x))
+; (def ^:export compose track/compose)
+; (def ^:export parse ast/parse)
 
-; (defn ^:export str-thing [x] (println "wut" x))
-
-; (def ^:export track bach-track)
-; (def ^:export data bach-data)
-; (def ^:export ast bach-ast)
-; (def ^:export compose-track compose)
-; WORKS
-(def ^:export compose track/compose)
-(def ^:export parse ast/parse)
-; (alias ^:export 
-
-; (def ^:export track)
-; (def ^:export data)
-; (def ^:export ast)
-
-; (def ^:export track bach.track)
-; (def ^:export data bach.data)
-; (def ^:export ast bach.ast)
-
-; (def ^:export default {:track bach.track
-;                        :data bach.data
-;                        :ast bach.ast})
 (defn noop [] nil)
 
 (nodejs/enable-util-print!)
 
-(println "[core/track]" bach.track)
-
-; (defn -main [& args]
-;   )
-  ; (-> (str/join " " args)
-  ;     (str/replace #"cker\b" "xor")
-  ;     (str/replace #"e|E" "3")
-  ;     (str/replace #"i|I" "1")
-  ;     (str/replace #"o|O" "0")
-  ;     (str/replace #"s|S" "5")
-  ;     (str/replace #"a|A" "4")
-  ;     (str/replace #"t|T" "7")
-  ;     (str/replace #"b|B" "6")
-  ;     (str/replace #"c|C" "(")
-  ;     println))
-
-; (set! *main-cli-fn* -main)
 (set! *main-cli-fn* noop)
