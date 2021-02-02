@@ -7,19 +7,30 @@
 ; @see http://webcache.googleusercontent.com/search?q=cache:TNyqrhVeNekJ:www.matthewstump.com/misc/2012/06/04/writing-nodejs-modules-in-clojurescript+&cd=3&hl=en&ct=clnk&gl=us&client=ubuntu
 
 (ns bach.core
-  (:require ;[bach.track :as track]
-            ;[bach.data :as data]
-            ;[bach.ast :as ast]
-            [bach.track :refer [compose]]
+  (:require [bach.track :as track]
+            [bach.data :as data]
+            [bach.ast :as ast]
+            ; [bach.track :refer [compose]]
+            ; [bach.ast :refer [parse]]
+            ; [bach.track :as bach-track]
+            ; [bach.data :as bach-data]
+            ; [bach.ast :as bach-ast]
             [clojure.string :as str]
             [cljs.nodejs :as nodejs]))
 
-(defn ^:export square [x]
-  (* x x))
+; (defn ^:export square [x]
+;   (* x x))
 
-(defn ^:export str-thing [x] (println "wut" x))
+; (defn ^:export str-thing [x] (println "wut" x))
 
-(def ^:export compose-track compose)
+; (def ^:export track bach-track)
+; (def ^:export data bach-data)
+; (def ^:export ast bach-ast)
+; (def ^:export compose-track compose)
+; WORKS
+(def ^:export compose track/compose)
+(def ^:export parse ast/parse)
+; (alias ^:export 
 
 ; (def ^:export track)
 ; (def ^:export data)
