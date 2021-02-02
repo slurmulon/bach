@@ -249,6 +249,8 @@ Then change your current directory to wherever you cloned `bach`, and:
 $ lein install
 ```
 
+If you want to simultaneously develop `bach` and another library using it, [follow this guide on checkout dependencies](https://github.com/technomancy/leiningen/blob/master/doc/TUTORIAL.md#checkout-dependencies).
+
 ## Testing
 
 ```sh
@@ -290,7 +292,7 @@ The executable currently supports the following actions:
 ### Repl
 
 ```sh
-$ lein repl
+$ lein -U repl
 ```
 
 ```clojure
@@ -298,6 +300,45 @@ $ lein repl
 
 (compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
+
+## JavaScript
+
+If using Clojure or the JVM in general is not an option, `bach` can also be used via ClojureScript and `nodejs`.
+
+Since installation and usage is identical between Clojure and ClojureScript, this section focuses on using `bach` in `nodejs` via `npm`.
+
+As of now only `bach.track/compose` is exported and accessible in `nodejs`, since parsing and validating `bach` into `bach.json` is the primary feature.
+
+### Install
+
+```sh
+$ npm i git@github.com:slurmulon/bach.git
+```
+
+You should now see `bach-cljs` under `dependencies` in `package.json`.
+
+### Usage
+
+```node
+const bach = require('bach-cljs')
+const json = bach("@Tempo = 65 !Play [ 1 -> { Scale('E lydian') Chord('E') } 1/2 -> Chord('G#min') 1/2 -> Chord('B') ]")
+
+console.log(JSON.stringify(json, null, 2))
+```
+
+### Development
+
+```sh
+$ npm i
+$ lein clean && npx shadow-cljs compile lib
+```
+
+### Releasing
+
+```sh
+$ lein clean && npx shadow-cljs release lib
+```
+
 
 ## Documentation
 
