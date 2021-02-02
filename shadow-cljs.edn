@@ -2,10 +2,22 @@
  :dependencies [[instaparse "1.4.10"]
                 [org.clojure/tools.cli "1.0.194"]]
  :dev-http {8080 "target/"}
- :builds {:code
+ :builds {:lib
+          ; FIXME: `ReferenceError: bach is not defined`
+          {;:target :esm
+           :target :node-library
+           :output-to "target/js/lib.js"
+           :exports-var bach.track/compose}
+          :npm
           {:target :npm-module
-           :output-dir "target/"
+           :output-dir "target/js/"
            :entries [bach.track]}}}
+           ; :modules {:track {:exports {compose bach.track/compose}}
+           ;                             ; default-headers bach.track/default-headers}}
+           ;           :ast {:exports {parse bach.ast/parse}}}}}}
+
+           ; :output-dir "target/main.js"
+           ; :entries [bach.track]}}}
  ; :builds {:app {:output-dir "target/"
  ;                :target :esm
  ;                :asset-path "."

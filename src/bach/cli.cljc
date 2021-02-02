@@ -44,7 +44,8 @@
 
 (defn exit [status msg]
   (println msg)
-  (System/exit status))
+  #?(:clj (System/exit status)
+     :cljs status))
 
 (defn -main [& args]
   "bach"

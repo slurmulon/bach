@@ -1,17 +1,6 @@
 (ns bach.ast
-  ; LAST
-  ; (:require [instaparse.core :refer [parser]]
-  ;           #?(:clj [bach.data :refer [inline-resource]]
-  ;              :cljs [bach.data :refer-macros [inline-resource]])))
-
-  ; (:require #?(:clj [bach.data :refer [inline-resource]]
-  ;              :cljs [bach.data :refer-macros [inline-resource]]))
-
-    (:require #?(:cljs [instaparse.core :as insta :refer-macros [defparser]]
-                 :clj  [instaparse.core :as insta :refer [defparser]])))
-
-; (def parse
-;   (parser (inline-resource "grammar.bnf")))
+  (:require #?(:cljs [instaparse.core :as insta :refer-macros [defparser]]
+               :clj [instaparse.core :as insta :refer [defparser]])))
 
 (defparser parse
   "(* Core *)

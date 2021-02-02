@@ -10,11 +10,12 @@
   ; (:require [bach.track :as track]
   ;           [bach.data :as data]
   ;           [bach.ast :as ast]
-            [bach.track]
+  (:require [bach.track :as track]
+            ; [bach.track]
             [clojure.string :as str]
             [cljs.nodejs :as nodejs]))
 
-; (def ^:export compose track/compose)
+(def ^:export compose track/compose)
 ; (def ^:export parse ast/parse)
 
 (defn noop [] nil)

@@ -26,7 +26,8 @@
                         ; :modules {:bach {:exports {track bach.track}}}
                         :modules {:bach {:exports {compose bach.core/compose}}}
                         :compiler {:main bach.core
-                                   :output-to "package/index.js"
+                                   ; :output-to "package/index.js"
+                                   :output-to "target/index.js"
                                    :target :nodejs
                                    :output-dir "target"
                                    ;; :externs ["externs.js"]
