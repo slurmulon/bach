@@ -20,16 +20,32 @@
             ; [cljsee "0.1.1-SNAPSHOT"]]
             ; [cljsee "0.1.0"]]
 
-  :cljsbuild {
-    :builds [{
-        ; The path to the top-level ClojureScript source directory:
-        :source-paths ["src"]
-        ; The standard ClojureScript compiler options:
-        ; (See the ClojureScript compiler documentation for details.)
-        :compiler {
-          ; :output-to "war/javascripts/main.js"  ; default: target/cljsbuild-main.js
-          :optimizations :whitespace
-          :pretty-print true}}]}
+  :cljsbuild {:builds [{:id "prod"
+                        :source-paths ["src"]
+                        :modules {:bach {:exports {track bach.track}}}
+                        :compiler {:main bach.core
+                                   :output-to "package/index.js"
+                                   :target :nodejs
+                                   :output-dir "target"
+                                   ;; :externs ["externs.js"]
+                                   :optimizations :advanced
+                                   :pretty-print true
+                                   :parallel-build true}}]}
+
+  ; ORIG
+  ; :cljsbuild {
+    ; :builds [{
+    ;     ; The path to the top-level ClojureScript source directory:
+    ;     :source-paths ["src"]
+    ;     ; The standard ClojureScript compiler options:
+    ;     ; (See the ClojureScript compiler documentation for details.)
+    ;     :compiler {
+    ;       ; :output-to "war/javascripts/main.js"  ; default: target/cljsbuild-main.js
+    ;       ; :target :nodejs
+    ;       ; :optimizations :none
+    ;       ; :source-map true
+    ;       :optimizations :whitespace
+    ;       :pretty-print true}}]}
 
   ; :prep-tasks [["cljsee" "once"]]
   ; :cljsee {:builds [{:source-paths ["src/"]
