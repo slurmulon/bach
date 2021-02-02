@@ -6,6 +6,7 @@
                                trim-matrix-row
                                inverse-ratio
                                safe-ratio
+                               to-json
                                to-string
                                math-floor
                                math-ceil
@@ -476,9 +477,13 @@
   [track]
   (when (validate track)
     (let [headers (provision-headers track)
-          data (normalize-measures track)]
+          data (normalize-measures track)
+          source {:headers headers :data data}]
+      #?(:clj source
+         :cljs (to-json source)))))
       ; (struct playable-track headers data))))
-      {:headers headers :data data})))
+      ; LAST
+      ; {:headers headers :data data})))
 
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
