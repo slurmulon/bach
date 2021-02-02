@@ -2,7 +2,6 @@
   (:require [instaparse.core :as insta]
             #?(:clj [clojure.data.json :as json]
                :cljs [cljs.reader :as reader])))
-  ; (:refer-clojure :exclude [slurp]))
 
 (def to-string #?(:clj clojure.edn/read-string :cljs reader/read-string))
 (def to-json #?(:clj json/write-str :cljs clj->js))
@@ -16,16 +15,6 @@
     (recur b (mod a b))))
 
 (def powers-of-two (iterate (partial * 2) 1))
-
-; (defmacro slurp [file]
-;   (clojure.core/slurp file))
-
-; TODO: May need to enhance how we work with slurp here
-;  - Compiler warns but oddly we can access and use bach/ast from the cljsbuild repl
-; @see: https://gist.github.com/noprompt/9086232
-(defmacro inline-resource [resource-path]
-  ; (slurp (clojure.java.io/resource resource-path)))
-  (clojure.core/slurp (clojure.java.io/resource resource-path)))
 
 ; @see bach.track-test/compilation
 (defn hiccup-to-hash-map

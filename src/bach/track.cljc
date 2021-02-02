@@ -13,8 +13,6 @@
                                powers-of-two
                                gcd]]))
 
-; (defstruct playable-track :headers :data)
-
 (def default-tempo 120)
 (def default-meter [4 4])
 (def default-beat-unit (/ 1 (last default-meter)))
@@ -58,31 +56,24 @@
                    (case value-type
                      :identifier
                      (when (-> (variables) (contains? value) not)
-                       #?(:clj
-                          (throw (Exception. (str "variable is not declared before it's used: " value ", " (variables))))
-                          :cljs
-                          (throw (js/Error. (str "variable is not declared before it's used: " value ", " (variables))))))
+                       (let [error (str "variable is not declared before it's used: " value ", " (variables))]
+                          #?(:clj (throw (Exception. error))
+                             :cljs (throw (js/Error. error)))))
                      (create-variable label value))))
        :div (fn [top-token bottom-token]
               (let [top    (-> top-token    last to-string)
                     bottom (-> bottom-token last to-string)]
-              ; (let [top    (-> top-token    last read-string)
-              ;       bottom (-> bottom-token last read-string)]
                 (when (not (some #{bottom} (take 10 powers-of-two)))
-                  ; (throw (Exception. "note divisors must be base 2 and no greater than 512")))))
-                  #?(:clj
-                     (throw (Exception. "note divisors must be base 2 and no greater than 512"))
-                     :cljs
-                     (throw (js/Error. "note divisors must be base 2 and no greater than 512"))))))
+                  (let [error "note divisors must be base 2 and no greater than 512"]
+                    #?(:clj (throw (Exception. error))
+                       :cljs (throw (js/Error. error)))))))
        :tempo (fn [& tempo-token]
                 ; (let [tempo (-> tempo-token last read-string)]
                 (let [tempo (-> tempo-token last to-string)]
                   (when (not (<= 0 tempo 256))
-                    ; (throw (Exception. "tempos must be between 0 and 256 beats per minute")))))}
-                    #?(:clj
-                       (throw (Exception. "tempos must be between 0 and 256 beats per minute"))
-                       :cljs
-                       (throw (js/Error. "tempost be be between 0 and 256 beats per minute"))))))}
+                    (let [error "tempos must be between 0 and 256 beats per minute"]
+                      #?(:clj (throw (Exception. error))
+                         :cljs (throw (js/Error. error)))))))}
       track)))
   true)
 
@@ -127,19 +118,8 @@
     :mul *,
     :div /,
     :meter (fn [n d] [n d]),
-    ; TODO:
-    ; name: #?(:clj clojure.edn/read-string :cljs js/parseFloat
-    ;  or
-    ; TODO:
-    ; :number #?(:clj clojure.edn/read-string :cljs cljs.reader/read-string),
     :number to-string,
-    ; ORIG:
-    ; :number clojure.edn/read-string,
-    ; TODO:
-    ; :name #?(:clj clojure.edn/read-string :cljs cljs.reader/read-string)
     :name to-string,
-    ; ORIG:
-    ; :name clojure.edn/read-string,
     ; TODO: Determine if this is necessary with our math grammar (recommended in instaparse docs)
     ; :expr identity,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
@@ -242,23 +222,6 @@
       (if pulse-beat-aligns?
         (min pulse-beat full-measure)
         (min pulse-beat-unit beat-unit)))))
-
-    ; ORIG
-    ; (let [beat-unit (get-beat-unit reduced-track)
-    ;       meter (get-meter-ratio reduced-track)
-    ;       full-measure meter
-    ;       pulse-beat @lowest-duration
-    ;       pulse-beat-unit (/ 1 (-> pulse-beat
-    ;                                ; rationalize
-    ;                                ; #?(:clj rationalize :cljs identity)
-    ;                                #?(:clj rationalize)
-    ;                                #?(:clj clojure.lang.Numbers/toRatio)
-    ;                                denominator))
-    ;       pulse-beat-aligns? (= 0 (mod (max pulse-beat meter)
-    ;                                    (min pulse-beat meter)))]
-    ;   (if pulse-beat-aligns?
-    ;     (min pulse-beat full-measure)
-    ;     (min pulse-beat-unit beat-unit)))))
 
 (defn get-beats-per-measure
   "Determines how many beats are in each measure, based on the time signature."
@@ -481,9 +444,6 @@
           source {:headers headers :data data}]
       #?(:clj source
          :cljs (to-json source)))))
-      ; (struct playable-track headers data))))
-      ; LAST
-      ; {:headers headers :data data})))
 
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
