@@ -1,5 +1,6 @@
 (ns bach.composition-test
-  (:require [clojure.test :refer :all]
+  (:require #?(:clj [clojure.test :refer :all]
+               :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
             [bach.track :refer :all]))
 
 (deftest basic

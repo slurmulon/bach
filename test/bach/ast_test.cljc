@@ -1,5 +1,6 @@
 (ns bach.ast-test
-  (:require [clojure.test :refer :all]
+  (:require #?(:clj [clojure.test :refer :all]
+               :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
             [bach.ast :refer :all]
             [instaparse.core :as insta]))
 
