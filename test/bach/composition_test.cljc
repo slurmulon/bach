@@ -11,12 +11,21 @@
 
 (defn sorted [data]
   ; (into (sorted-map) (sort-by first (seq data))))
-  (into (sorted-map-by <) data))
+  ; (into (sorted-map-by #?(:clj name :cljs identity) <) data))
+  ; (into (sorted-map-by <) data))
+  (into (sorted-map) data))
 
 (def hashed hash-unordered-coll)
 
 (defn normalize [tree]
-  (hashed tree))
+  ; ORIG(works)
+  ; (hashed tree))
+  ; WORKS
+  ; (-> tree sorted hashed))
+  #?(:clj tree
+     :cljs (-> tree sorted hashed)))
+
+
   ; #?(:clj (hashed tree)
   ;    :cljs (-> tree js->clj hashed)))
   ; #?(:clj (hash-unordered-coll tree)
@@ -36,11 +45,14 @@
 ;       ; #?(:cljs #(js->clj % :keywordize-keys true))
 ;       sorted))
 
+; LAST
+; (defn compose [tree]
+;   (hashed #?(:clj (-> tree track/compose sorted)
+;             :cljs (sorted (js->clj (track/compose tree) :keywordize-keys true)))))
+
 (defn compose [tree]
-  (hashed #?(:clj (-> tree track/compose sorted)
-     :cljs (sorted (js->clj (track/compose tree) :keywordize-keys true)))))
-  ; #?(:clj (-> tree track/compose sorted)
-  ;    :cljs (sorted (js->clj (track/compose tree) :keywordize-keys true))))
+  #?(:clj (track/compose tree)
+      :cljs (hashed (sorted (js->clj (track/compose tree) :keywordize-keys true)))))
 
 (deftest basic
   (testing "common meter"

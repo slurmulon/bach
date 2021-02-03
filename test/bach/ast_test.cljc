@@ -4,7 +4,7 @@
   ;       [(:require [goog.string :as gstring]
   ;                  [goog.string.format])]))
   ; WORKS
-  (:require #?@(:clj [clojure.test :refer [deftest is testing]]
+  (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
                :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
                       [goog.string :as gstring]
                       [goog.string.format :as format]])
