@@ -331,13 +331,13 @@ console.log(JSON.stringify(json, null, 2))
 
 ```sh
 $ npm i
-$ lein clean && npx shadow-cljs compile lib
+$ lein clean && npm run dev
 ```
 
 ### Releasing
 
 ```sh
-$ lein clean && npx shadow-cljs release lib
+$ lein clean && npm run build
 ```
 
 ## Documentation
