@@ -72,6 +72,8 @@ This module, by itself, can only parse and compile plaintext `bach` data into [`
 
 `bach.json` is a JSON micro-format that makes it trivial for `bach` engines to sequentially process a `bach` music track and synchronize it in real-time with audio.
 
+This library can be used in Clojure, [ClojureScript and NodeJS](#javascript).
+
 ## Examples
 
 For the sake of brevity, the examples found in this document all represent short and repeatable loops of music.
@@ -326,6 +328,10 @@ import bach from 'bach-cljs'
 **CommonJS**
 ```js
 const { bach } = require('bach-cljs')
+```
+
+```js
+const bach = require('bach-cljs').default
 ```
 
 ### Usage
