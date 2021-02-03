@@ -365,7 +365,7 @@ $ npm test
 
 ## Documentation
 
-An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/bach/blob/master/resources/grammar.bnf).
+An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [bach.ast](https://github.com/slurmulon/bach/blob/master/src/bach/ast.cljc).
 
 ### Beats
 
