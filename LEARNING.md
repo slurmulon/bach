@@ -54,6 +54,12 @@
  - https://spin.atomicobject.com/2016/02/05/clojurescript-pitfalls/
  - https://shadow-cljs.github.io/docs/UsersGuide.html#_multiple_static_named_exports
  - https://clojureverse.org/t/generating-es-modules-browser-deno/6116
+ - https://clojurescript.org/guides/javascript-modules#javascript-modules
+ - https://clojurescript.org/guides/webpack
+ - https://lambdaisland.com/blog/2017-05-02-nodejs-scripts-clojurescript
+ - https://clojurescript.org/reference/compiler-options#target
+ - https://clojurescript.org/reference/advanced-compilation#access-from-javascript
+ - http://webcache.googleusercontent.com/search?q=cache:TNyqrhVeNekJ:www.matthewstump.com/misc/2012/06/04/writing-nodejs-modules-in-clojurescript+&cd=3&hl=en&ct=clnk&gl=us&client=ubuntu
 
 ### Tools
  - https://github.com/aengelberg/cljsee
