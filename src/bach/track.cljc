@@ -433,7 +433,7 @@
       #?(:clj source
          :cljs (to-json source)))))
 
-(defn ^:export compose
+(defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
    A 'playable' track is formatted so that it is easily iterated over by a high-level Bach engine."
   [track]
