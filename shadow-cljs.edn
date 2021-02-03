@@ -4,16 +4,16 @@
  :dev-http {8080 "target/"}
  :builds {:lib
           {:target :node-library
-           :output-to "target/js/lib.js"
+           :output-to "dist/lib.js"
            :exports-var bach.track/compose}
           ; TODO: Update package.json:main, package.json:module
           :esm
           {:target :esm
-           :output-dir "target/js/"
+           :output-dir "dist"
            :modules {:lib {:exports {compose bach.track/compose}}}}
           :npm
           {:target :npm-module
-           :output-dir "target/js/"
+           :output-dir "dist"
            :entries [bach.track]}
           :test
           {:target    :node-test
