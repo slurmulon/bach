@@ -60,6 +60,7 @@
  - https://clojurescript.org/reference/compiler-options#target
  - https://clojurescript.org/reference/advanced-compilation#access-from-javascript
  - http://webcache.googleusercontent.com/search?q=cache:TNyqrhVeNekJ:www.matthewstump.com/misc/2012/06/04/writing-nodejs-modules-in-clojurescript+&cd=3&hl=en&ct=clnk&gl=us&client=ubuntu
+ - https://clojuredocs.org/clojure.core/refer-clojure
 
 ### Tools
  - https://github.com/aengelberg/cljsee
