@@ -106,10 +106,7 @@
                        [{:duration 2,
                          :items [{:keyword "Chord", :arguments ["D"]}]}]
                        [nil]]}]
-      ; (is (= want (compose tree))))))
       (is (= (normalize want) (compose tree))))))
-      ; (is (= (hashed want) (normalize (compose tree)))))))
-      ; (is (= #?(:clj want :cljs (js->clj want)) (compose tree))))))
 
 (deftest advanced
   (testing "beat duration exceeds single measure"
@@ -154,6 +151,4 @@
                        [{:duration 2,
                          :items [{:keyword "Chord", :arguments ["Dmaj7"]}]}]
                        [nil]]}]
-      ; (is (= want (compose tree))))))
       (is (= (normalize want) (compose tree))))))
-      ; (is (= (hashed want) (normalize (compose tree)))))))

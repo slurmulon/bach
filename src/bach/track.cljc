@@ -129,7 +129,6 @@
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
   In general, this determines 'How many `unit`s` does the provided `duration` equate to in this `meter`?'."
   [duration unit meter]
-  ; FIXME: Need to replace `rationalize` with cljs-safe alternative (`ratio-to-vector` should work)
   (let [inverse-unit (inverse-ratio #?(:clj (rationalize unit) :cljs unit))
         inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
         within-measure? (<= duration meter)]
