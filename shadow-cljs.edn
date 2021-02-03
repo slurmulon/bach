@@ -3,28 +3,22 @@
                 [org.clojure/tools.cli "1.0.194"]]
  :dev-http {8080 "target/"}
  :builds {:lib
-          ; FIXME: `ReferenceError: bach is not defined`
-          {;:target :esm
-           :target :node-library
+          {:target :node-library
            :output-to "target/js/lib.js"
            :exports-var bach.track/compose}
+          ; TODO: Update package.json:main, package.json:module
+          :esm
+          {:target :esm
+           :output-dir "target/js/"
+           :modules {:lib {:exports {compose bach.track/compose}}}}
           :npm
           {:target :npm-module
            :output-dir "target/js/"
            :entries [bach.track]}
           :test
+          ; TODO: Replace all ratios in tests with cljs floats
           {:target    :node-test
            :output-to "target/js/node-tests.js"
-           ; :ns-regexp "-spec$"
            :ns-regexp "-test$"
+           ; :main bach.test-runner/main
            :autorun   true}}}
-           ; :modules {:track {:exports {compose bach.track/compose}}
-           ;                             ; default-headers bach.track/default-headers}}
-           ;           :ast {:exports {parse bach.ast/parse}}}}}}
-
-           ; :output-dir "target/main.js"
-           ; :entries [bach.track]}}}
- ; :builds {:app {:output-dir "target/"
- ;                :target :esm
- ;                :asset-path "."
- ;                :modules {:main {:init-fn bach.core/main!}}}}}
