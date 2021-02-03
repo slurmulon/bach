@@ -16,9 +16,7 @@
            :output-dir "target/js/"
            :entries [bach.track]}
           :test
-          ; TODO: Replace all ratios in tests with cljs floats
           {:target    :node-test
            :output-to "target/js/node-tests.js"
            :ns-regexp "-test$"
-           ; :main bach.test-runner/main
            :autorun   true}}}
