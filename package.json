@@ -1,7 +1,7 @@
 {
   "name": "bach-cljs",
   "version": "1.0.0",
-  "description": "Semantic music notation in ClojureScript",
+  "description": "Semantic music notation",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -19,7 +19,7 @@
     "repl": "npx shadow-cljs node-repl lib",
     "cljs-repl": "npx shadow-cljs cljs-repl lib",
     "clj-repl": "npx shadow-cljs clj-repl lib",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx shadow-cljs compile test"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,12 @@
   },
   "keywords": [
     "music",
-    "notation"
+    "song",
+    "notation",
+    "rhythm",
+    "semantic",
+    "scale",
+    "chord"
   ],
   "author": "Erik Vavro",
   "license": "MIT",
