@@ -315,7 +315,7 @@ As of now only `bach.track/compose` is exported and accessible in `nodejs`, sinc
 ### Install
 
 ```sh
-$ npm i git@github.com:slurmulon/bach.git
+$ npm i bach-cljs
 ```
 
 You should now see `bach-cljs` under `dependencies` in `package.json`.
@@ -348,13 +348,19 @@ console.log(JSON.stringify(json, null, 2))
 
 ```sh
 $ npm i
-$ lein clean && npm run dev
+$ npm run dev
 ```
 
 ### Releasing
 
 ```sh
-$ lein clean && npm run build
+$ npm run build
+```
+
+### Testing
+
+```sh
+$ npm test
 ```
 
 ## Documentation
