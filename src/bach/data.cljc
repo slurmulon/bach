@@ -5,6 +5,7 @@
 
 (def to-string #?(:clj clojure.edn/read-string :cljs reader/read-string))
 (def to-json #?(:clj json/write-str :cljs clj->js))
+(def to-ratio #?(:clj rationalize :cljs float))
 
 (def math-floor #?(:clj #(Math/floor %) :cljs js/Math.floor))
 (def math-ceil #?(:clj #(Math/ceil %) :cljs js/Math.ceil))

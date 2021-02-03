@@ -1,8 +1,11 @@
 (ns bach.track-test
-  (:require #?(:clj [clojure.test :refer :all]
+  (:require #?(:clj [clojure.test :refer [deftest is testing]]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
-            [bach.track :as track]))
+            [bach.track :as track]
+            [bach.data :refer [to-ratio]]))
             ;[bach.track :refer :all]))
+
+(def error #?(:clj Exception :cljs js/Error))
 
 (deftest defaults
   (testing "tempo"
@@ -25,13 +28,13 @@
                 [:statement
                  [:assign [:identifier ":A"] [:number "1"]]
                  [:assign [:identifier "B"] [:identifier "Z"]]]]]
-      (is (thrown-with-msg? Exception #"Variable is not declared before it's used" (track/validate tree)))))
+      (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Variable is not declared before it's used" (track/validate tree)))))
   (testing "basic div (valid numerator and denominator)"
     (let [tree [:track [:statement [:div [:number "1"] [:number "2"]]]]]
       (is (= (track/validate tree) true))))
   (testing "basic div (valid numerator, invalid denominator)"
     (let [tree [:track [:statement [:div [:number "1"] [:number "3"]]]]]
-      (is (thrown-with-msg? Exception #"Note divisors must be even and no greater than 512" (track/validate tree)))))
+      (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Note divisors must be even and no greater than 512" (track/validate tree)))))
   (testing "lists"
     (testing "flat"
       (let [tree [:track [:statement [:list [:number "1"] [:number "2"]]]]]
@@ -51,7 +54,7 @@
 (deftest reduction
   (testing "number"
     (let [tree [:track [:statement [:div [:number "1"] [:number "4"]]]]
-          want [:track [:statement 1/4]]]
+          want [:track [:statement (/ 1 4)]]]
       (is (= want (track/reduce-values tree)))))
   (testing "string"
     (let [tree [:track [:statement [:string "'Text'"]]]
@@ -63,7 +66,7 @@
                  [:add
                   [:div [:number "1"] [:number "2"]]
                   [:div [:number "1"] [:number "4"]]]]]
-          want [:track [:statement 3/4]]]
+          want [:track [:statement (/ 3 4)]]]
       (is (= want (track/reduce-values tree))))))
 
 ; FIXME: nested transitive variables are broken (:A = 1, :B = :A, :C = :B)
@@ -155,7 +158,7 @@
                   [:pair [:div [:number "1"] [:number "2"]] [:list]]
                   [:pair [:div [:number "1"] [:number "4"]] [:list]]
                   [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-          want 1/8]
+          want (to-ratio (/ 1 8))]
       (is (= want (track/get-pulse-beat tree)))))
   (testing "complex ratio"
     (let [tree [:track
@@ -172,7 +175,7 @@
                    [:atom
                     [:keyword "Note"]
                     [:arguments [:string "'C2'"]]]]]]]
-          want 3/4]
+          want (to-ratio (/ 3 4))]
       (is (= want (track/get-pulse-beat tree)))))
   (testing "misaligned to ratio"
     (let [tree [:track
@@ -188,7 +191,7 @@
                    [:atom
                     [:keyword "Note"]
                     [:arguments [:string "'E2'"]]]]]]]
-          want 1/8]
+          want (to-ratio (/ 1 8))]
       (is (= want (track/get-pulse-beat tree)))))
   (testing "spanning multiple measures"
     (testing "aligned"
@@ -209,7 +212,7 @@
             ; TODO: Eventually, once get-pulse-beat can support multiple measures via ##Inf (Clojure 1.9.946+)
             ; - Probably abandoning this since things are easier if pulse-beat cannot exceed a measure (e.g. 1)
             ; want 3/2
-            want 3/4]
+            want (to-ratio (/ 3 4))]
         (is (= want (track/get-pulse-beat tree)))))
     (testing "aligned (alt)"
       (let [tree [:track
@@ -227,7 +230,7 @@
             ; LAST
             ; - Only want if we support lowest-common-beat exceeding an entire measure (seems too complicated right now)
             ; want 6/4]
-            want 3/4]
+            want (to-ratio (/ 3 4))]
         (is (= want (track/get-pulse-beat tree)))))
     (testing "misaligned"
       (let [tree [:track
@@ -242,7 +245,7 @@
                      [:atom
                       [:keyword "Note"]
                       [:arguments [:string "'C2'"]]]]]]]
-            want 1/8]
+            want (to-ratio (/ 1 8))]
         (is (= want (track/get-pulse-beat tree)))))))
 
 (deftest total-beats
@@ -254,7 +257,8 @@
                   [:pair [:number "4"] [:list]]
                   [:pair [:div [:number "1"] [:number "4"]] [:list]]
                   [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
-          want (rationalize 5.5)]
+          ; want (rationalize 5.5)]
+          want (to-ratio 5.5)]
       (is (= want (track/get-total-beats tree)))))
   (testing "uncommon meter"
     (let [tree [:track
@@ -265,7 +269,7 @@
                  [:list
                   [:pair [:number "1"] [:list]]
                   [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-          want 9/8]
+          want (to-ratio (/ 9 8))]
       (is (= want (track/get-total-beats tree))))))
 
 (deftest normalized-total-beats
@@ -348,7 +352,7 @@
                     [:pair [:number "4"] [:list]]
                     [:pair [:div [:number "1"] [:number "4"]] [:list]]
                     [:pair [:div [:number "1"] [:number "4"]] [:list]]]]]
-            want (rationalize 5.5)]
+            want (to-ratio 5.5)]
         (is (= want (track/get-normalized-total-measures tree)))))
     (testing "beat unit is less (shorter) than lowest common beat"
       (let [tree [:track
@@ -366,7 +370,7 @@
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-            want (rationalize 0.5)]
+            want (to-ratio 0.5)]
         (is (= want (track/get-normalized-total-measures tree)))))
     (testing "total measures is less than duration of full bar"
       (let [tree [:track
@@ -374,7 +378,7 @@
                    [:list
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-            want (rationalize 0.25)]
+            want (to-ratio 0.25)]
         (is (= want (track/get-normalized-total-measures tree))))))
   (testing "less common meters"
     (testing "beat unit matches lowest common beat"
@@ -431,7 +435,7 @@
                    [:list
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]
                     [:pair [:div [:number "1"] [:number "8"]] [:list]]]]]
-            want 1/3]
+            want (to-ratio (/ 1 3))]
         (is (= want (track/get-normalized-total-measures tree)))))))
 
 ; TODO
@@ -440,77 +444,77 @@
 (deftest normalized-duration
   (testing "common meter"
     (testing "beat unit matches lowest common beat"
-      (let [duration 1/2
-            pulse-beat 1/4
-            meter 4/4
+      (let [duration (to-ratio (/ 1 2))
+            pulse-beat (to-ratio (/ 1 4))
+            meter (to-ratio (/ 4 4))
             want 2]
         (is (= want (track/normalize-duration duration pulse-beat meter)))))
     (testing "beat unit is less (shorter) than lowest common beat"
       (let [duration 1
             pulse-beat 1
-            meter 2/4
+            meter (to-ratio (/ 2 4))
             want 2]
         (is (= want (track/normalize-duration duration pulse-beat meter)))))
     (testing "beat unit is greater (longer) than lowest common beat"
       (testing "common case"
-        (let [duration 1/2
-              pulse-beat 1/8
-              meter 4/4
+        (let [duration (to-ratio (/ 1 2))
+              pulse-beat (to-ratio (/ 1 8))
+              meter 1
               want 4]
           (is (= want (track/normalize-duration duration pulse-beat meter)))))
       (testing "less common case"
-        (let [duration 1/2
-              pulse-beat 1/8
-              meter 2/4
+        (let [duration (to-ratio (/ 1 2))
+              pulse-beat (to-ratio (/ 1 8))
+              meter (to-ratio (/ 2 4))
               want 4]
           (is (= want (track/normalize-duration duration pulse-beat meter)))))
       (testing "and duration misaligns with meter"
-        (let [duration 3/8
-              pulse-beat 1/8
-              meter 4/4
+        (let [duration (to-ratio (/ 3 8))
+              pulse-beat (to-ratio (/ 1 8))
+              meter 1
               want 3]
           (is (= want (track/normalize-duration duration pulse-beat meter)))))
       (testing "1/16"
         (let [duration 9
-              pulse-beat 1/16
-              meter 4/4
+              pulse-beat (to-ratio (/ 1 16))
+              meter 1
               want 144]
           (is (= want (track/normalize-duration duration pulse-beat meter)))))))
   (testing "less common meters"
     (testing "duration matches full bar"
-      (let [duration 5/8
-            pulse-beat 1/8
-            meter 5/8
+      (let [duration (to-ratio (/ 5 8))
+            pulse-beat (to-ratio (/ 1 8))
+            meter (to-ratio (/ 5 8))
             want 5]
         (is (= want (track/normalize-duration duration pulse-beat meter)))))
     (testing "duration is less than full bar (even meter)"
-      (let [duration 4/8
-            pulse-beat 1/8
-            meter 6/8
+      (let [duration (to-ratio (/ 4 8))
+            pulse-beat (to-ratio (/ 1 8))
+            meter (to-ratio (/ 6 8))
             want 4]
         (is (= want (track/normalize-duration duration pulse-beat meter)))))
     (testing "duration is less than full bar (odd meter)"
-      (let [duration 3/8
-            pulse-beat 1/8
-            meter 5/8
+      (let [duration (to-ratio (/ 3 8))
+            pulse-beat (to-ratio (/ 1 8))
+            meter (to-ratio (/ 5 8))
             want 3]
         (is (= want (track/normalize-duration duration pulse-beat meter)))))
     (testing "duration is greater than full bar and pulse-beat equals a full bar"
-      (let [duration 6/4
-            pulse-beat 3/4
-            meter 3/4
+      (let [duration (to-ratio (/ 6 4))
+            pulse-beat (to-ratio (/ 3 4))
+            meter (to-ratio (/ 3 4))
             want 2]
         (is (= want (track/normalize-duration duration pulse-beat meter)))))
     (testing "duration is less than pulse-beat (edge case)"
-      (let [duration 1/16
-            pulse-beat 1/8
-            meter 6/8
-            want 1/2]
+      (let [duration (to-ratio (/ 1 16))
+            pulse-beat (to-ratio (/ 1 8))
+            meter (to-ratio (/ 6 8))
+            want (to-ratio (/ 1 2))]
         (is (= want (track/normalize-duration duration pulse-beat meter)))))
     (testing "beats per measure is greater than beat unit"
-      (let [duration 9/8
-            pulse-beat 1/8
-            meter 12/8
+      (let [duration (to-ratio (/ 9 8))
+            pulse-beat (to-ratio (/ 1 8))
+            meter (to-ratio (/ 12 8))
             want 9]
         (is (= want (track/normalize-duration duration pulse-beat meter)))))))
 
@@ -530,7 +534,7 @@
                    [:list
                     [:pair [:number "20"] [:list]]
                     [:pair [:number "25"] [:list]]]]]
-            want (rationalize 1.5)]
+            want (to-ratio 1.5)]
         (is (= want (track/get-total-duration tree :minutes))))))
   (testing "milliseconds"
     (let [tree [:track
@@ -1020,5 +1024,5 @@
                        [:number "4"]]
                       [:list]]
                      [:pair [:number "1"] [:list]]]]]]
-            want 1/4]
+            want (to-ratio (/ 1 4))]
         (is (= want (:pulse-beat (track/provision-headers tree))))))))
