@@ -1,6 +1,9 @@
 (ns bach.ast-test
-  (:require [clojure.test :refer :all]
-            [bach.ast :refer :all]
+  (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
+               :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
+                      [goog.string :as gstring]
+                      [goog.string.format :as format]])
+            [bach.ast :refer [parse]]
             [instaparse.core :as insta]))
 
 (deftest variables
@@ -19,17 +22,18 @@
       (testing "allowed"
         (testing "alphabet"
           (for [var-name (clojure.string/split "abcdefghijklmnopqrstuvwyxz_" #"")
-                bach-source (format ":%s = 4" var-name)]
+                bach-source (->> var-name #(#?(:clj format :cljs gstring/format) ":%s = 4" %))]
             (let [want [:track
                         [:statement
                          [:assign
                           [:identifier
                            [:name var-name]]
-                          [:number "1"]]]]]
-              (is (= want (parse (format ":%s = 4" var-name))))))))
+                          [:number "1"]]]]
+                  data (->> var-name #(#?(:clj format :cljs gstring/format) ":%s = 4" %))]
+              (is (= want (parse data)))))))
       (testing "disallowed"
         (for [var-name (clojure.string/split "01234567890`~!@#$%^&*(){}[]<>?:;/\\'\"" #"")
-              bach-source (format ":%s = 1" var-name)]
+              bach-source (->> var-name #(#?(:clj format :cljs gstring/format) ":%s = 1" %))]
           (is (= true (insta/failure? (parse bach-source)))))))))
 
 (deftest primitives

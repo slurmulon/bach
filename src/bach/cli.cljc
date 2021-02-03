@@ -2,9 +2,9 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as string]
             [bach.ast :refer [parse]]
-            [bach.track :refer [compose]]
-            [bach.data :refer [to-json]])
-  (:gen-class))
+            [bach.track :as track :refer [compose]]
+            [bach.data :as data :refer [to-json]])
+  #?(:clj (:gen-class)))
 
 (def cli-options
   [["-i" "--input DATA" "The bach file to use as input"
@@ -44,7 +44,8 @@
 
 (defn exit [status msg]
   (println msg)
-  (System/exit status))
+  #?(:clj (System/exit status)
+     :cljs status))
 
 (defn -main [& args]
   "bach"

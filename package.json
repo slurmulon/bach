@@ -1,0 +1,43 @@
+{
+  "name": "bach-cljs",
+  "version": "1.0.3",
+  "description": "Semantic music notation",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "google-closure-library": "^20210106.0.0",
+    "source-map-support": "^0.5.19"
+  },
+  "devDependencies": {
+    "shadow-cljs": "^2.11.15"
+  },
+  "scripts": {
+    "dev": "npx shadow-cljs compile lib && npx shadow-cljs watch lib",
+    "build": "npx shadow-cljs release lib",
+    "repl": "npx shadow-cljs node-repl lib",
+    "cljs-repl": "npx shadow-cljs cljs-repl lib",
+    "clj-repl": "npx shadow-cljs clj-repl lib",
+    "test": "npx shadow-cljs compile test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slurmulon/bach.git"
+  },
+  "keywords": [
+    "music",
+    "song",
+    "notation",
+    "rhythm",
+    "semantic",
+    "scale",
+    "chord"
+  ],
+  "author": "Erik Vavro",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/slurmulon/bach/issues"
+  },
+  "homepage": "https://github.com/slurmulon/bach#readme"
+}

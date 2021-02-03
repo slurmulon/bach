@@ -21,6 +21,7 @@
 - [Usage](#usage)
   * [CLI](#cli)
   * [Library](#library)
+- [JavaScript](#javascript)
 - [Documentation](#documentation)
   * [Beats](#beats)
     - [Lists](#lists)
@@ -70,6 +71,8 @@ The project is pre-alpha and is not should **not** be considered stable for prod
 This module, by itself, can only parse and compile plaintext `bach` data into [`bach.json`](https://github.com/slurmulon/bach-json-schema).
 
 `bach.json` is a JSON micro-format that makes it trivial for `bach` engines to sequentially process a `bach` music track and synchronize it in real-time with audio.
+
+This library can be used in Clojure, [ClojureScript and NodeJS](#javascript).
 
 ## Examples
 
@@ -219,11 +222,11 @@ To find a list of every reserved construct supported by `bach` (such as `Note`, 
 
 ### Leinengen/Boot
 
-`[bach "2.0.0-SNAPSHOT"]`
+`[bach "2.1.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "bach:bach:2.0.0-SNAPSHOT"`
+`compile "bach:bach:2.1.0-SNAPSHOT"`
 
 ### Maven
 
@@ -231,7 +234,7 @@ To find a list of every reserved construct supported by `bach` (such as `Note`, 
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -248,6 +251,8 @@ Then change your current directory to wherever you cloned `bach`, and:
 ```sh
 $ lein install
 ```
+
+If you want to simultaneously develop `bach` and another library using it, [follow this guide on checkout dependencies](https://github.com/technomancy/leiningen/blob/master/doc/TUTORIAL.md#checkout-dependencies).
 
 ## Testing
 
@@ -268,7 +273,7 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/default/bach-2.0.0-SNAPSHOT -i /path/to/track.bach compile
+$ target/default/bach-2.1.0-SNAPSHOT -i /path/to/track.bach compile
 ```
 
 The executable currently supports the following actions:
@@ -290,7 +295,7 @@ The executable currently supports the following actions:
 ### Repl
 
 ```sh
-$ lein repl
+$ lein -U repl
 ```
 
 ```clojure
@@ -299,9 +304,68 @@ $ lein repl
 (compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
 
+## JavaScript
+
+If using Clojure or the JVM in general is not an option, `bach` can also be used via ClojureScript and/or `nodejs`.
+
+Since installation and usage is identical between Clojure and ClojureScript, this section focuses on using `bach` in `nodejs` via `npm`.
+
+As of now only `bach.track/compose` is exported and accessible in `nodejs`, since parsing and validating `bach` into `bach.json` is the primary feature.
+
+### Install
+
+```sh
+$ npm i bach-cljs
+```
+
+You should now see `bach-cljs` under `dependencies` in `package.json`.
+
+**ES6+**
+```js
+import bach from 'bach-cljs'
+```
+
+**CommonJS**
+```js
+const { bach } = require('bach-cljs')
+```
+
+```js
+const bach = require('bach-cljs').default
+```
+
+### Usage
+
+```node
+import bach from 'bach-cljs'
+
+const json = bach("@Tempo = 65 !Play [1 -> Chord('E') 1/2 -> Chord('G#min') 1/2 -> Chord('B')]")
+
+console.log(JSON.stringify(json, null, 2))
+```
+
+### Development
+
+```sh
+$ npm i
+$ npm run dev
+```
+
+### Releasing
+
+```sh
+$ npm run build
+```
+
+### Testing
+
+```sh
+$ npm test
+```
+
 ## Documentation
 
-An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [grammar.bnf](https://github.com/slurmulon/bach/blob/master/resources/grammar.bnf).
+An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [bach.ast](https://github.com/slurmulon/bach/blob/master/src/bach/ast.cljc).
 
 ### Beats
 
