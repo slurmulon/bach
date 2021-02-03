@@ -25,13 +25,13 @@
                 [:statement
                  [:assign [:identifier ":A"] [:number "1"]]
                  [:assign [:identifier "B"] [:identifier "Z"]]]]]
-      (is (thrown-with-msg? Exception #"variable is not declared before it's used" (track/validate tree)))))
+      (is (thrown-with-msg? Exception #"Variable is not declared before it's used" (track/validate tree)))))
   (testing "basic div (valid numerator and denominator)"
     (let [tree [:track [:statement [:div [:number "1"] [:number "2"]]]]]
       (is (= (track/validate tree) true))))
   (testing "basic div (valid numerator, invalid denominator)"
     (let [tree [:track [:statement [:div [:number "1"] [:number "3"]]]]]
-      (is (thrown-with-msg? Exception #"note divisors must be base 2 and no greater than 512" (track/validate tree)))))
+      (is (thrown-with-msg? Exception #"Note divisors must be even and no greater than 512" (track/validate tree)))))
   (testing "lists"
     (testing "flat"
       (let [tree [:track [:statement [:list [:number "1"] [:number "2"]]]]]

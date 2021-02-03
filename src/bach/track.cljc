@@ -11,7 +11,8 @@
                                math-floor
                                math-ceil
                                powers-of-two
-                               gcd]]))
+                               gcd
+                               problem]]))
 
 (def default-tempo 120)
 (def default-meter [4 4])
@@ -56,24 +57,17 @@
                    (case value-type
                      :identifier
                      (when (-> (variables) (contains? value) not)
-                       (let [error (str "variable is not declared before it's used: " value ", " (variables))]
-                          #?(:clj (throw (Exception. error))
-                             :cljs (throw (js/Error. error)))))
+                       (problem (str "Variable is not declared before it's used: " value ", " (variables))))
                      (create-variable label value))))
        :div (fn [top-token bottom-token]
               (let [top    (-> top-token    last to-string)
                     bottom (-> bottom-token last to-string)]
                 (when (not (some #{bottom} (take 10 powers-of-two)))
-                  (let [error "note divisors must be base 2 and no greater than 512"]
-                    #?(:clj (throw (Exception. error))
-                       :cljs (throw (js/Error. error)))))))
+                  (problem "Note divisors must be even and no greater than 512"))))
        :tempo (fn [& tempo-token]
-                ; (let [tempo (-> tempo-token last read-string)]
                 (let [tempo (-> tempo-token last to-string)]
                   (when (not (<= 0 tempo 256))
-                    (let [error "tempos must be between 0 and 256 beats per minute"]
-                      #?(:clj (throw (Exception. error))
-                         :cljs (throw (js/Error. error)))))))}
+                    (problem "Tempos must be between 0 and 256 beats per minute"))))}
       track)))
   true)
 
@@ -364,8 +358,6 @@
         meter (get-meter-ratio track)
         pulse-beat (get-pulse-beat track)
         beats-per-measure (get-normalized-beats-per-measure track)
-        ; TODO
-        ; total-measures (#?(:clj Math/ceil :cljs js/Math.ceil) (get-normalized-total-measures track))
         total-measures (Math/ceil (get-normalized-total-measures track))
         total-beats (get-normalized-total-beats track)
         unused-tail-beats (mod (max total-beats beats-per-measure) (min total-beats beats-per-measure))
@@ -386,11 +378,7 @@
                       (beat-indices []
                         (let [global-beat-index @beat-cursor
                               local-beat-index (mod global-beat-index beats-per-measure)
-                              ; TODO
-                              ; measure-index (int (#?(:clj Math/floor :cljs js/Math.floor) (/ global-beat-index beats-per-measure)))]
                               measure-index (int (math-floor (/ global-beat-index beats-per-measure)))]
-                              ; ORIG
-                              ; measure-index (int (Math/floor (/ global-beat-index beats-per-measure)))]
                           {:measure measure-index :beat local-beat-index}))]
                 (insta/transform
                  {:pair (fn [duration elements]
@@ -452,8 +440,4 @@
   (cond
     (vector? track) (provision track)
     (string? track) (-> track parse provision)
-    :else (let [error "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string."]
-            #?(:clj
-               (throw (Exception. error))
-               :cljs
-               (throw (js/Error. error))))))
+    :else (problem "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))

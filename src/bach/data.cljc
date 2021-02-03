@@ -9,14 +9,15 @@
 (def math-floor #?(:clj #(Math/floor %) :cljs js/Math.floor))
 (def math-ceil #?(:clj #(Math/ceil %) :cljs js/Math.ceil))
 
-(defn gcd [a b]
+(def powers-of-two (iterate (partial * 2) 1))
+
+(defn gcd
+  "Determines the greatest common denominator between two numeric values"
+  [a b]
   (if (zero? b)
     a
     (recur b (mod a b))))
 
-(def powers-of-two (iterate (partial * 2) 1))
-
-; @see bach.track-test/compilation
 (defn hiccup-to-hash-map
   "Converts an instaparse :hiccup tree as a hash map"
   [tree]
@@ -93,3 +94,9 @@
     (let [clip #(->> % (drop-last cols) (into []))]
       (update matrix row clip))
     matrix))
+
+(defn problem
+  "Throws a generic exception in a way that works in both Clojure and ClojureScript"
+  [error]
+  (throw #?(:clj (Exception. error)
+            :cljs (js/Error. error))))
