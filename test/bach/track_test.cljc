@@ -3,9 +3,6 @@
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
             [bach.track :as track]
             [bach.data :refer [to-ratio]]))
-            ;[bach.track :refer :all]))
-
-(def error #?(:clj Exception :cljs js/Error))
 
 (deftest defaults
   (testing "tempo"
