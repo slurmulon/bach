@@ -222,11 +222,11 @@ To find a list of every reserved construct supported by `bach` (such as `Note`, 
 
 ### Leinengen/Boot
 
-`[bach "2.0.0-SNAPSHOT"]`
+`[bach "2.1.0-SNAPSHOT"]`
 
 ### Gradle
 
-`compile "bach:bach:2.0.0-SNAPSHOT"`
+`compile "bach:bach:2.1.0-SNAPSHOT"`
 
 ### Maven
 
@@ -234,7 +234,7 @@ To find a list of every reserved construct supported by `bach` (such as `Note`, 
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -273,7 +273,7 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/default/bach-2.0.0-SNAPSHOT -i /path/to/track.bach compile
+$ target/default/bach-2.1.0-SNAPSHOT -i /path/to/track.bach compile
 ```
 
 The executable currently supports the following actions:
