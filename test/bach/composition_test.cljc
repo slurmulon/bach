@@ -1,58 +1,18 @@
 (ns bach.composition-test
   (:require #?(:clj [clojure.test :refer :all]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
-            ; [bach.track :refer [compose]]))
             [bach.track :as track]))
 
-
-
-  ; #?(:clj (track/compose tree)
-  ;    :cljs (-> tree track/compose js->clj)))
-
 (defn sorted [data]
-  ; (into (sorted-map) (sort-by first (seq data))))
-  ; (into (sorted-map-by #?(:clj name :cljs identity) <) data))
-  ; (into (sorted-map-by <) data))
   (into (sorted-map) data))
 
-(def hashed hash-unordered-coll)
-
 (defn normalize [tree]
-  ; ORIG(works)
-  ; (hashed tree))
-  ; WORKS
-  ; (-> tree sorted hashed))
   #?(:clj tree
-     :cljs (-> tree sorted hashed)))
-
-
-  ; #?(:clj (hashed tree)
-  ;    :cljs (-> tree js->clj hashed)))
-  ; #?(:clj (hash-unordered-coll tree)
-  ;    :cljs (-> tree js->clj hash-unordered-coll)))
-
-  ; #?(:clj (sorted tree)
-  ;    :cljs (-> tree sorted clj->js)))
-
-  ; #?(:clj tree
-  ;    :cljs (clj->js tree)))
-     ; :clj (json/write-str tree)
-     ; :cljs (-> tree js/JSON.stringify)))
-
-; (defn compose [tree]
-;   (-> tree
-;       track/compose
-;       ; #?(:cljs #(js->clj % :keywordize-keys true))
-;       sorted))
-
-; LAST
-; (defn compose [tree]
-;   (hashed #?(:clj (-> tree track/compose sorted)
-;             :cljs (sorted (js->clj (track/compose tree) :keywordize-keys true)))))
+     :cljs (-> tree sorted hash-unordered-coll)))
 
 (defn compose [tree]
   #?(:clj (track/compose tree)
-      :cljs (hashed (sorted (js->clj (track/compose tree) :keywordize-keys true)))))
+     :cljs (-> (js->clj (track/compose tree) :keywordize-keys true) sorted hash-unordered-coll)))
 
 (deftest basic
   (testing "common meter"
