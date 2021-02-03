@@ -318,10 +318,21 @@ $ npm i git@github.com:slurmulon/bach.git
 
 You should now see `bach-cljs` under `dependencies` in `package.json`.
 
+**ES6+**
+```js
+import bach from 'bach-cljs'
+```
+
+**CommonJS**
+```js
+const { bach } = require('bach-cljs')
+```
+
 ### Usage
 
 ```node
-const bach = require('bach-cljs')
+import bach from 'bach-cljs'
+
 const json = bach("@Tempo = 65 !Play [1 -> Chord('E') 1/2 -> Chord('G#min') 1/2 -> Chord('B')]")
 
 console.log(JSON.stringify(json, null, 2))
