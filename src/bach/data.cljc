@@ -55,12 +55,12 @@
     (cond
       (ratio? ratio) [(numerator ratio) (denominator ratio)]
       (vector? ratio) ratio
-      :else (throw (Exception. "input must be a ratio or a vector")))
+      :else (throw (Exception. "Input must be a ratio or a vector")))
     :cljs
     (cond
       (not (js/isNaN ratio)) [(* ratio 10) 10]
       (vector? ratio) ratio
-      :else (throw (js/Error. "input must be a number or a vector")))))
+      :else (throw (js/Error. "Input must be a number or a vector")))))
 
 (defn inverse-ratio
   "Calculates the inverse of a ratio."
