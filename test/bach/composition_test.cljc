@@ -56,9 +56,7 @@
                         nil
                         {:duration 1,
                          :items [{:keyword "Chord", :arguments ["C2maj7"]}]}]]}]
-      ; (is (= want (compose tree)))))
       (is (= (normalize want) (compose tree)))))
-      ; (is (= (hashed want) (normalize (compose tree))))))
   (testing "less common meter"
     (let [tree [:track
                 [:statement
