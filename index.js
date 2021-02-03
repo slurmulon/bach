@@ -1,6 +1,6 @@
-const compose = require('./target/js/lib')
+const bach = require('./target/js/lib')
 
 module.exports = {
-  compose,
-  default: compose
+  bach,
+  default: bach
 }
