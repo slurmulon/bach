@@ -1,7 +1,7 @@
 (ns bach.composition-test
   (:require #?(:clj [clojure.test :refer :all]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
-            [bach.track :refer :all]))
+            [bach.track :refer [compose]]))
 
 (deftest basic
   (testing "common meter"

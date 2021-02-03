@@ -1,7 +1,7 @@
 (ns bach.ast-test
   (:require #?(:clj [clojure.test :refer :all]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
-            [bach.ast :refer :all]
+            [bach.ast :refer [parse]]
             [instaparse.core :as insta]))
 
 (deftest variables
