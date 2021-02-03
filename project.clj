@@ -12,4 +12,6 @@
   :target-path "target/%s"
   :plugins [[lein-bin "0.3.5"]
             [lein-cljfmt "0.7.0"]]
+  :deploy-repositories [["releases" :clojars]
+                         ["snapshots" :clojars]]
   :profiles {:uberjar {:aot :all}})
