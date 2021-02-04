@@ -6,15 +6,21 @@
 
 The second design goal of the syntax is to maximize human readability and flexibility. This is primarily achived by allowing semantic musical constructs to be defined.
 
-Semantic musical constructs, such as scales and chords, always contain the same notes, and therfore it makes no sense to force the user to determine them every time, let alone write them as code. Pre-existing music notations such as ABC and GUIDO suffer from this problem.
+### Semantic
 
-Therefore it's important to be able to refer to these constructs in a semantic way, hoisting interpretation of the semantics to a high-level bach interpreter (such as [`bach-js`](https://github.com/slurmulon/bach-js)).
+Semantic musical constructs, such as scales and chords, always contain the same notes, and therfore it makes no sense to force the user to determine them every time, let alone write them out. Pre-existing music notations such as ABC and GUIDO suffer from this problem.
+
+Therefore it's important to be able to define and work with these constructs in a semantic way. But in order to keep `bach` lean and simple, interpretation of the semantics has been delegated to the high-level bach interpreters (such as [`bach-js`](https://github.com/slurmulon/bach-js)).
 
 In other words, although `bach` is a "semantic" music notation, it actually doesn't concern itself with the details of the semantics, only establishing their presence. This maximizes flexibility and portability, while simultaneously keeping complexity low for the user.
 
-Lastly, `bach` is a static notation. Although it supports basic variables and mathemetical expressions, it does not support conditionals, functions, classes or any other dynamic run-time features.
+### Static
 
-This is completely by design. Instead of re-inventing the wheel and ending up with an unnecessarily complicated syntax, it was decided to hoist all of this behavior to high-level intepreters. This allows users to dynamically generate or manipulate `bach` or `bach.json` data in their language of choice without sacrificing functionality.
+`bach` is a static notation. Although it supports basic variables and mathemetical expressions, it does not support conditionals, functions, classes or any other dynamic run-time features.
+
+This is entirely by design. Instead of re-inventing the wheel and ending up with an unnecessarily complicated syntax, it was decided to hoist all of this behavior to high-level intepreters.
+
+This allows users to dynamically generate or manipulate `bach` or `bach.json` data in their language of choice without sacrificing functionality.
 
 ## Grammar
 

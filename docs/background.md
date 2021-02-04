@@ -61,7 +61,7 @@ With enough squinting of the eyes the information being represented in these not
 
 But it's safe to say that neither of them can be considered easy to read or write for a non-technical person. They also don't support high-level musical constructs, instead working with individual notes like MIDI does.
 
-MusicXML, another digital music notation, allows the problem of lacking musical constructs to be addressed. But its verbose nature means it cannot be realistically written or understood by non-technical folks.
+MusicXML, another digital music notation, allows the problem of lacking musical constructs to be addressed. But its verbose nature means it also cannot be realistically written or understood by non-technical folks.
 
 ### Editors
 
@@ -71,7 +71,7 @@ When you go into your editor and say "input a Cmin chord", at the end of the day
 
 If your editor is robust enough to auto-detect chords and scales when importing project changes, you're still dependent on the editor calculating this information instead of just reading it from **data**.
 
-This is because musical semantics are naturally lost when your editor saves to MIDI, and therefore anyone who wants or needs the same productivity experience as you has to match your setup.
+This is because musical semantics are naturally lost when your editor saves to MIDI, and therefore anyone who wants or needs the same working experience as you has to match your setup.
 
 This might be perfectly fine for well-funded or small localized teams, but it doesn't work when you're trying to work in a productive manner with wider and less organized groups of people.
 

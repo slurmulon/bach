@@ -16,6 +16,8 @@ If you are interested in the rationale for `bach` and the problems it solves, fi
 
 ## Terminology
 
+## Examples
+
 ## Limitations
 
 ## Help
