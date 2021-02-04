@@ -78,10 +78,11 @@ The duration that a `Beat` is played for is specified using the tuple symbol, `-
 <duration> -> <element>
 ```
 
-### Example
+### Examples
 
 ```
 1 -> Chord('F#')
+1/2 -> Scale('A lydian')
 ```
 
 ## Collections
@@ -90,11 +91,11 @@ A `Collection` refers to a `List` or a `Set` of data, or some [combination of bo
 
 ### Lists
 
-A `List` is an ordered `Collection` of `Beats` and is fundamental in defining rhythms.
+A `List` is an ordered `Collection` of `Beats` or `Elements` and is fundamental in defining rhythms.
 
 `Beats` defined in `Lists` will be played sequentially in the natural order (left to right) and will **not** overlap.
 
-`Lists` may contain any number of `Beats` or `Elements`
+`Lists` may contain any number of `Beats` or `Elements`.
 
 #### Syntax
 
@@ -112,11 +113,13 @@ A `List` is an ordered `Collection` of `Beats` and is fundamental in defining rh
 
 ### Sets
 
-`Beats` defined in `Sets` will be played in parallel, agnostic to their `duration` values.
+`Elements` defined in `Sets` will be played in parallel.
 
 `Sets` are primarily useful for grouping multiple `Elements` together at a certain point in time.
 
-`Sets` may contain any number of elements.
+`Sets` may contain any number of `Elements`.
+
+`Sets` may **not** contain `Beats` since the duration value is meaningless.
 
 #### Syntax
 
@@ -136,12 +139,31 @@ Nesting functionality is limited by design, as it helps keep high-level interpre
 
 The rules are as follows:
 
- - Both `Lists` and `Sets` are considered `Collections`
  - `Lists` may contain `Sets`
  - `Lists` may **not** contain other `Lists`
  - `Sets` may **not** contain `Sets` or `Lists`
 
 As a result, `Lists` **cannot** be nested in another `Collection` at _any_ level.
+
+## Variables
+
+Variables allow you to capture, label and reuse values, reducing duplication and increasing the succinctness of your `bach` definitions.
+
+To assign a variable, prefix a unique name with the `:` operator and provide a value (`<element>`).
+
+In this case our variable's name is "Loop":
+
+```
+:Loop = [Note('C2'), Note('E2')]
+```
+
+Once assigned a name, variables may be dynamically referenced anywhere else in the track:
+
+```
+:LoopCopy = :Loop
+```
+
+Variables are not constants and can be reassigned, but variable hoisting is currently unsupported.
 
 ### Durations
 
@@ -200,7 +222,7 @@ is the same as:
 `Beat` durations can also use basic [mathematical operators](#operators). This makes the translation between sheet music and `bach` an easy task.
 
 ```
-1 + 1/2 -> Chord'(C2min6')
+1 + 1/2 -> Chord('C2min6')
 ```
 
 This is usefeul for specifying more complicated rhythms, like those seen in jazz.
@@ -212,8 +234,6 @@ This is usefeul for specifying more complicated rhythms, like those seen in jazz
   1+1/2 -> Chord('C2maj7')
 ]
 ```
-
-You may also use the `-`, `*` and `/` operators.
 
 ### Instantiation
 
@@ -235,21 +255,6 @@ Determining the semantic value of implicit `Elements` (i.e. whether it's a `Note
 
 It's suggested that you primarily use implicits as they will save you a _lot_ of typing over time.
 
-## Variables
-
-To assign a variable, prefix a unique name with the `:` operator and provide a value (`<element>`).
-
-In this case our variable's name is "Loop":
-
-```
-:Loop = [1 -> Note('C2'), 1 -> Note('E2')]
-```
-
-Once assigned a name, variables may be dynamically referenced anywhere else in the track:
-
-```
-:LoopCopy = :Loop
-```
 ### Attributes
 
 Arbitrary attributes may be associated with `Elements` using the `<key>: <value>` syntax. These attributes allow you to cusotmize the representations and interpretations of your `Elements`.
@@ -358,3 +363,4 @@ Only one `!Play` definition is allowed per track file.
 ## Limitations
 
  - Tempos may only be defined as a header, and this prevents tempo changes from occuring mid-track.
+ - List destructuring is currently unsupported
