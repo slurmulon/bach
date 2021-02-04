@@ -20,6 +20,30 @@ This is completely by design. Instead of re-inventing the wheel and ending up wi
 
 An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_Form) formatted definition of the grammar can be found in [bach.ast](https://github.com/slurmulon/bach/blob/master/src/bach/ast.cljc).
 
+## Preview
+
+```bach
+@Meter = 4|4
+@Tempo = 110
+
+:Bb = Scale('Bb mixolydian')
+:Eb = Scale('Eb mixolydian')
+:Db = Scale('Bb dorian')
+:Gb = Scale('Bb aeolian')
+:Eb = Scale('Bb dorian')
+
+!Play [
+  4 -> :Bb
+  4 -> :Eb
+  5 -> :Bb
+  1 -> :Db
+  1 -> :Gb
+  1 -> :Eb
+  4 -> :Bb
+]
+```
+
+
 ## Documentation
 
 This section describes the syntactic constructs of `bach` and how they relate to each other, primarily using focused and minimal examples.
@@ -62,23 +86,27 @@ Foo('bar')
 
 `Element` semantics are established by simply giving the `Element` a consistent human-friendly name, or `kind`.
 
+It is the responsibility of the high-level `bach` interpreter to establish and enforce the meaning of an `Element`'s semantic `kind` (for example, which notes are in a Cmin chord).
+
+If you're interested in seeing how this all comes together, [`bach-js`](https://github.com/slurmulon/bach-js) is the official `bach` interpreter library for `nodejs` and its code is the defacto reference.
+
+#### Equality
+
 `Elements` with equal `kind` values are considered semantically identical.
+
+`kinds` are considered case-insensitive by both the core `bach` library and `bach.json` interpreters when comparing `kind` equality.
+
+#### Naming
 
 The naming convention for `Elements` is to capitalize `kind`, but lower-case is also acceptable.
 
 `kinds` may only contain alpha-numeric characters.
 
-`kinds` are considered case-insensitive by both the core `bach` library and `bach.json` interpreters when comparing `kind` equality.
-
-It is the responsibility of the high-level `bach` interpreter to establish and enforce the meaning of an `Element`'s semantic `kind` (for example, which notes are in a Cmin chord).
-
-If you're interested in seeing how this all comes together, [`bach-js`](https://github.com/slurmulon/bach-js) is the official `bach` interpreter library for `nodejs` and its code is the defacto reference.
-
 ### Values
 
 An `Element` can be defined with an arbitrary number of arguments.
 
-The first argument provided to an `Element` determines its semantic value and can be used to compare equality.
+The first argument provided to an `Element` determines its **semantic value** and may be used to compare equality.
 
 For [reserved musical elements](#elements-1) this value must be a case-insensitive UTF-8 string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
@@ -158,7 +186,7 @@ A `List` is an ordered `Collection` of `Beats` or `Elements` and is fundamental 
 
 ### Sets
 
-`Elements` defined in `Sets` will be played in parallel.
+`Elements` defined in `Sets` are order independent and will be played in parallel.
 
 `Sets` are primarily useful for grouping multiple `Elements` together at a certain point in time.
 
@@ -194,7 +222,7 @@ As a result, `Lists` **cannot** be nested in another `Collection` at _any_ level
 
 Variables allow you to capture, label and reuse values, reducing duplication and increasing the succinctness of your `bach` definitions.
 
-To assign a variable, prefix a unique name with the `:` operator and provide a value (`<element>`).
+To assign a variable, prefix a unique name with the `:` symbol and provide a value (`<element>`).
 
 In this case our variable's name is "Loop":
 
@@ -282,7 +310,7 @@ This is usefeul for specifying more complicated rhythms, like those seen in jazz
 
 ### Headers
 
-Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator.
+Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` symbol.
 
 The two most important (and [reserved](#reserved)) headers are `@Tempo` and `@Meter`, since these serve as the foundation for calculating rhythmic durations.
 
