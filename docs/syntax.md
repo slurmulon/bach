@@ -14,7 +14,7 @@ In other words, although `bach` is a "semantic" music notation, it actually does
 
 Lastly, `bach` is a static notation. Although it supports basic variables and mathemetical expressions, it does not support conditionals, functions, classes or any other dynamic run-time features.
 
-This is completely by design. Instead of re-inventing the wheel and resulting with an unnecessarily complicated syntax, it was decided to hoist all of this behavior to high-level intepreters. This allows users to dynamically generate or manipulate `bach` or `bach.json` data in their language of choice without sacrificing functionality.
+This is completely by design. Instead of re-inventing the wheel and ending up with an unnecessarily complicated syntax, it was decided to hoist all of this behavior to high-level intepreters. This allows users to dynamically generate or manipulate `bach` or `bach.json` data in their language of choice without sacrificing functionality.
 
 ## Grammar
 
@@ -22,15 +22,23 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 
 ## Documentation
 
+This section describes the syntactic constructs of `bach` and how they relate to each other, primarily using focused and minimal examples.
+
+For a practical and detailed guide on using `bach` refer to the [Guide](/guide) page.
+
+For a summarized list of all supported constructs jump to the [Constructs](#constructs) section.
+
 ## Elements
 
-An `Element` is the atomic construct of `bach`, and is used for establishing data semantics.
+An `Element` is the atomic construct of `bach` and is used for establishing data semantics.
 
 `Elements` are much like classes in other languages, since `Elements` of the same kind are assumed to have the same meaning and similar behavior.
 
 Individual `Elements` sharing the same kind can have their behavior and meaning customized by providing them with [attributes](#attributes).
 
-`bach` defines and reserves several musical `Elements` to ensure consistent interpretation, however users are allowed and encouraged to define their own.
+`bach` defines and reserves several musical `Elements` to ensure consistent interpretation in the domain of music.
+
+Regardless, users are not only allowed but _encouraged_ to define their own `Element` semantics, tailoring and adapting `bach` to alternative domains.
 
 To find a list of every reserved construct supported by `bach` (such as `Note`, `Chord`, `Scale`, etc.), refer to the ["Constructs -> Elements"](#elements-1) section.
 
@@ -50,25 +58,29 @@ Chord('A', shape: 'G')
 Foo('bar')
 ```
 
-### Naming
+### Semantics
 
-`Element` semantics are established quite simply - by giving the `Element` a consistent human-friendly name, or `kind`.
+`Element` semantics are established by simply giving the `Element` a consistent human-friendly name, or `kind`.
 
-`Elements` with the same `kind` values are semantically identical.
+`Elements` with equal `kind` values are considered semantically identical.
 
-The naming convention for `Elements` is to capitalize `kind`, but lower-case is fine as well.
+The naming convention for `Elements` is to capitalize `kind`, but lower-case is also acceptable.
 
-Names may only contain alpha-numeric characters.
+`kinds` may only contain alpha-numeric characters.
+
+`kinds` are considered case-insensitive by both the core `bach` library and `bach.json` interpreters when comparing `kind` equality.
 
 It is the responsibility of the high-level `bach` interpreter to establish and enforce the meaning of an `Element`'s semantic `kind` (for example, which notes are in a Cmin chord).
 
+If you're interested in seeing how this all comes together, [`bach-js`](https://github.com/slurmulon/bach-js) is the official `bach` interpreter library for `nodejs` and its code is the defacto reference.
+
 ### Values
 
-An `Element` can be instantiated with an arbitrary number of arguments.
+An `Element` can be defined with an arbitrary number of arguments.
 
-The first argument provided to an `Element` instance defines its semantic value.
+The first argument provided to an `Element` determines its semantic value and can be used to compare equality.
 
-For [reserved musical elements](#elements-1) this value is expected to be string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
+For [reserved musical elements](#elements-1) this value must be a case-insensitive UTF-8 string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
 
 #### Examples
 
@@ -126,7 +138,7 @@ A `Collection` refers to a `List` or a `Set` of data, or some [combination of bo
 
 A `List` is an ordered `Collection` of `Beats` or `Elements` and is fundamental in defining rhythms.
 
-`Beats` defined in `Lists` will be played sequentially in the natural order (left to right) and will **not** overlap.
+`Beats` defined in `Lists` will be played sequentially in the natural order (left to right, or top to bottom) and will **not** overlap.
 
 `Lists` may contain any number of `Beats` or `Elements`.
 
@@ -238,7 +250,7 @@ If you wanted to start playing the note on the second `Beat` of the measure, the
 
 When a `Beat` tuple is not provided in an assignment or a `Collection`, both the position and duration of the `Beat` will be implied at compile time to be the index of each respective `Element` as they are played.
 
-The position and duration are both determined by the time signature (the default is common time, or `4|4`).
+The position and duration are both determined by the time signature a.k.a. meter (the default is common time, or `4|4`).
 
 For instance:
 
@@ -270,7 +282,14 @@ This is usefeul for specifying more complicated rhythms, like those seen in jazz
 
 ### Headers
 
-Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
+Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator.
+
+The two most important (and [reserved](#reserved)) headers are `@Tempo` and `@Meter`, since these serve as the foundation for calculating rhythmic durations.
+
+```
+@Tempo = 65
+@Meter = 6|8
+```
 
 Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any [primitive type](#primitives) or a `Collection` of primitives.
 
@@ -279,7 +298,6 @@ Headers outside of those defined in the [documentation](#headers-1) are allowed 
 @Tempo  = 90
 @Title  = 'My bach track'
 @Tags   = ['test', 'lullaby']
-@Custom = 'so special'
 
 !Play [
   1/2 -> Chord('D2min7')
