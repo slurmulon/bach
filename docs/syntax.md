@@ -28,11 +28,27 @@ An `Element` is the atomic construct of `bach`, and is used for establishing dat
 
 `Elements` are much like classes in other languages, since `Elements` of the same kind are assumed to have the same meaning and similar behavior.
 
-Individual `Elements` sharing the same kind can have their behavior and meaning customized by providing them with arguments.
+Individual `Elements` sharing the same kind can have their behavior and meaning customized by providing them with [attributes](#attributes).
 
 `bach` defines and reserves several musical `Elements` to ensure consistent interpretation, however users are allowed and encouraged to define their own.
 
 To find a list of every reserved construct supported by `bach` (such as `Note`, `Chord`, `Scale`, etc.), refer to the ["Constructs -> Elements"](#elements-1) section.
+
+### Syntax
+
+```
+<kind>(<arg>, ...)
+```
+
+### Examples
+
+```
+Scale('D')
+
+Chord('A', shape: 'G')
+
+Foo('bar')
+```
 
 ### Naming
 
@@ -46,24 +62,38 @@ Names may only contain alpha-numeric characters.
 
 It is the responsibility of the high-level `bach` interpreter to establish and enforce the meaning of an `Element`'s semantic `kind` (for example, which notes are in a Cmin chord).
 
-### Syntax
+### Values
+
+An `Element` can be instantiated with an arbitrary number of arguments.
+
+The first argument provided to an `Element` instance defines its semantic value.
+
+For [reserved musical elements](#elements-1) this value is expected to be string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
+
+#### Examples
 
 ```
-<kind>(<arg>, ...)
+Note('C2')
+
+Chord('Cmin7')
+
+Scale('E mixolydian')
 ```
 
-### Examples
+### Attributes
+
+Attributes can be defined as any argument provided to an `Element` beyond the first (i.e. its value).
+
+Arbitrary attributes may be associated with `Elements` using the `<key>: <value>` syntax, where `<key>` is a `string` and `<value>` can be any [primitive](#primitives).
+
+These attributes allow you to cusotmize the representations and interpretations of your `Elements`.
+
+For instance, you might want to assign a unique id or specify the voicing of an individual chord.
+
+#### Example
 
 ```
-Scale('D')
-```
-
-```
-Chord('A', shape: 'G')
-```
-
-```
-Foo('bar')
+Chord('D2min7', id: 2, voicing: 1)
 ```
 
 ## Beats
@@ -82,6 +112,7 @@ The duration that a `Beat` is played for is specified using the tuple symbol, `-
 
 ```
 1 -> Chord('F#')
+
 1/2 -> Scale('A lydian')
 ```
 
@@ -165,7 +196,7 @@ Once assigned a name, variables may be dynamically referenced anywhere else in t
 
 Variables are not constants and can be reassigned, but variable hoisting is currently unsupported.
 
-### Durations
+## Durations
 
 The value of a `Beat`'s `<duration>` can be an integer, a fraction, or a mathematical expression composed of either.
 
@@ -189,7 +220,7 @@ This means that, in your definitions, `1` always means 4 quarter notes, and only
 
 The examples in the remainder of this section assume common time, since this is the default when a `@Meter` header is not provided.
 
-#### Examples
+### Examples
 
 A `List` playing a `Note('C2')` for an entire measure, starting at the first `Beat`, would be specified like so:
 
@@ -203,7 +234,7 @@ If you wanted to start playing the note on the second `Beat` of the measure, the
 [1/4 -> ~, 1 -> Note('C2')]
 ```
 
-When a `Beat` tuple is not provided in an an assignment or a `Collection`, both the position and duration of the `Beat` will be implied at run-time to be the index of each respective element as they are played.
+When a `Beat` tuple is not provided in an assignment or a `Collection`, both the position and duration of the `Beat` will be implied at compile time to be the index of each respective `Element` as they are played.
 
 The position and duration are both determined by the time signature (the default is common time, or `4|4`).
 
@@ -235,48 +266,11 @@ This is usefeul for specifying more complicated rhythms, like those seen in jazz
 ]
 ```
 
-### Instantiation
-
-All `Elements`, unless already nested in a `List` or `Set`, must be instantiated in a `Beat` tuple (or implicitly converted into one, as shown in the previous section).
-
-The first parameter of every `Element` is a string formatted in [`scientific pitch notation (SPN)`](https://en.wikipedia.org/wiki/Scientific_pitch_notation) (surrounded with `'` or `"`) such as `'C2'`, which is a second octave `C` note.
-
-### Implicits
-
-As a convenience, `Elements` may also be defined implicitly, specified using a `#`:
-
-```
-:Note  = #('C2')
-:Chord = #('C2Maj7')
-:Scale = #('C2 Minor')
-```
-
-Determining the semantic value of implicit `Elements` (i.e. whether it's a `Note`, `Chord`, etc.) is the responsibility of the `bach` interpreter.
-
-It's suggested that you primarily use implicits as they will save you a _lot_ of typing over time.
-
-### Attributes
-
-Arbitrary attributes may be associated with `Elements` using the `<key>: <value>` syntax. These attributes allow you to cusotmize the representations and interpretations of your `Elements`.
-
-For instance, colors are useful for succesfully expressing a variety of data to the user at once. You might also want to specify the specific voicing of a chord.
-
-```
-:ABC = [
-  1 -> {
-    Scale('C2min',  color: #6CB359)
-    Chord('D2min7', color: #AA5585, voicing: 1)
-  },
-  1 -> Chord('G2maj7', color: #D48B6A, voicing: 2)
-  2 -> Chord('C2maj7', color: #FFDCAA, voicing: 2)
-]
-```
-
 ### Headers
 
 Optional header information, including the **tempo** and **time signature**, is specified with assignments at the top of the file and prefixed with the `@` operator:
 
-Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any [primitive type](#primitives).
+Headers outside of those defined in the [documentation](#headers-1) are allowed and can be interpreted freely by the end user, just like `X-` headers in HTTP. The value of custom headers can be of any [primitive type](#primitives) or a `Collection` of primitives.
 
 ```
 @Meter  = 4|4
