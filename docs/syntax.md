@@ -100,7 +100,9 @@ Chord('D2min7', id: 2, voicing: 1)
 
 `Beats` represent an `Element` that will be played for a specific [duration](#durations).
 
-The duration that a `Beat` is played for is specified using the tuple symbol, `->`, on the left-hand side.
+The duration that a `Beat` is played for, in whole notes, is specified using the tuple symbol `->`.
+
+The duration is defined on the left-hand side while the associated `Element` is defined on the right-hand side.
 
 ### Syntax
 
@@ -150,7 +152,7 @@ A `List` is an ordered `Collection` of `Beats` or `Elements` and is fundamental 
 
 `Sets` may contain any number of `Elements`.
 
-`Sets` may **not** contain `Beats` since the duration value is meaningless.
+`Sets` may **not** contain `Beats` since the duration value is irrelevant.
 
 #### Syntax
 
@@ -279,7 +281,7 @@ Headers outside of those defined in the [documentation](#headers-1) are allowed 
 @Tags   = ['test', 'lullaby']
 @Custom = 'so special'
 
-:ABC = [
+!Play [
   1/2 -> Chord('D2min7')
   1/2 -> Chord('G2min7')
   1 -> Chord('C2maj7')
