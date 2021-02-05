@@ -111,9 +111,25 @@ As with meter, the tempo can only be defined once and cannot currently change at
 
 ### Elements
 
-Elements are where
+Elements let you say "here is a thing for you to play".
+
+Technically an element can be used to represent any sort of information.
+
+In the primary domain of music, an element represents any of the following:
+
+ - `Note`
+ - `Scale`
+ - `Chord`
+
+By themselves, elements are agnostic to rhythm and duration.
+
+So in order to say "play this thing for this long", an element must be associated with a duration.
+
+This is where beats come in.
 
 ### Beats
+
+Beats are represent an element paired with a duration (in common time).
 
 ### Collections
 
@@ -141,7 +157,7 @@ The value of a duration can be an integer, a fraction, or a mathematical express
 
 To adhere with music theory, durations are strictly based on **common time** (`@Meter = 4|4`).
 
-This means that, in your definitions, `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
+This means that `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
 
 The examples in the remainder of this section assume common time, since this is the default when a `@Meter` header is not provided.
 
@@ -182,16 +198,16 @@ is the same as:
 This is usefeul for specifying more complicated rhythms, like those seen in jazz.
 
 ```
-:PartA = [
+[
   1/2   -> Chord('D2min7')
   1+1/2 -> Chord('E2maj7')
   1+1/2 -> Chord('C2maj7')
 ]
 ```
 
-
-
 ### Variables
+
+> TODO: Mention limitation around using lists vars in other lists
 
 ## Authoring
 
