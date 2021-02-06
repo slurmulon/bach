@@ -279,9 +279,9 @@ Technically the only thing `bach` cares about are the beats to be played and in 
 
 Sometimes you need to play multiple elements at once in a beat.
 
-For instance, you may need to tell an app to show both a scale and a chord at once.
+For instance, you may need to tell an app to show both a scale and a chord at the same time.
 
-Sets allow you to do this because they are agnostic to order.
+Sets allow you to do this because they are a collection that's agnostic to order.
 
 With a set all you're saying is "group these elements together". Unlike with lists, duration is not a concern.
 
@@ -302,19 +302,65 @@ In the example from the [Tracks](#tracks) section, both a scale and chord will p
 
 #### Nesting
 
-Nesting is basically when you have a collection of collections.
+Nesting is basically when you have a collection that's contained in something else. In the most general sense, it's a way to describe a hierarchy.
 
-For instance, reflecting back to the example found in the [Tracks](#tracks) section, the first beat of the list contains a set, which contains both a scale and a chord. Both the scale and te chord are nested within the set.
+For instance, reflecting back to the example found in the [Tracks](#tracks) section, the first beat of the list contains a set, which contains both a scale and a chord. Both the scale and the chord are nested within the set.
 
-You could also take things one step further and say that the individual notes composing the scale and chord are nested within them.
+You could also take things further in each direction.
+The individual notes composing the scale and chord are nested within them.
+You can also say that the set is nested within the list, or even that the list is nested within the track.
 
-In the spirit of keeping `bach` simple and understandable, nesting is limited to the following:
+But when we talk about nesting in `bach` it can be assumed that we are referring to collection nesting, unless it's stated otherwise.
+
+##### Usage
+
+The most common use case for nesting is when you define a set within a beat in order to group multiple elements together, as in the first beat of the example we've been focusing on.
+
+```bach
+!Play [
+  4 -> {
+    Scale('B minor')
+    Chord('Bm')
+  }
+]
+```
+
+With the help of some whitespace, we can naturally see that the beat is nested in the list, the set is nested in the beat, and the scale and the chord are nested in the set.
+
+Whenever we can identify a point where nesting occurs in the hierarchy, we call this a "level". The list at the top of the track would be at the first level of nesting, the beats in that list on the second level and so on.
+
+##### Rules
+
+In the spirit of keeping `bach` simple and understandable, collection nesting is limited to the following rules:
 
  - Lists may contain sets
  - Lists may **not** contain other lists
  - Sets may **not** contain sets or lists
 
 As a result, lists **cannot** be nested in another collection at _any_ level.
+
+##### Formatting
+
+For each level of nesting, it's suggested that you indent the text with two spaces. This helps keep your tracks visually well organized, and therefore easier to read, understand and change later.
+
+The general consensus is that, although it takes up more visual space, this:
+
+```
+!Play [
+  4 -> {
+    Scale('B minor')
+    Chord('Bm')
+  }
+]
+```
+
+is easier to read and understand than this:
+
+```
+!Play [ 4 -> { Scale('B minor') Chord('Bm') } ]
+```
+
+But of course this ultimately comes down to your personal preferences and individual use cases.
 
 ### Durations
 
