@@ -2,7 +2,7 @@
 
 The purpose of this guide is to help people learn `bach` well enough to put it to practical use.
 
-It is primarily written for musicians and assumes as little as possible about their technical expertise, although techical terms and details must be mentioned at times in order to build a comprehensive understanding of the notation.
+It is primarily written for musicians and assumes as little as possible about their technical expertise, although techical terms and details are sometimes required to ensure a comprehensive understanding of the notation.
 
 Naturally, it also assumes that the reader has at least a basic understanding of music theory concepts such as tempo, meter, beats and measures.
 
@@ -24,7 +24,7 @@ Once the notation is compiled it can be used by apps to drive anything from real
 
 Tracks can represent a loop, a song, or really any sort of rhythmic timeline.
 
-Tracks are the highest-level concept in `bach`, so it's important to understand them on a macroscopic level before diving into the details.
+Tracks are the highest-level concept in `bach`, so it's important to understand them on a macroscopic level before diving into other areas.
 
 We will begin by looking at a real-world example of a track. The following represents the chord progression of a soul song.
 
@@ -68,7 +68,7 @@ Once this track is processed and loaded into an app, it will be interpreted like
 
 _We will go into what "processed" means in the [Authoring](#authoring) section._
 
-Now that we have a basic understanding of what a track looks like and how it is interpreted, we can begin to explore the individual components that make up a track.
+Now that you have a basic understanding of what a track is and how it's interpreted, we can begin to explore the individual components that make up a track.
 
 ### Primitives
 
@@ -76,7 +76,7 @@ Let's begin with the simplest values found in a track, collectively referred to 
 
 Because `bach` is minimal by design, it only supports two kinds of primitive values: numbers and strings.
 
-We have already encountered numbers and strings in the [Tracks](#tracks) section, so after reading through the next sections see if you can identify the primitives in the example track.
+You have already encountered numbers and strings in the [Tracks](#tracks) section, so after reading through the next sections see if you can identify the primitives in the example track.
 
 #### Numbers
 
@@ -112,11 +112,11 @@ The final primitive that `bach` supports is called a "string".
 
 The term "string" may feel unfamiliar, but it's appropriately named since strings are found in nearly every programming language.
 
-All you need to know is that a string is simply a representation of literal text.
+All you need to know is that a string is just a representation of literal text.
 
-For instance, in apps strings can be used to represent a person's name, email, street addresses, etc.
+For instance, in apps strings are frequently used to represent a person's name, email, street address, etc.
 
-In `bach` strings are used to express things like chord and scale values (such as `"Cmin7"` and `"C mixolydian"`).
+In `bach` strings are used to express info like chord and scale values, such as `"Cmin7"` and `"C mixolydian"`.
 
 Any sequence of characters surrounded by either matching single-quotes or double-quotes is considered a string.
 
@@ -146,7 +146,7 @@ This example shows how to specify the meter and tempo of a track:
 
 #### Meter
 
-The meter of a track defines its time signature, which specifies two important pieces of information: the number of beats in a measure and the beat unit.
+The meter header of a track defines its time signature, which specifies two important pieces of information: the number of beats in a measure and the beat unit.
 
 The following meter tells `bach` that the track has 5 beats in a measure and that an 1/8th note is the beat unit, or the value of an individual beat.
 
@@ -154,23 +154,23 @@ The following meter tells `bach` that the track has 5 beats in a measure and tha
 @Meter = 5|8
 ```
 
-When a meter is not specified in your track, `bach` assumes you are using common time (`4|4`).
+When a meter header is not specified in your track, `bach` assumes you are using common time (`4|4`).
 
 As of now the meter can only be defined once and cannot change at any point in the track.
 
 #### Tempo
 
-The tempo of the track determines how many beats there are in a minute (otherwise known as "bpm").
+The tempo header of a track determines how many beats there are in a minute (otherwise known as "bpm").
 
 When a tempo is not specified, `bach` defaults to 120 bpm.
 
 Tempos can be expressed as either an integer (e.g. `120`) or a decimal (e.g. `110.5`).
 
-As with meter, the tempo can only be defined once and, at least right now, cannot change at a later point.
+As with meter, the tempo can only be defined once, and, at least right now, cannot change at a later point.
 
 ### Elements
 
-In general elements let you say "here is a thing for you to play".
+In general, elements let you say "hey `bach`, here is something for you to play".
 
 Technically an element can be used to represent any sort of information.
 
@@ -182,9 +182,9 @@ But in the primary domain of music, an element represents any of the following:
 
 #### Arguments
 
-Elements can be provided with custom data (within their parenthesis) called arguments.
+Elements can be provided with custom data (within parenthesis) called arguments.
 
-The first argument determines the **value** of the element.
+The first argument determines the **value** of the element and must always be provided.
 
 In this example we are defining a chord with a value of Bm7:
 
@@ -200,21 +200,82 @@ If you wanted to associate more information with this chord, such as which voici
 Chord('Bm7', voicing: 2)
 ```
 
+Each additional argument must be separated by a comma
+
+> TODO: Attributes
+
 #### Duration
 
-By themselves, elements are agnostic to rhythm and duration.
+By theirself elements are agnostic to rhythm and duration.
 
 So in order to say "play this thing for this long", an element must be associated with a duration.
 
-This is where beats come in.
+This is where "beats" come in.
 
 ### Beats
 
-Beats represent an element paired with a duration (in common time).
+Beats represent an element paired with a duration in common time (more on this in the [Durations](#/durations) section).
+
+So a beat not only says "here is something to play", but also "play it for this long".
+
+Beats are defined using the `->` symbol, where the duration of the beat is written on the left, and the element to play is written on the right.
+
+In this example we declare a beat that plays a "C minor" scale for a half note (or two beats) in common time.
+
+```
+1/2 -> Scale('C minor')
+```
+
+But a beat by itself isn't too useful. Rarely (if ever) does a song only contain a single note, chord or scale.
 
 ### Collections
 
+Collections are what you use to group beats and/or elements together.
+
+They let you say "play this, then this" and so on. In `bach` this pattern is called a "rhythmic timeline".
+
+There are only two types of collections in bach: "lists" and "sets".
+
 #### Lists
+
+Lists are simply an ordered collection of beats to play.
+
+This means that each beat in the list will be played in the order it is defined, either from left to right or top to bottom depending on how you write.
+
+Looked at another way, beats in a list will be played sequentially, for their entire duration, and will **not** overlap with each other (just like a queue).
+
+So this (left to right):
+
+```bach
+[1/2 -> Chord('A'), 1/2 -> Chord('B'), 1 -> Chord('C')]
+```
+
+is the same as this (top to bottom):
+
+```bach
+[
+  1/2 -> Chord'A')
+  1/2 -> Chord('B')
+  1 -> Chord('C')
+]
+```
+
+Both of these examples will be interpreted like so:
+
+1. Play chord `A` for a half note, or 2 beats, then
+1. Play chord `B` for a half note, or 2 beats, then
+1. Play chord `C` for a whole note, or an entire measure in common time
+
+As you can see, how you format a list is mostly up to personal preference. You only need to follow these rules:
+
+ - Lists are defined using a starting `[` character and an ending `]` character. `[` says "here is the beginning of the list" and `]` says "here is the end of the list".
+ - Each beat in a list can be separated with a `,` character, but they are not required.
+ - You can use as much "whitespace" (i.e. space and enter characters) around the list and its beats as you like, to make things easy to read.
+
+
+Unlike other music notations, you don't have to explicitly concern yourself measures or bars, but you can if you prefer.
+
+Technically the only thing `bach` cares about are the beats to be played and in what order.
 
 #### Sets
 

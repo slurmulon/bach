@@ -2,4 +2,5 @@
   --base-font-size: 14px;
   --theme-color: salmon;
   --cover-blockquote-color: salmon;
+  --cover-background-image: url(_media/logo.png);
 }
