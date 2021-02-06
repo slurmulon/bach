@@ -28,7 +28,6 @@ Tracks are the highest-level concept in `bach`, so it's important to understand 
 
 We will begin by looking at a real-world example of a track. The following represents the chord progression of a soul song.
 
-
 ```bach
 @Meter = 4|4
 @Tempo = 44
@@ -126,7 +125,6 @@ Any sequence of characters surrounded by either matching single-quotes or double
 "Hello world"
 ```
 
-
 ### Headers
 
 Headers are used to describe the track or give it some sort of context.
@@ -179,6 +177,7 @@ But in the primary domain of music, an element represents any of the following:
  - `Note`
  - `Scale`
  - `Chord`
+ - `Rest` (`~`)
 
 #### Arguments
 
@@ -240,7 +239,7 @@ There are only two types of collections in bach: "lists" and "sets".
 
 Lists are simply an ordered collection of beats to play.
 
-This means that each beat in the list will be played in the order it is defined, either from left to right or top to bottom depending on how you write.
+This means that each beat in the list will be played in the order it is defined, either from left to right or top to bottom, depending on how you write.
 
 Looked at another way, beats in a list will be played sequentially, for their entire duration, and will **not** overlap with each other (just like a queue).
 
@@ -270,8 +269,7 @@ As you can see, how you format a list is mostly up to personal preference. You o
 
  - Lists are defined using a starting `[` character and an ending `]` character. `[` says "here is the beginning of the list" and `]` says "here is the end of the list".
  - Each beat in a list can be separated with a `,` character, but they are not required.
- - You can use as much "whitespace" (i.e. space and enter characters) around the list and its beats as you like, to make things easy to read.
-
+ - You can use as much "whitespace" (i.e. space and enter characters) around the list and its beats as you like, to make things easy to read. This is what we mean by "formatting".
 
 Unlike other music notations, you don't have to explicitly concern yourself measures or bars, but you can if you prefer.
 
@@ -279,7 +277,44 @@ Technically the only thing `bach` cares about are the beats to be played and in 
 
 #### Sets
 
-Sometimes you need to play multiple elements at once.
+Sometimes you need to play multiple elements at once in a beat.
+
+For instance, you may need to tell an app to show both a scale and a chord at once.
+
+Sets allow you to do this because they are agnostic to order.
+
+With a set all you're saying is "group these elements together". Unlike with lists, duration is not a concern.
+
+Sets are defined the same way as lists with one key difference: they use curly braces (`{` and `}`) instead of brackets.
+
+```bach
+{ Scale('B minor'), Chord('Bm') }
+```
+
+In the example from the [Tracks](#tracks) section, both a scale and chord will played on the first beat for 4 whole notes.
+
+```bach
+4 -> {
+  Scale('B minor')
+  Chord('Bm')
+}
+```
+
+#### Nesting
+
+Nesting is basically when you have a collection of collections.
+
+For instance, reflecting back to the example found in the [Tracks](#tracks) section, the first beat of the list contains a set, which contains both a scale and a chord. Both the scale and te chord are nested within the set.
+
+You could also take things one step further and say that the individual notes composing the scale and chord are nested within them.
+
+In the spirit of keeping `bach` simple and understandable, nesting is limited to the following:
+
+ - Lists may contain sets
+ - Lists may **not** contain other lists
+ - Sets may **not** contain sets or lists
+
+As a result, lists **cannot** be nested in another collection at _any_ level.
 
 ### Durations
 
@@ -325,25 +360,27 @@ If you wanted to start playing the note on the second beat of the measure, then 
 
 When a beat is defined without a duration (in other words, just an element), the duration is implied to be one beat of the meter.
 
-For instance, when the meter is common time:
+For instance, this, when the meter is common time:
 
 ```
 [1/4 -> Note('C2'), 1/4 -> Note('F2')]
 ```
 
-is the same as:
+is the same as this:
 
 ```
 [Note('C2'), Note('F2')]
 ```
 
-Beat durations can also use basic mathematical operators. This makes the translation between sheet music and `bach` an easy task.
+Beat durations can also use basic mathematical operators (i.e. add, subtract, multiply, divide).
+
+This makes the translation between sheet music and `bach` an easy task.
 
 ```
 1/2 + 1/4 -> Chord('C2min6')
 ```
 
-This is usefeul for specifying more complicated rhythms, like those seen in jazz.
+It's also usefeul for specifying more complicated rhythms:
 
 ```
 [
@@ -352,6 +389,22 @@ This is usefeul for specifying more complicated rhythms, like those seen in jazz
   1+1/2 -> Chord('C2maj7')
 ]
 ```
+
+They also let you work (sanely) with less common meters such as `6|8`:
+
+```
+@Meter = 6|8
+
+!Play [
+  6/8 -> Chord('Dmin')
+  6/8 -> Chord('Dmin/F')
+  6/8 -> Chord('E7b9')
+  6/8 -> Chord('Bb7')
+  2 * 6/8 -> Chord('A7')
+]
+```
+
+_Note how the last chord, `A7`, is played for two measures (via `2 * 6/8`). If we were using the `4|4` meter, we would just say `1` instead since all durations are based on common time._
 
 ### Variables
 
