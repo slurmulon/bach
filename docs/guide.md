@@ -6,9 +6,15 @@ It is primarily written for musicians and assumes as little as possible about th
 
 Naturally, it also assumes that the reader has at least a basic understanding of music theory concepts such as tempo, meter, beats and measures.
 
-If you are looking for a more technical and low-level resource on `bach`, head to the [Syntax](/syntax) page instead.
+As you read this guide you will encounter various examples of `bach`, sometimes partial and focused snippets and other times full working examples.
 
-If you are interested in the rationale for `bach` and the problems it solves, first check out the [Background](/background) page.
+Whenever you are faced with new concepts or terms that feel unfamiliar or ambiguous, try to ignore them in that moment.
+
+This guide is organized so that it will progressively fill in those details for you, in a way that (we feel) best forms a hollistic understanding of `bach`.
+
+> If you are looking for a more technical and low-level resource on `bach`, head to the [Syntax](/syntax) page instead.
+
+> If you are interested in the rationale for `bach` and the problems it solves, first check out the [Background](/background) page.
 
 ## Intro
 
@@ -364,14 +370,22 @@ But of course this ultimately comes down to your personal preferences and indivi
 
 ### Durations
 
-> TODO: Mention how durations in a list determine determine not only the duration but act as a moving cursor throughout the list
+Durations are at the heart of rhythms, and therefore at the heart of `bach`.
 
-> TODO: Provide an example using rests (and one without) to outline the above
+Complemented by lists, they are the mechanism that allows you to define rhythmic timelines.
+
+As you might recall from the [Beats](#beats) section, beats are elements that are paired with a duration.
+
+When beats are nested in a list, each beat is played for its entire duration before moving onto the next beat.
+
+Therefore the duration not only specifies how long a beat is played for in a list, but it also determines when the next beat is played, since the next beat in the list will only be played after the previous beat reaches the end of its duration.
+
+#### Values
 
 The value of a duration can be an integer, a fraction, or a mathematical expression composed of either.
 
 ```
-1    = Whole note (or one entire measure when `@Meter = 4|4`)
+1    = Whole note (or one entire measure when `@Meter = 4|4`
 1/2  = Half note
 1/4  = Quarter note
 1/8  = Eighth note
@@ -381,16 +395,21 @@ The value of a duration can be an integer, a fraction, or a mathematical express
 1024  = Maximum duration
 
 2 + (1/2) = Two and a half whole notes
-2 * (6/8) = Two and a half measures when `@Meter = 6|8`
+2 * (6/8) = Two measures when the meter is 6|8
+
+1 + (1/2) = One and a half measures when the meter is 4|4
+1 - (1/8) = Seven eigth notes
 ```
 
 To adhere with music theory, durations are strictly based on **common time** (`@Meter = 4|4`).
 
-This means that `1` always means 4 quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
+This means that `1` always means four quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
 
 The examples in the remainder of this section assume common time, since this is the default when a `@Meter` header is not provided.
 
 #### Examples
+
+We have already encountered several examples of durations throughout the guide, so let's now take a more focused look at durations in order to understand them hollistically.
 
 A list playing a `Note('C2')` for an entire measure, starting at the first beat in the measure, would be specified like so:
 
@@ -457,6 +476,28 @@ _Note how the last chord, `A7`, is played for two measures (via `2 * 6/8`). If w
 > TODO: Mention limitation around using lists vars in other lists
 
 ### Play
+
+The final but arguably most important element in `bach` is `!Play`.
+The reason it's so important is because this specifies the main entrypoint of a track.
+
+It's prefixed with a `!` so that it can be viewed as a special element, and also to indicate the importance of it.
+
+In other words, `bach` looks for the `!Play` element first and foremost, then processes everything referenced by `!Play` from there.
+
+```bach
+@Tempo = 82
+
+!Play [
+  8 -> {
+    Scale('G mixolydian')
+    Chord('G7')
+  }
+  4 -> Chord('C7')
+  4 -> Chord('G7')
+]
+```
+
+Only one `!Play` element is allowed and expected per track, and anything that isn't referenced by the element will be ignored during processing.
 
 ## Authoring
 
