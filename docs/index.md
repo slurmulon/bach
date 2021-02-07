@@ -16,12 +16,13 @@ Eventually, with enough support through adoption and tooling, `bach` could be us
 
 - Supports semantic music elements such as chords and scales
 - Seamlessly synchronizes with audio or other data by minimizing the complexities around timing
+- Calculates and provides all of the timing values that are essential or useful for playback
 - Allows for alternative real-time representations of music or rhythms such as animation timelines
-- Easy to read and write for musicians, programmers and computers
+- Easy to read or write for musicians, programmers and computers
 
 ## Getting Started
 
-If you are a musician and would like to use `bach` to notate music then head to the [Guide](/guide) page. Please note in advance that `bach` is a young experimental technology and is **not supported** by any tools you use. Of course, we are hopeful that this situation will change in the future.
+If you are a musician and would like to use `bach` to notate music then head to the [Guide](/guide) page. But before heading there, be forewarned that `bach` is a young experimental technology and is **not supported** by any tools you use. Of course, we are hopeful and optimistic that this situation will change in the future.
 
 If you are a programmer and interested in using `bach` in your own project, you should read the [Guide](/guide) section as well. From there we recommend reading the [Syntax](/syntax) and [Development](/development) pages.
 
