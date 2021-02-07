@@ -347,7 +347,9 @@ As a result, lists **cannot** be nested in another collection at _any_ level.
 
 ##### Formatting
 
-For each level of nesting, it's suggested that you indent the text with two spaces. This helps keep your tracks visually well organized, and therefore easier to read, understand and change later.
+For each level of nesting, it's suggested that you indent the text with two spaces.
+
+This helps keep your tracks visually well organized, and therefore easier to read, understand and change later.
 
 The general consensus is that, although it takes up more visual space, this:
 
@@ -474,6 +476,158 @@ _Note how the last chord, `A7`, is played for two measures (via `2 * 6/8`). If w
 ### Variables
 
 > TODO: Mention limitation around using lists vars in other lists
+
+More often that not you will need to play the same element multiple times in a track.
+
+Variables allow you to assign a name to a value and then reference that value later by the variable name.
+
+This helps to reduce duplication and human error and makes changing the track much easier later on.
+
+Variables are declared using the `:` character, immediatelly followed by a unique name, a `=` character, and then a value (a primitive, element, collection, etc.).
+
+```bach
+:Bm = Chord('Bm')
+```
+
+Once a variable is declared it may be referenced and used in any area of the track proceeding it.
+
+This means that a variable must be declared before it can be used elsewhere.
+
+The recommended convention is to declare your variables immediately after your headers, as it helps people quickly determine all of the elements used in the track.
+
+#### Example
+
+Our primary example track already uses variables, so let's see what it would look like without variables.
+
+So you don't have to jump around the guide, here's how the track looks as is, with variables.
+
+```bach
+@Meter = 4|4
+@Tempo = 44
+
+:B = Chord('Bm')
+:E = Chord('Em')
+:F = Chord('F#m7')
+
+!Play [
+  4 -> {
+    Scale('B minor')
+    :B
+  }
+  2 -> :E
+  2 -> :B
+  2 -> :F
+  2 -> :B
+]
+```
+
+Here's how it looks without using any variables:
+
+```bach
+@Meter = 4|4
+@Tempo = 44
+
+!Play [
+  4 -> {
+    Scale('B minor')
+    Chord('Bm')
+  }
+  2 -> Chord('Em')
+  2 -> Chord('Bm')
+  2 -> Chord('F#m7')
+  2 -> Chord('Bm')
+]
+```
+
+We can see that the example using variables has more lines but ultimately has fewer characters.
+
+Another notable advantage is that if we wanted to change `Bm` to `Bm7`, we only have to make that change in one place instead of three.
+
+If you use a value more than once we recommend that you always assign it to a variable.
+
+If you only use a value, as is the case with `Scale('B minor')`, then it's up to you whether not to assign it to a variable.
+
+#### Limitations
+
+As of now there are a couple of limitations to variables, mostly around collections and durations.
+
+We hope to address these issues soon, and if you are a programmer who is interesting in contributing to `bach` then please check out the [Contribute](/contribute) page.
+
+##### Lists
+
+Assigning a list to a variable is perfectly valid, but there are some undesirable limitations that prevent lists from being combined and re-used.
+
+As we discussed earlier, collection nesting, particularly around lists, is limited by design.
+
+These limits are beneficial and justified, but right now they inhibit how lists and variables can be used together.
+
+Consider the following track:
+
+```bach
+@Tempo = 130
+
+!Play [
+  16 -> {
+    Scale('E mixolydian')
+    Chord('E')
+  }
+
+  1 -> Chord('A')
+  1/2 -> Chord('C')
+  1/2 -> Chord('B7')
+  4 -> Chord('E')
+
+  1 -> Chord('A')
+  1/2 -> Chord('C')
+  1/2 -> Chord('B7')
+  4 -> Chord('E')
+]
+```
+
+Note how one part in the list is repeated:
+
+```bach
+1 -> Chord('A')
+1/2 -> Chord('C')
+1/2 -> Chord('B7')
+4 -> Chord('E')
+```
+
+The natural instinct is to assign this part to a variable as its own list.
+
+This would reduce duplication in the track quite a bit:
+
+```bach
+@Tempo = 130
+
+:Part = [
+  1 -> Chord('A')
+  1/2 -> Chord('C')
+  1/2 -> Chord('B7')
+  4 -> Chord('E')
+]
+
+!Play [
+  16 -> {
+    Scale('E mixolydian')
+    Chord('E')
+  }
+
+  :Part
+  :Part
+]
+```
+
+The issue is that, at least right now, `bach` will interpret this as a list nested in a list.
+
+The ideal behavior would be for `bach` to automatically merge `:Part` into the parent list, that way we're only dealing with one list and avoid violating the nesting rules.
+
+This is especially problematic for complex or long tracks that repeat not only the same musical elements but also the same phrases or parts several times.
+
+In the future `bach` will elegantly handle this situation, but for now this must be noted as a limitation to work around.
+
+##### Durations
+
 
 ### Play
 
