@@ -2,11 +2,21 @@
 
 If you wish to write code that uses `bach` or to make changes to `bach` itself, this guide is for you.
 
+## Architecture
+
+`bach` tracks are ultimately interpreted by a higher-level `bach` engine, such as [`gig`](https://github.com/slurmulon/gig).
+
+The core library, by itself, can only parse and compile plaintext `bach` data into [`bach.json`](https://github.com/slurmulon/bach-json-schema).
+
+`bach.json` is a JSON micro-format that makes it trivial for `bach` engines to sequentially process a `bach` music track and synchronize it in real-time with audio.
+
+This library can be used in Clojure, [ClojureScript and NodeJS](/dev#javascript).
+
 ## Dependencies
 
-`bach` is written in Clojure and can be used in either ClojureScript or in NodeJS.
+`bach` is written in Clojure and can be used in either [ClojureScript or NodeJS](/dev#javascript).
 
-If you wish to develop `bach` or make changes to it, you must first install the following dependencies to your system:
+Before you can develop `bach` you must first install the following dependencies to your system:
 
  - [OpenJDK](https://openjdk.java.net/install/) (version 8 or later)
  - [Leinengen](https://leiningen.org/#install)

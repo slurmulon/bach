@@ -196,7 +196,7 @@ In general, elements let you say "hey `bach`, here is something for you to play"
 
 Technically an element can be used to represent any sort of information.
 
-But in the primary domain of music, an element represents any of the following:
+But in our target domain of music, an element represents any of the following:
 
  - `Note`
  - `Scale`
@@ -225,13 +225,13 @@ Chord('Bm7', voicing: 2, triad: 1)
 
 In this example, the arguments being provided after the chord value are somewhat special because they have a label/name.
 
-We call this type of named value an "attribute". An attribute allows you to not only associate some sort of information with an element, but to also give it a human-friendly name so that it can be easily referenced and understood by an app.
+We call this type of named value an "attribute". An attribute allows you to not only associate some sort of information with an element, but to also give it a human-friendly name so that it can be easily reasoned with by a programmer developing with `bach`.
 
 For now attributes can only be defined and used in the arguments of an element, but in the future `bach` may allow them to be used in alternative ways.
 
 #### Duration
 
-By theirself elements are agnostic to rhythm and duration.
+By themself elements are agnostic to rhythm and duration.
 
 So in order to say "play this thing for this long", an element must be associated with a duration.
 
@@ -259,7 +259,7 @@ Collections are what you use to group beats and/or elements together.
 
 They let you say "play this, then this" and so on. In `bach` this pattern is called a "rhythmic timeline".
 
-There are only two types of collections in bach: "lists" and "sets".
+There are only two types of collections in `bach`: "lists" and "sets".
 
 #### Lists
 
@@ -297,7 +297,7 @@ As you can see, how you format a list is mostly up to personal preference. You o
  - Each beat in a list can be separated with a `,` character, but they are not required.
  - You can use as much "whitespace" (i.e. space and enter characters) around the list and its beats as you like, to make things easy to read. This is what we mean by "formatting".
 
-Unlike other music notations, you don't have to explicitly concern yourself measures or bars, but you can if you prefer.
+Unlike other music notations, you don't have to explicitly concern yourself with measures or bars, but you can if you prefer.
 
 Technically the only thing `bach` cares about are the beats to be played and in what order.
 
@@ -309,7 +309,7 @@ For instance, you may need to tell an app to show both a scale and a chord at th
 
 Sets allow you to do this because they are a collection that's agnostic to order.
 
-With a set all you're saying is "group these elements together". Unlike with lists, duration is not a concern.
+With a set all you're saying is "group these elements together". Unlike lists, sets are not concerned with durations and have no influence on rhythm.
 
 Sets are defined the same way as lists with one key difference: they use curly braces (`{` and `}`) instead of brackets.
 
@@ -328,7 +328,7 @@ In the example from the [Tracks](#tracks) section, both a scale and chord will p
 
 #### Nesting
 
-Nesting is basically when you have a collection that's contained in something else. In the most general sense, it's a way to describe a hierarchy.
+Nesting, in the most general sense, is whenever you have one thing that contains another. You can think of it as a way to describe the general pattern of a hierarchy.
 
 For instance, reflecting back to the example found in the [Tracks](#tracks) section, the first beat of the list contains a set, which contains both a scale and a chord. Both the scale and the chord are nested within the set.
 
@@ -394,13 +394,13 @@ But of course this ultimately comes down to your personal preferences and indivi
 
 Durations are at the heart of rhythms, and therefore at the heart of `bach`.
 
-Complemented by lists, they are the mechanism that allows you to define rhythmic timelines.
+When used in lists they become the mechanism that allows you to define rhythmic timelines.
 
 As you might recall from the [Beats](#beats) section, beats are elements that are paired with a duration.
 
-When beats are nested in a list, each beat is played for its entire duration before moving onto the next beat.
+When beats are nested in a list, each beat is played for its entire duration before moving onto the next.
 
-Therefore the duration not only specifies how long a beat is played for in a list, but it also determines when the next beat is played, since the next beat in the list will only be played after the previous beat reaches the end of its duration.
+Therefore the duration not only specifies how long a beat is played for in a list, but it also determines when the next beat in that list is played, since the next beat will only be played _after_ the previous beat reaches the end of its duration.
 
 #### Values
 
@@ -647,11 +647,9 @@ In the near future `bach` will elegantly handle this situation, but for now this
 ### Play
 
 The final but arguably most important element in `bach` is `!Play`.
-The reason it's so important is because this specifies the main entrypoint of a track.
+The reason it's so important is because it specifies the main entrypoint of a track.
 
-It's prefixed with a `!` so that it can be recognized as a special element, and also to indicate its importance.
-
-In other words, `bach` looks for the `!Play` element first and foremost, then processes everything referenced by `!Play` from there.
+In other words, `bach` looks for the `!Play` element first and foremost, then it processes everything referenced by `!Play` from there.
 
 ```bach
 @Tempo = 82
@@ -676,7 +674,7 @@ Regardless of your level of familiarity or expertise, the ideal way to write `ba
 
 It's much better to start off with a block of marble and carve out a sculpture than to slowly build up a sculpture piece by piece.
 
-That is why we have provided a robust collection of [examples tracks](#examples) for you to copy and modify to your liking.
+That is why we provide an open-source collection of [examples tracks](#examples) for you to copy and modify to your liking.
 
 But before we can even begin to make use of these examples (let alone change or build upon them), we must become familiar with the tools available to us.
 
