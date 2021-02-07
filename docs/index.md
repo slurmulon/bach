@@ -22,11 +22,17 @@ Eventually, with enough support through adoption and tooling, `bach` could be us
 
 ## Getting Started
 
-If you are a musician and would like to use `bach` to notate music then head to the [Guide](/guide) page. But before heading there, be forewarned that `bach` is a young experimental technology and is **not supported** by any tools you use. Of course, we are hopeful and optimistic that this situation will change in the future.
+Before moving on, be forewarned that `bach` is a young experimental technology and is **not supported** by any tools you use.
 
-If you are a programmer and interested in using `bach` in your own project, you should read the [Guide](/guide) section as well. From there we recommend reading the [Syntax](/syntax) and [Development](/development) pages.
+Of course we are hopeful and optimistic that `bach` will grow to become a powerful tool for musicians and programmers alike.
 
-If you would like to learn more about the rationale for `bach` and the problems it attempts to solve then go to the [Background](/background) page.
+In any case we are delighted that you've found `bach` and hope that you read on and enjoy what you see.
+
+> If you are a musician and would like to use `bach` to notate music then head to the [Guide](/guide) page.
+
+> If you are a programmer and interested in using `bach` in your own project, you should also read the [Guide](/guide) section. From there we recommend reading the [Syntax](/syntax) and [Development](/development) pages.
+
+> If you would like to learn more about the rationale for `bach` and the problems it attempts to solve then go to the [Background](/background) page.
 
 ## License
 

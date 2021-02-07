@@ -6,11 +6,11 @@ It is primarily written for musicians and assumes as little as possible about th
 
 Naturally, it also assumes that the reader has at least a basic understanding of music theory concepts such as tempo, meter, beats and measures.
 
-As you read this guide you will encounter various examples of `bach`, sometimes partial and focused snippets and other times full working examples.
+As you read this guide you will encounter various examples of `bach`, sometimes partial and focused snippets and other times complete examples.
 
-Whenever you are faced with new concepts or terms that feel unfamiliar or ambiguous, try to ignore them in that moment.
+Whenever you are faced with new concepts and terms that feel overlooked or unclear, try to ignore them in that moment.
 
-This guide is organized so that it will progressively fill in those details for you, in a way that (we feel) best forms a hollistic understanding of `bach`.
+This guide is organized so that it will progressively fill in those details for you, in a way that (we feel) best gives you a hollistic understanding of `bach`.
 
 You can find a collection of useful example tracks in the [Examples](#examples) section, but the majority of this guide focuses on a single example track (in the [Tracks](#tracks) section) to increase clarity.
 
@@ -497,7 +497,7 @@ If we were using the `4|4` meter, we would just say `1` instead since all durati
 
 ### Variables
 
-More often that not you will need to play the same element multiple times in a track.
+More often than not you will need to play the same element multiple times in a track.
 
 Variables allow you to assign a name to a value and then reference that value later by the variable's name.
 
@@ -517,9 +517,9 @@ The recommended convention is to declare your variables immediately after your h
 
 #### Example
 
-Our primary example track already uses variables, so let's see what it would look like without variables.
+Our primary example track already uses variables, so let's compare and see what it would look like without them.
 
-So you don't have to jump around the guide, here is how the track looks as is, with variables.
+Here is how the track looks as-is, with variables.
 
 ```bach
 @Meter = 4|4
@@ -559,7 +559,7 @@ Here's how it looks without any variables:
 ]
 ```
 
-We can see that the example using variables has more lines but ultimately has less repetition.
+We can see that the example using variables has more a couple more lines, but more importantly it has less repetition.
 
 This is advantageous because if we wanted to say, change `Bm` to `Bm7`, we only have to make that change in one place instead of three.
 
