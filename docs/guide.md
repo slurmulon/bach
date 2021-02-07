@@ -42,7 +42,11 @@ Tracks can represent a loop, a song, or really any sort of rhythmic timeline.
 
 Tracks are the highest-level concept in `bach`, so it's important to understand them on a macroscopic level before diving into other areas.
 
-We will begin by looking at a real-world example of a track. The following represents the chord progression of a soul song.
+#### Example
+
+We will begin by looking at a real-world example of a track, and this track will be referenced throughout this guide.
+
+The following track represents the chord progression of a soul song.
 
 ```bach
 @Meter = 4|4
@@ -160,7 +164,7 @@ This example shows how to specify the meter and tempo of a track:
 
 You can find a list of useful headers in the [Syntax](/syntax#useful) document, but be aware that supporting these headers involves customizing your `bach` interpreter, a task that requires external code changes.
 
-In other words, although you are free to make up your own headers, you need somehow who knows how to code in order to add support for them.
+In other words, although you are free to make up your own headers, you need someone who knows how to code in order to add support for them.
 
 #### Meter
 
@@ -180,7 +184,7 @@ As of now the meter can only be defined once and cannot change at any point in t
 
 The tempo header of a track determines how many beats there are in a minute (otherwise known as "bpm").
 
-When a tempo is not specified, `bach` defaults to 120 bpm.
+When a tempo is not specified, `bach` defaults to `120` bpm.
 
 Tempos can be expressed as either an integer (e.g. `120`) or a decimal (e.g. `110.5`).
 
@@ -684,7 +688,7 @@ You have a `bach` track written, so how do we associate and synchronize it with 
 
 The first thing to note is that, in order to keep `bach` simple and focused, `bach` doesn't explicitly concern itself with audio data.
 
-By taking this approach, it allows `bach` to rhythmically align with music produced by a human or to generate music on a computer.
+By taking this approach it allows `bach` to rhythmically align with music produced by a human or to generate music on a computer.
 
 On a practical level, this means it's up to your editor or application to associate audio data with your `bach` tracks.
 

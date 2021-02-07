@@ -1,4 +1,6 @@
 * [Home](/)
-* [Background](background.md)
 * [Guide](guide.md)
 * [Syntax](syntax.md)
+* [Development](dev.md)
+* [Background](background.md)
+* [Contributing](contributing.md)
