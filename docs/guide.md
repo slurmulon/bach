@@ -12,6 +12,8 @@ Whenever you are faced with new concepts or terms that feel unfamiliar or ambigu
 
 This guide is organized so that it will progressively fill in those details for you, in a way that (we feel) best forms a hollistic understanding of `bach`.
 
+You can find a collection of useful example tracks in the [Examples](#examples) section, but the majority of this guide focuses on a single example track (in the [Tracks](#tracks) section) to increase clarity.
+
 > If you are looking for a more technical and low-level resource on `bach`, head to the [Syntax](/syntax) page instead.
 
 > If you are interested in the rationale for `bach` and the problems it solves, first check out the [Background](/background) page.
@@ -25,6 +27,14 @@ This guide is organized so that it will progressively fill in those details for 
 Once the notation is compiled it can be used by apps to drive anything from real-time music players to sheet music generators.
 
 ## Basics
+
+As with learning anything new, the ideal place to start is the fundamentals. There are several different components in `bach` that you need to be aware of before you can start using it.
+
+This guide provides as many details and examples as possible to help ensure that common questions, concerns and caveats are thoroughly addressed.
+
+It's advised (but not required) that you read each section in the order it appears, only moving on to the next section after you've obtained a decent grasp on the section's concepts.
+
+With that said we can now dive into each of the components that make up `bach`, starting at the surface with "tracks".
 
 ### Tracks
 
@@ -71,7 +81,7 @@ Once this track is processed and loaded into an app, it will be interpreted like
 1. The chord `:B`, or `Bm`, will be played for `2` whole notes, then
 1. Repeat as desired
 
-_We will go into what "processed" means in the [Authoring](#authoring) section._
+> We will go into what "processed" means in the [Authoring](#authoring) section.
 
 Now that you have a basic understanding of what a track is and how it's interpreted, we can begin to explore the individual components that make up a track.
 
@@ -148,6 +158,10 @@ This example shows how to specify the meter and tempo of a track:
 
 `bach` allows you to define any headers you like, but `@Meter` and `@Tempo` are special and reserved since they influence how `bach` calculates beat durations.
 
+You can find a list of useful headers in the [Syntax](/syntax#useful) document, but be aware that supporting these headers involves customizing your `bach` interpreter, a task that requires external code changes.
+
+In other words, although you are free to make up your own headers, you need somehow who knows how to code in order to add support for them.
+
 #### Meter
 
 The meter header of a track defines its time signature, which specifies two important pieces of information: the number of beats in a measure and the beat unit.
@@ -199,15 +213,17 @@ Chord('Bm7')
 
 _Note how the `Bm7` is surrounded by quotes, specifying this data as a string._
 
-If you wanted to associate more information with this chord, such as which voicing the chord is in, you can simply add another argument:
+If you wanted to associate more information with this chord, such as which voicing the chord is in, you can simply add another argument, where each argument beyond the first is separated by a comma:
 
 ```
-Chord('Bm7', voicing: 2)
+Chord('Bm7', voicing: 2, triad: 1)
 ```
 
-Each additional argument must be separated by a comma
+In this example, the arguments being provided after the chord value are somewhat special because they have a label/name.
 
-> TODO: Attributes
+We call this type of named value an "attribute". An attribute allows you to not only associate some sort of information with an element, but to also give it a human-friendly name so that it can be easily referenced and understood by an app.
+
+For now attributes can only be defined and used in the arguments of an element, but in the future `bach` may allow them to be used in alternative ways.
 
 #### Duration
 
@@ -471,15 +487,15 @@ They also let you work (sanely) with less common meters such as `6|8`:
 ]
 ```
 
-_Note how the last chord, `A7`, is played for two measures (via `2 * 6/8`). If we were using the `4|4` meter, we would just say `1` instead since all durations are based on common time._
+It's worth noting how the last chord, `A7`, is played for two measures (via `2 * 6/8`).
+
+If we were using the `4|4` meter, we would just say `1` instead since all durations are based on common time.
 
 ### Variables
 
-> TODO: Mention limitation around using lists vars in other lists
-
 More often that not you will need to play the same element multiple times in a track.
 
-Variables allow you to assign a name to a value and then reference that value later by the variable name.
+Variables allow you to assign a name to a value and then reference that value later by the variable's name.
 
 This helps to reduce duplication and human error and makes changing the track much easier later on.
 
@@ -499,7 +515,7 @@ The recommended convention is to declare your variables immediately after your h
 
 Our primary example track already uses variables, so let's see what it would look like without variables.
 
-So you don't have to jump around the guide, here's how the track looks as is, with variables.
+So you don't have to jump around the guide, here is how the track looks as is, with variables.
 
 ```bach
 @Meter = 4|4
@@ -521,7 +537,7 @@ So you don't have to jump around the guide, here's how the track looks as is, wi
 ]
 ```
 
-Here's how it looks without using any variables:
+Here's how it looks without any variables:
 
 ```bach
 @Meter = 4|4
@@ -539,27 +555,23 @@ Here's how it looks without using any variables:
 ]
 ```
 
-We can see that the example using variables has more lines but ultimately has fewer characters.
+We can see that the example using variables has more lines but ultimately has less repetition.
 
-Another notable advantage is that if we wanted to change `Bm` to `Bm7`, we only have to make that change in one place instead of three.
+This is advantageous because if we wanted to say, change `Bm` to `Bm7`, we only have to make that change in one place instead of three.
 
-If you use a value more than once we recommend that you always assign it to a variable.
+If you use a value more than once it's recommended that you always assign it to a variable.
 
-If you only use a value, as is the case with `Scale('B minor')`, then it's up to you whether not to assign it to a variable.
+If you only use a value once, as is the case with `Scale('B minor')`, then it's up to you whether not to assign it to a variable.
 
 #### Limitations
 
-As of now there are a couple of limitations to variables, mostly around collections and durations.
+As of now there are a couple of limitations to variables regarding lists.
 
-We hope to address these issues soon, and if you are a programmer who is interesting in contributing to `bach` then please check out the [Contribute](/contribute) page.
-
-##### Lists
-
-Assigning a list to a variable is perfectly valid, but there are some undesirable limitations that prevent lists from being combined and re-used.
+Assigning a list to a variable is perfectly valid, but there are currently some undesirable limitations that prevent lists from being combined and re-used.
 
 As we discussed earlier, collection nesting, particularly around lists, is limited by design.
 
-These limits are beneficial and justified, but right now they inhibit how lists and variables can be used together.
+These limits are beneficial and justified, but right now they inhibit how much lists can benefit from variables.
 
 Consider the following track:
 
@@ -618,23 +630,22 @@ This would reduce duplication in the track quite a bit:
 ]
 ```
 
-The issue is that, at least right now, `bach` will interpret this as a list nested in a list.
+The issue is that, at least right now, `bach` will interpret this as a list nested in a list, and this is not supported.
 
-The ideal behavior would be for `bach` to automatically merge `:Part` into the parent list, that way we're only dealing with one list and avoid violating the nesting rules.
+The ideal behavior would be for `bach` to sort of merge `:Part` into the main list, that way `bach` only deals with one list and avoids violating the nesting constraints.
 
-This is especially problematic for complex or long tracks that repeat not only the same musical elements but also the same phrases or parts several times.
+This lacking feature is especially problematic for complex or long tracks that repeat not only the same musical elements but also the same phrases or parts several times over.
 
-In the future `bach` will elegantly handle this situation, but for now this must be noted as a limitation to work around.
+In the near future `bach` will elegantly handle this situation, but for now this must be noted as a limitation to work around.
 
-##### Durations
-
+> If you are a programmer who is interested in contributing to `bach` and solving this problem, please check out the [Contribute](/contribute) page.
 
 ### Play
 
 The final but arguably most important element in `bach` is `!Play`.
 The reason it's so important is because this specifies the main entrypoint of a track.
 
-It's prefixed with a `!` so that it can be viewed as a special element, and also to indicate the importance of it.
+It's prefixed with a `!` so that it can be recognized as a special element, and also to indicate its importance.
 
 In other words, `bach` looks for the `!Play` element first and foremost, then processes everything referenced by `!Play` from there.
 
@@ -651,7 +662,7 @@ In other words, `bach` looks for the `!Play` element first and foremost, then pr
 ]
 ```
 
-Only one `!Play` element is allowed and expected per track, and anything that isn't referenced by the element will be ignored during processing.
+Only one `!Play` element is allowed and expected per track, and anything that isn't referenced by the element will be **ignored** during processing.
 
 ## Authoring
 
