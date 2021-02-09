@@ -45,3 +45,11 @@ In any case we are delighted that you've discovered `bach` and hope that you rea
 This project is licensed under the [MIT license](https://github.com/slurmulon/bach/blob/master/LICENSE).
 
 Copyright &copy; [Erik Vavro](https://madhax.ninja)
+
+> **Legal Notice**
+> 
+> This project is open-source, **non-proprietary** and does **not claim** any legal rights to the term "bach", Johann Sebastian Bach, any of his musical works or any of their performances or renditions.
+> 
+> The name `bach` was chosen because it sounds like "bash" and, most importantly, celebrates one of the most influential musicians of all time.
+>
+> All of the examples of `bach` code and tracks in this guide are entirely homemade and assumed to be unique in musical nature. Any similarities or infringements that are perceived between our examples and copyrighted material are purely coincidental.
