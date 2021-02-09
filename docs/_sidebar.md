@@ -2,5 +2,4 @@
 * [Guide](guide.md)
 * [Development](dev.md)
 * [Syntax](syntax.md)
-* [Background](background.md)
-* [Contributing](contributing.md)
+* [Contribute](contribute.md)
