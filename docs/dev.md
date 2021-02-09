@@ -1,12 +1,10 @@
-# Development
+# Development OLD
 
-If you wish to write code that uses `bach` or to make changes to `bach` itself, this guide is for you.
+## Introduction
 
-Before proceeding, but sure you have followed the steps in the Setup guide in order to install everything necessary for development
+This guide will show you how to integrate and experiment with `bach` in your JVM or NodeJS projects.
 
-## Intro
-
-This guide will show you how to integrate `bach` into your own projects, and, if you're interested in contributing to `bach`, setup a development environment.
+Before proceeding, but sure you have followed the steps in the [Setup](setup) guide in order to install everything necessary for development.
 
 ## Architecture
 
@@ -178,6 +176,36 @@ $ npm run build
 ```sh
 $ npm test
 ```
+
+## Packages
+
+### `gig`
+
+#### About
+
+Event-driven `bach` engine for Node.
+
+Consumes `bach.json` (via `bach-js`) and synchronizes its rhythmic data with audio data in real-time.
+
+#### Repo
+
+https://github.com/slurmulon/gig
+
+### `bach-js`
+
+#### About
+
+Consumes `bach.json` data and provides a basic standard interface for accessing information about a track and performing basic data transformations (such as serialization and re-groupings).
+
+Serves as the back-bone for all other `bach` libraries written in Node.
+
+#### Repo
+
+https://github.com/slurmulon/bach-js
+
+### `bach-json-schema`
+
+### `bach-rest-api`
 
 ## Help
 

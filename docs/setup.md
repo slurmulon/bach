@@ -1,8 +1,24 @@
-# Setup
+# Development
 
 This guide is for software developers interested in experimenting with `bach` in their projects.
 
-`bach` is written in Clojure and can be used in both the JVM and NodeJS ecosystems.
+It's also for developers interested in contributing towards `bach` itself, since the same setup is required in both cases.
+
+This guide is written for GNU/Linux or Unix-like systems such as Mac. Windows is not currently supported.
+
+## Architecture
+
+`bach` tracks are ultimately interpreted by a higher-level `bach` engine, such as [`gig`](https://github.com/slurmulon/gig).
+
+The core library, by itself, can only parse and compile UTF-8 encoded `bach` data into [`bach.json`](https://github.com/slurmulon/bach-json-schema).
+
+`bach.json` is a JSON micro-format that makes it trivial for `bach` engines to sequentially process a `bach` track and synchronize it in real-time with audio or other data.
+
+Once `bach` is converted into `bach.json` it becomes portable and understandable to web apps using our official [tools and libraries](#tools).
+
+It's currently not trivial to perform the inverse conversion of `bach.json` into `bach`, so dynamically generating `bach` and then converting it into `bach.json` can be a useful approach until this is supported.
+
+`bach` is written in Clojure and can be used in either [JavaScript](/dev#javascript) via ClojureScript or NodeJS.
 
 ## Clojure
 
@@ -10,7 +26,7 @@ This guide is for software developers interested in experimenting with `bach` in
 
 #### Environment
 
-Before you use `bach` in a Clojure or ClojureScript project, you must first install the following dependencies to your system:
+Before you can use `bach` in a Clojure or ClojureScript project, you first need the following dependencies on your system:
 
  - [OpenJDK](https://openjdk.java.net/install/) (version 8 or later)
  - [Leinengen](https://leiningen.org/#install)
@@ -79,20 +95,34 @@ $ lein -U repl
 (compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
 
+#### Testing
+
+```sh
+$ lein test
+```
+
 ## JavaScript
 
 ### Installation
 
 #### Environment
 
-Before you use `bach` for JavaScript, you must have the following dependencies installed to your system:
+Before you can use `bach` for JavaScript, you must have the following dependencies installed to your system:
 
  - [NodeJS](https://nodejs.org/en/download/) (version 10 or later)
- - [NPM](https://npmjs.com) (installed with NodeJS)
+ - [NPM](https://npmjs.com) (installed with NodeJS, version 6 or later)
+
+> **Note**
+>
+> Making changes to `bach` requires making changes to Clojure/Script code, which depends on the JVM.
+>
+> If you simply want to install `bach` in your NodeJS project then simply carry on reading.
+>
+> Otherwise be sure to follow the [Clojure Setup](#setup) guide before moving forward.
 
 #### Node
 
-The core `bach` library is available on NPM as `bach-cljs`:
+The core `bach` library is available on NPM as [`bach-cljs`](https://npmjs.com/bach-cljs):
 
 ```sh
 $ npm i bach-cljs
@@ -100,14 +130,14 @@ $ npm i bach-cljs
 
 You should now see `bach-cljs` under `dependencies` in `package.json`.
 
-#### Usage
+### Usage
 
-##### ES6+
+#### ES6+
 ```js
 import bach from 'bach-cljs'
 ```
 
-##### CommonJS
+#### CommonJS
 
 ```js
 const { bach } = require('bach-cljs')
@@ -117,7 +147,7 @@ const { bach } = require('bach-cljs')
 const bach = require('bach-cljs').default
 ```
 
-##### Example
+#### Library
 
 ```js
 import bach from 'bach-cljs'
@@ -133,4 +163,105 @@ const json = bach(`@Tempo = 65
 console.log(JSON.stringify(json, null, 2))
 ```
 
+#### Repl
 
+If you need access to the Node.js ecosystem and its APIs during repl, use the following:
+
+```sh
+$ npm run repl
+```
+
+Otherwise, if you simply want to repl in a plain ClojureScript environment, use:
+
+```sh
+$ npm run cljs-repl
+```
+
+#### Building
+
+```sh
+# npm run build
+```
+
+#### Testing
+
+```sh
+$ npm test
+```
+
+## Tools
+
+`bach` only becomes functional and therefore useful with the help of a `bach` interpreter library and a `bach` engine.
+
+We have provided official libraries in JavaScript to serve both of these purposes.
+
+We have also started planning an open-source `bach` sandbox/editor tool that will provide a standard experience for rapid, instant-feedback authoring of `bach` tracks.
+
+Until that time you will need to rely on the following tools in order to fully actualize your `bach` tracks.
+
+Of course, open-source contributions are fully welcomed and encouraged to the `bach` ecosystem of tools.
+
+### `gig`
+
+#### About
+
+Official event-driven `bach` engine for the browser and NodeJS.
+
+Consumes `bach.json` (via `bach-js`) and synchronizes its rhythmic data with audio data in real-time.
+
+This library should be used if you want to experiment with `bach` in your web app.
+
+#### Repo
+
+[![Github Logo](_media/github.svg)](https://github.com/slurmulon/gig) https://github.com/slurmulon/gig
+
+### `bach-js`
+
+#### About
+
+Official `bach` interpreter library for the browser and NodeJS.
+
+Consumes `bach.json` data and provides a basic standard interface for accessing information about a track and performing basic data transformations (such as serialization and re-groupings).
+
+Serves as the back-bone for all other `bach` libraries written in NodeJS, such as `gig`.
+
+If your app or library is only concerned with `bach` data instead of real-time playback, this library should be used instead of `gig`.
+
+#### Repo
+
+[![Github Logo](_media/github.svg)](https://github.com/slurmulon/bach-js) https://github.com/slurmulon/bach-js
+
+### `bach-json-schema`
+
+#### About
+
+Official JSON Schema definition for the `bach.json` micro-format.
+
+Can be used in any language or platform to validate proposed `bach.json` data for usage in an interpreter or engine such as `bach-js` or `gig`.
+
+#### Repo
+
+[![Github Logo](_media/github.svg)](https://github.com/slurmulon/bach-json-schema) https://github.com/slurmulon/bach-js
+
+### `bach-rest-api`
+
+#### About
+
+A minimal Restful HTTP interface wrapping the core `bach` library, only supporting `bach.json` compilation. Can be self-hosted as a micro-service for supporting back-end `bach` to `bach.json` conversions.
+
+When building web apps it's recommended that you use `bach-js` instead of `bach-rest-api`.
+`bach-js` can perform `bach.json` compilation in the browser, so this library should only be used if you're bound to JVM or need to work with micro-services in general.
+
+#### Repo
+
+[![Github Logo](_media/github.svg)](https://github.com/slurmulon/bach-json-schema) https://github.com/slurmulon/bach-js
+
+## Help
+
+### Cheat Sheet
+
+Coming soon
+
+## Roadmap
+
+## Contributing

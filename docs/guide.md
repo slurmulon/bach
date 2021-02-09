@@ -20,14 +20,6 @@ You can find a collection of useful example tracks in the [Examples](#examples) 
 
 > If you are interested in the rationale for `bach` and the problems it solves, first check out the [Background](/background) page.
 
-## Bach
-
-`bach` is a music notation that people and computers can easily read or write. It is entirely text-based and can be written in any text editor.
-
-`bach` is different from other music notations because it is **semantic**, meaning it allows you to work with higher-level music constructs such as chords and scales without needing to worry about the details.
-
-Once the notation is compiled it can be used by apps to drive anything from real-time music players to sheet music generators.
-
 ## Components
 
 As with learning anything new, the ideal place to start is the fundamentals. There are several different components in `bach` that you need to be knowledgeable in before you can start using it.

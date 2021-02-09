@@ -4,13 +4,13 @@
 
 ## About
 
-`bach` is a semantic music notation designed to be both human and computer friendly.
+`bach` is an open-source music notation that people and computers can easily read or write. It is entirely text-based and can be written in any text editor.
 
-It's entirely text-based and allows you to easily notate music or any sort of rhythmic timeline you can imagine.
+`bach` is different from other music notations because it is **semantic**, meaning it allows you to work with higher-level music constructs such as chords and scales without needing to worry about the details.
 
-The project is new and constsantly changing. It should be considered experimental and too immature for production use.
+Eventually, with enough support through adoption and tooling, `bach` could be used to engrave sheet music, drive audio synthesizers, synchronize lighting shows and much more.
 
-Eventually, with enough support through adoption and tooling, `bach` could be used to create sheet music, engrave sheet music, drive lighting shows and much more.
+The project is new and constsantly changing. It should be considered **experimental** and too immature for production use.
 
 ## Features
 
@@ -34,7 +34,14 @@ In any case we are delighted that you've discovered `bach` and hope that you rea
 
 > If you would like to learn more about the rationale for `bach` and the problems it attempts to solve then go to the [Background](/background) page.
 
+## Contact & Support
+
+- Create a GitHub issue for bug reports, feature requests, or questions
+- Add a :star: star on GitHub or follow the project!
+- Share :heart: with friends and colleagues
+
 ## License
 
-MIT
+This project is licensed under the [MIT license](https://github.com/slurmulon/bach/blob/master/LICENSE).
 
+Copyright &copy; [Erik Vavro](https://madhax.ninja)
