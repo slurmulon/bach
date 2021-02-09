@@ -2,30 +2,36 @@
 
 If you wish to write code that uses `bach` or to make changes to `bach` itself, this guide is for you.
 
+Before proceeding, but sure you have followed the steps in the Setup guide in order to install everything necessary for development
+
+## Intro
+
+This guide will show you how to integrate `bach` into your own projects, and, if you're interested in contributing to `bach`, setup a development environment.
+
 ## Architecture
 
 `bach` tracks are ultimately interpreted by a higher-level `bach` engine, such as [`gig`](https://github.com/slurmulon/gig).
 
 The core library, by itself, can only parse and compile plaintext `bach` data into [`bach.json`](https://github.com/slurmulon/bach-json-schema).
 
-`bach.json` is a JSON micro-format that makes it trivial for `bach` engines to sequentially process a `bach` music track and synchronize it in real-time with audio.
+`bach.json` is a JSON micro-format that makes it trivial for `bach` engines to sequentially process a `bach` track and synchronize it in real-time with audio or other data.
 
-This library can be used in Clojure, [ClojureScript and NodeJS](/dev#javascript).
+`bach` is written in Clojure and can be used in either [JavaScript](/dev#javascript) via ClojureScript or NodeJS.
 
-## Dependencies
+## Clojure
 
-`bach` is written in Clojure and can be used in either [ClojureScript or NodeJS](/dev#javascript).
+### Dependencies
 
-Before you can develop `bach` you must first install the following dependencies to your system:
+Before you can develop `bach` for Clojure/Script, you must first install the following dependencies to your system:
 
  - [OpenJDK](https://openjdk.java.net/install/) (version 8 or later)
  - [Leinengen](https://leiningen.org/#install)
 
-If you simply wish to use `bach` in NodeJS or a web app, head to the [JavaScript](#javascript) section.
+If you wish to use `bach` in NodeJS instead, head to the [JavaScript](#javascript) section.
 
-## Setup
+### Setup
 
-To setup a development environment, first clone the repo:
+To setup a development environment for Clojure, first clone the repo:
 
 ```sh
 $ git clone git@github.com:slurmulon/bach.git
@@ -39,9 +45,9 @@ $ lein install
 
 If you want to simultaneously develop `bach` and another library using it, [follow this guide on checkout dependencies](https://github.com/technomancy/leiningen/blob/master/doc/TUTORIAL.md#checkout-dependencies).
 
-## Usage
+### Usage
 
-### CLI
+#### CLI
 
 First be sure that you have a binary executable (requires `lein` to be installed) available on your `PATH`:
 
@@ -61,7 +67,7 @@ The executable currently supports the following actions:
 - `compile`: parses and compiles vanilla `bach` data into `bach.json`, an intermediary JSON micro-format that allows for simple interpretation of tracks
 - `help`
 
-### Library
+#### Library
 
 ```clojure
 (ns my.namespace
@@ -71,7 +77,7 @@ The executable currently supports the following actions:
 (compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
 
-### Repl
+#### Repl
 
 ```sh
 $ lein -U repl
@@ -91,7 +97,31 @@ Since installation and usage is identical between Clojure and ClojureScript, thi
 
 As of now only `bach.track/compose` is exported and accessible in NodeJS, since parsing and validating `bach` into `bach.json` is the primary feature.
 
-### Install
+### Dependencies
+
+Before you can develop `bach` for JavaScript, you must first install the following dependencies to your system:
+
+ - [NodeJS](https://nodejs.org/en/download/) (version 10 or later)
+ - [NPM](https://npmjs.com) (installed with NodeJS)
+
+> **Note**
+>
+> Making changes to `bach` requires making changes to Clojure/Script code, which depends on the JVM.
+>
+> If you simply want to install `bach` in your NodeJS project then progress to the next section.
+>
+> Otherwise be sure to follow the [Clojure Setup](#setup) guide before moving forward.
+
+### Setup
+
+To setup a development environment for JavaScript, first clone the repo if you haven't done so already:
+
+```sh
+$ git clone git@github.com:slurmulon/bach.git
+```
+
+Then install the core NodeJS `bach` library, `bach-cljs`:
+
 
 ```sh
 $ npm i bach-cljs
@@ -119,7 +149,13 @@ const bach = require('bach-cljs').default
 ```js
 import bach from 'bach-cljs'
 
-const json = bach("@Tempo = 65 !Play [1 -> Chord('E') 1/2 -> Chord('G#min') 1/2 -> Chord('B')]")
+const json = bach(`@Tempo = 65
+  !Play [
+    1 -> Chord('E')
+    1/2 -> Chord('G#min')
+    1/2 -> Chord('B')
+  ]
+`)
 
 console.log(JSON.stringify(json, null, 2))
 ```
@@ -142,3 +178,7 @@ $ npm run build
 ```sh
 $ npm test
 ```
+
+## Help
+
+### Cheat Sheet

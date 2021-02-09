@@ -1,5 +1,7 @@
 # Guide
 
+## Introduction
+
 The purpose of this guide is to help people learn `bach` well enough to put it to practical use.
 
 It is primarily written for musicians and assumes as little as possible about their technical expertise, although techical terms and details are sometimes required to ensure a comprehensive understanding of the notation.
@@ -18,7 +20,7 @@ You can find a collection of useful example tracks in the [Examples](#examples) 
 
 > If you are interested in the rationale for `bach` and the problems it solves, first check out the [Background](/background) page.
 
-## Intro
+## Bach
 
 `bach` is a music notation that people and computers can easily read or write. It is entirely text-based and can be written in any text editor.
 
@@ -26,13 +28,13 @@ You can find a collection of useful example tracks in the [Examples](#examples) 
 
 Once the notation is compiled it can be used by apps to drive anything from real-time music players to sheet music generators.
 
-## Basics
+## Components
 
-As with learning anything new, the ideal place to start is the fundamentals. There are several different components in `bach` that you need to be aware of before you can start using it.
+As with learning anything new, the ideal place to start is the fundamentals. There are several different components in `bach` that you need to be knowledgeable in before you can start using it.
 
 This guide provides as many details and examples as possible to help ensure that common questions, concerns and caveats are thoroughly addressed.
 
-It's advised (but not required) that you read each section in the order it appears, only moving on to the next section after you've obtained a decent grasp on the section's concepts.
+It's advised (but not required) that you read each component's section in the order it appears, only moving on to the next section after you've obtained a decent grasp on the current section's concepts.
 
 With that said we can now dive into each of the components that make up `bach`, starting at the surface with "tracks".
 
@@ -42,9 +44,9 @@ Tracks can represent a loop, a song, or really any sort of rhythmic timeline.
 
 Tracks are the highest-level concept in `bach`, so it's important to understand them on a macroscopic level before diving into other areas.
 
-#### Example
-
 We will begin by looking at a real-world example of a track, and this track will be referenced throughout this guide.
+
+#### Example
 
 The following track represents the chord progression of a soul song.
 
@@ -117,7 +119,7 @@ An integer is a [whole number](https://en.wikipedia.org/wiki/Integer), or a numb
 
 ##### Doubles
 
-A double is a [rational number](https://en.wikipedia.org/wiki/Rational_number), a number that can be represented with a floating point/period.
+A double is a [rational number](https://en.wikipedia.org/wiki/Rational_number), a number that includes a decimal.
 
 ```js
 184.63
@@ -265,17 +267,17 @@ There are only two types of collections in `bach`: "lists" and "sets".
 
 Lists are simply an ordered collection of beats to play.
 
-This means that each beat in the list will be played in the order it is defined, either from left to right or top to bottom, depending on how you write.
+This means that each beat in the list will be played in the order it is defined, either from left to right or top to bottom, depending on how you write it.
 
 Looked at another way, beats in a list will be played sequentially, for their entire duration, and will **not** overlap with each other (just like a queue).
 
-So this (left to right):
+So this (read left to right):
 
 ```bach
 [1/2 -> Chord('A'), 1/2 -> Chord('B'), 1 -> Chord('C')]
 ```
 
-is the same as this (top to bottom):
+is the same as this (read top to bottom):
 
 ```bach
 [
@@ -493,7 +495,7 @@ They also let you work (sanely) with less common meters such as `6|8`:
 
 It's worth noting how the last chord, `A7`, is played for two measures (via `2 * 6/8`).
 
-If we were using the `4|4` meter, we would just say `1` instead since all durations are based on common time.
+If we were using the `4|4` meter, we would just say `2` instead since all durations are based on common time.
 
 ### Variables
 
@@ -509,9 +511,9 @@ Variables are declared using the `:` character, immediatelly followed by a uniqu
 :Bm = Chord('Bm')
 ```
 
-Once a variable is declared it may be referenced and used in any area of the track proceeding it.
+Once a variable is declared it may be referenced and used in any area of the track following it.
 
-This means that a variable must be declared before it can be used elsewhere.
+This means that a variable **must** be declared before it can be used elsewhere.
 
 The recommended convention is to declare your variables immediately after your headers, as it helps people quickly determine all of the elements used in the track.
 

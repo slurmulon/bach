@@ -2,7 +2,7 @@
 
 > :musical_score: Semantic music notation
 
-- Easily define rhythms and music with text
+- Easily notate music and rhythms with plain text
 - Work with semantic music elements such as chords and scales
 - Friendly to both humans and computers
 - Small learning curve and highly productive
