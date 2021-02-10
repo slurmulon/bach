@@ -10,7 +10,7 @@
 
 Eventually, with enough support through adoption and tooling, `bach` could be used to engrave sheet music, drive audio synthesizers, synchronize lighting shows and much more.
 
-The project is new and constsantly changing. It should be considered **experimental** and too immature for production use.
+The project is in early development and constsantly changing. It should be considered **experimental** and too immature for production use.
 
 ## Features
 
