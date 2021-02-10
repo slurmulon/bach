@@ -1,0 +1,6 @@
+* [Home](/)
+* [Guide](guide)
+* [Development](dev)
+* [Syntax](syntax)
+* [Examples](examples)
+* [Contribute](contribute)
