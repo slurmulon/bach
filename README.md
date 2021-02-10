@@ -18,21 +18,22 @@ Although its primary domain is music, `bach` enables the synchronization of rhyt
 
 ## Documentation
 
- - **Home**: https://bach.github.io
- - **Guide**: https://bach.github.io/#/guide
- - **Development**: https://bach.github.io/#/dev
- - **Examples**: https://bach.github.io/#/examples
- - **Contribute**: https://bach.github.io/#/contribute
+ - **Home**: https://slurmulon.github.io/bach
+ - **Guide**: https://slurmulon.github.io/bach/#/guide
+ - **Development**: https://slurmulon.github.io/bach/#/dev
+ - **Examples**: https://slurmulon.github.io/bach/#/examples
+ - **Contribute**: https://slurmulon.github.io/bach/#/contribute
 
 Before diving into the docs, please note that `bach` is a new data format, so naturally there is almost no tooling or integration support for it today.
 
-But whether you're an adventerous musician or a developer exploring `bach` for their project, we advise that you read our [Guide](https://bach.github.io/#/guide) page since it provides the most comphrensive overview of `bach` available.
+But whether you're an adventerous musician or a developer exploring `bach` for their project, we advise that you read our [Guide](https://slurmulon.github.io/bach/#/guide) page since it provides the most comphrensive overview of `bach` available.
 
 ## Example
 
-The following `bach` data represents the loopable chord progression of a rock backing track:
+The following `bach` data represents the loopable progression of a rock backing track:
 
 ```bach
+@Meter = 4|4
 @Tempo = 65
 
 !Play [
@@ -45,7 +46,7 @@ The following `bach` data represents the loopable chord progression of a rock ba
 ]
 ```
 
-You can find more examples of `bach` in the [Examples](https://bach.github.io/#/examples) page of the documentation.
+You can find more examples of `bach` in the [Examples](https://slurmulon.github.io/bach/#/examples) page of the documentation.
 
 ## License
 
