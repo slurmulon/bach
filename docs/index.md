@@ -32,13 +32,12 @@ In any case we are delighted that you've discovered `bach` and hope that you rea
 
 > If you are a programmer and interested in using `bach` in your own project, you should also read the [Guide](/guide) section. From there we recommend reading the [Syntax](/syntax) and [Development](/development) pages.
 
-> If you would like to learn more about the rationale for `bach` and the problems it attempts to solve then go to the [Background](/background) page.
-
 ## Contact & Support
 
-- Create a GitHub issue for bug reports, feature requests, or questions
-- Add a :star: star on GitHub or follow the project!
-- Share :heart: with friends and colleagues
+- Create a GitHub issue for bug reports, feature requests, or general questions
+- Add a :star: star on GitHub and/or follow the project!
+- Share :heart: with friends, colleagues, and teachers
+- Reach out to the author personally [here](https://madhax.ninja/#/contact)
 
 ## License
 
@@ -48,8 +47,9 @@ Copyright &copy; [Erik Vavro](https://madhax.ninja)
 
 > **Legal Notice**
 > 
-> This project is open-source, **non-proprietary** and does **not claim** any legal rights to the term "bach", Johann Sebastian Bach, any of his musical works or any of their performances or renditions.
+> This project is open-source, **non-proprietary** and the author(s) **do not claim any legal right** to the term "bach", Johann Sebastian Bach's musical works or any of their performances, recordings or renditions.
 > 
-> The name `bach` was chosen because it sounds like "bash" and, most importantly, celebrates one of the most influential musicians of all time.
+> The name `bach` was chosen for the project because it sounds like "bash", and, most importantly, celebrates one of the most influential musicians of all time.
 >
-> All of the examples of `bach` code and tracks in this guide are entirely homemade and assumed to be unique in musical nature. Any similarities or infringements that are perceived between our examples and copyrighted material are purely coincidental.
+> All of the examples of `bach` code and tracks in this guide are entirely homemade and assumed to be unique in musical nature. Any similarity or infringement that's perceived between copyrighted material and the content of this guide, or the `bach` project as a whole, is purely coincidental.
+
