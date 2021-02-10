@@ -1,5 +1,4 @@
-- [Home](/)
-- [Guide](guide/README.md)
+- [Guide](guide)
   * [Tracks](guide/tracks.md)
   * [Primitives](guide/primitives.md)
     - [Numbers](guide/primitives.md#numbers)
@@ -23,7 +22,3 @@
   * [Authoring](guide/authoring.md)
   * [Limitations](guide/limitations.md)
 
-- [Development](dev)
-- [Syntax](syntax)
-- [Examples](examples)
-- [Contribute](contribute)

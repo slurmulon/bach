@@ -21,11 +21,25 @@
       name: 'bach',
       repo: 'https://github.com/slurmulon/bach',
       homepage: 'index.md',
-      maxLevel: 3, //4,
-      subMaxLevel: 3, //4,
+      maxLevel: 2, //4,
+      //subMaxLevel: 3, //4,
+      subMaxLevel: 2,
       loadSidebar: true,
+      // loadNavbar: true,
+      autoHeader: true,
+      // autoHeader: false,
       auto2top: true,
       coverpage: true,
+      nameLink: '#/',
+      themeColor: 'salmon',
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md'
+      },
+      //alias: {
+      //  '/_sidebar.md': '/guide/_sidebar.md',
+      //}
+      crossChapter: true,
+      // crossChapterText: true
       // logo: '_media/logo-round.gif'
     }
   </script>
