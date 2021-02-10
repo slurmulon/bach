@@ -47,9 +47,11 @@ Copyright &copy; [Erik Vavro](https://madhax.ninja)
 
 > **Legal Notice**
 > 
-> This project is open-source, **non-proprietary** and the author(s) **do not claim any legal right** to the term "bach", Johann Sebastian Bach's musical works or any of their performances, recordings or renditions.
+> The `bach` music notation project, its code, its tooling, and any supplemental content produced by the project's author(s) is entirely open-source and not-for-profit.
+> 
+> The `bach` project's author(s) and contributor(s) **do not claim any legal right** to the term "bach", Johann Sebastian Bach's musical works or any of their performances, recordings or renditions.
 > 
 > The name `bach` was chosen for the project because it sounds like "bash", and, most importantly, celebrates one of the most influential musicians of all time.
 >
-> All of the examples of `bach` code and tracks in this guide are entirely homemade and assumed to be unique in musical nature. Any similarity or infringement that's perceived between copyrighted material and the content of this guide, or the `bach` project as a whole, is purely coincidental.
+> All of the examples of `bach` code and tracks in this guide are entirely homemade and assumed, to the best of one's capability, to be completely unique in nature. Any similarity or infringement that's perceived between copyrighted material and the content of this guide, or the `bach` project as a whole, is purely coincidental.
 
