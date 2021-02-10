@@ -53,4 +53,4 @@ Copyright &copy; [Erik Vavro](https://madhax.ninja)
 > 
 > The name `bach` was chosen for the project because it sounds like "bash" (a popular scripting language), and, most importantly, celebrates one of the most influential musicians of all time.
 >
-> Any examples of `bach` code or tracks found in the project are homemade, and, to the best of one’s ability, intended to be unique in musical nature. Any similarity or infringement that's perceived between copyrighted material and the content of this site, or the `bach` project as a whole, is purely coincidental.
+> All of the content contained in the `bach` project and this site has been been originally produced, and, to the best of one’s ability, intended to be unique in musical nature. Any similarity or infringement that's perceived between copyrighted material and the content of this site, or the `bach` project as a whole, is purely coincidental.
