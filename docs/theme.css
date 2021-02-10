@@ -1,6 +1,16 @@
 :root {
   --base-font-size: 14px;
   --theme-color: salmon;
+  --cover-heading-font-size: 64px;
   --cover-blockquote-color: salmon;
-  --cover-background-image: url(_media/logo.png);
+}
+
+.logo {
+  font-family: 'Aladin', cursive;
+  font-size: 48px;
+}
+
+.sidebar > h1.app-name .app-name-link {
+  font-family: 'Aladin', cursive;
+  font-size: 32px;
 }

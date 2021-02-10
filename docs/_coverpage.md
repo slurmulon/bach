@@ -1,4 +1,4 @@
-# bach
+<h1 class="logo">bach</h1>
 
 > :musical_score: Semantic music notation
 
