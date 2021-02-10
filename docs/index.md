@@ -37,7 +37,7 @@ In any case we are delighted that you've discovered `bach` and hope that you rea
 - Create a GitHub issue for bug reports, feature requests, or general questions
 - Add a :star: star on GitHub and/or follow the project!
 - Share :heart: with friends, colleagues, and teachers
-- Reach out to the lead programmer [personally](https://madhax.ninja/#/contact)
+- Reach out to the lead developer [personally](https://madhax.ninja/#/contact)
 
 ## License
 
