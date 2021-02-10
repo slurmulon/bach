@@ -7,6 +7,6 @@
 - Friendly to both humans and computers
 - Small learning curve and highly productive
 
-[Get Started](/guide)
-[Demo Sandbox](/sandbox)
+[Getting Started](#getting-started)
+[Examples](/examples)
 [GitHub](https://github.com/slurmulon/bach)

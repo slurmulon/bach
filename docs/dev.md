@@ -207,7 +207,7 @@ Of course, open-source contributions are fully welcomed and encouraged to the `b
 
 Official event-driven `bach` engine for the browser and NodeJS.
 
-Consumes `bach.json` (via `bach-js`) and synchronizes its rhythmic data with audio data in real-time.
+Consumes `bach` or `bach.json` (via `bach-js`) and synchronizes its rhythmic data with audio data in real-time.
 
 This library should be used if you want to experiment with `bach` in your web app.
 
@@ -221,7 +221,7 @@ This library should be used if you want to experiment with `bach` in your web ap
 
 Official `bach` interpreter library for the browser and NodeJS.
 
-Consumes `bach.json` data and provides a basic standard interface for accessing information about a track and performing basic data transformations (such as serialization and re-groupings).
+Consumes `bach` or `bach.json` data and provides a basic standard interface for accessing information about a track and performing basic data transformations (such as serialization and re-groupings).
 
 Serves as the back-bone for all other `bach` libraries written in NodeJS, such as `gig`.
 
@@ -255,13 +255,3 @@ When building web apps it's recommended that you use `bach-js` instead of `bach-
 #### Repo
 
 [![Github Logo](_media/github.svg)](https://github.com/slurmulon/bach-json-schema) https://github.com/slurmulon/bach-js
-
-## Help
-
-### Cheat Sheet
-
-Coming soon
-
-## Roadmap
-
-## Contributing

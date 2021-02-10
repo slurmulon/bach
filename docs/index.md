@@ -37,7 +37,7 @@ In any case we are delighted that you've discovered `bach` and hope that you rea
 - Create a GitHub issue for bug reports, feature requests, or general questions
 - Add a :star: star on GitHub and/or follow the project!
 - Share :heart: with friends, colleagues, and teachers
-- Reach out to the author personally [here](https://madhax.ninja/#/contact)
+- Reach out to the lead programmer [personally](https://madhax.ninja/#/contact)
 
 ## License
 
@@ -53,5 +53,5 @@ Copyright &copy; [Erik Vavro](https://madhax.ninja)
 > 
 > The name `bach` was chosen for the project because it sounds like "bash", and, most importantly, celebrates one of the most influential musicians of all time.
 >
-> All of the examples of `bach` code and tracks in this guide are entirely homemade and assumed, to the best of one's capability, to be completely unique in nature. Any similarity or infringement that's perceived between copyrighted material and the content of this guide, or the `bach` project as a whole, is purely coincidental.
+> All of the examples of `bach` code and tracks in this guide are entirely homemade, and, to the best of one's capability, assumed to be unique in musical nature. Any similarity or infringement that's perceived between copyrighted material and the content of this guide, or the `bach` project as a whole, is purely coincidental.
 

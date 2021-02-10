@@ -18,11 +18,17 @@ You can find a collection of useful example tracks in the [Examples](#examples) 
 
 > If you are looking for a more technical and low-level resource on `bach`, head to the [Syntax](/syntax) page instead.
 
-> If you are interested in the rationale for `bach` and the problems it solves, first check out the [Background](/background) page.
+> :warning:
+>
+> Because `bach` is a new technology, playback support, such as with audio, is currently only accessible to those with programming expertise (via [`gig`](/dev#gig)).
+>
+> If you're a musician with little to no programming experience, we still encourage you to continue reading this guide, but just be aware that you are currently unable to run any example tracks or tracks that you author.
+>
+> We are working on an open-source web editor that will allow you to author and play `bach` tracks, but in the meantime we hope you enjoy what you read!
 
 ## Components
 
-As with learning anything new, the ideal place to start is the fundamentals. There are several different components in `bach` that you need to be knowledgeable in before you can start using it.
+As with learning anything new, the ideal place to start is the fundamentals. There are several different components of `bach` that you need to be knowledgeable in before you can start using it.
 
 This guide provides as many details and examples as possible to help ensure that common questions, concerns and caveats are thoroughly addressed.
 
@@ -662,6 +668,14 @@ Only one `!Play` element is allowed and expected per track, and anything that is
 
 ## Authoring
 
+> :warning:
+>
+> If you are a musician with minimal programming experience, you should consider this is the end of the guide for now.
+>
+> We are actively creating a `bach` editor so that anyone can author and playback `bach` tracks in the browser.
+>
+> For the time being, track playback is only accessible to [developers](dev).
+
 Now that you are familiar with the fundamentals, we can begin putting `bach` to practical use by authoring some tracks.
 
 Regardless of your level of familiarity or expertise, the ideal way to write `bach` tracks is to always start off with a similar example.
@@ -674,7 +688,15 @@ But before we can even begin to make use of these examples (let alone change or 
 
 ### Tooling
 
+Today, all of the tooling for `bach` is programmatic. In other words, `bach` can easily be used by programmers, but not so easily by musicians since essential high-level tools for `bach` are still being developed.
+
+For instsance, eventually we will provide an open-source `bach` web editor that will allow you to author and play `bach` tracks entirely in the browser.
+
+Until that point, all of `bach`'s tooling is highly technical and built for software engineers.
+
 ### Audio
+
+> :warning: Audio playback can currently only be achieved programmatically via [`gig`](dev#gig).
 
 You have a `bach` track written, so how do we associate and synchronize it with audio?
 
@@ -686,117 +708,15 @@ On a practical level, this means it's up to your editor or application to associ
 
 ## Examples
 
-### Basic
-
-```bach
-@Meter = 4|4
-@Tempo = 44
-
-:B = Chord('Bm')
-:E = Chord('Em')
-:F = Chord('F#m7')
-
-!Play [
-  4 -> {
-    Scale('B minor')
-    :B
-  }
-  2 -> :E
-  2 -> :B
-  2 -> :F
-  2 -> :B
-]
-```
-
-```bach
-@Meter = 4|4
-@Tempo = 169
-
-!Play [
-  7/8 -> {
-    Scale('A aeolian')
-    Chord('F')
-  }
-  1 -> Chord('G')
-  2 + (1/8) -> Chord('Am')
-]
-```
-
-```bach
-@Meter = 4|4
-@Tempo = 130
-
-!Play [
-  3/8 -> {
-    Scale('G aeolian')
-    Chord('Gmin')
-  }
-  5/8 -> Chord('Eb')
-  3/8 -> Chord('Cmin7')
-  5/8 -> Chord('Bb')
-]
-```
-
-### Advanced
-
-#### Compound meters
-
-```bach
-@Meter = 12|8
-@Tempo = 150
-
-!Play [
-  12/8 -> {
-    Scale('A minor')
-    Chord('A')
-  }
-  12/8 -> Chord('A7')
-  12/8 -> Chord('D7')
-  12/8 -> Chord('D#7')
-
-  6/8 -> Chord('A')
-  6/8 -> Chord('F#m7')
-
-  6/8 -> Chord('Bm7')
-  6/8 -> Chord('E7')
-
-  6/8 -> Chord('A7')
-  6/8 -> Chord('D7')
-]
-```
-
-#### Mixed meters
-
-```bach
-@Meter = 5|8
-@Tempo = 150
-
-!Play [
-  3/8 -> {
-    Scale('D dorian')
-    Chord('Dm9')
-  }
-  2/8 -> Chord('Am9')
-]
-```
-
-```bach
-@Meter = 3|4
-@Tempo = 100
-
-!Play [
-  6/4 -> {
-    Scale('C# phrygian')
-    Chord('C#m')
-  }
-  6/4 -> Chord('Dmaj7')
-]
-```
-
+You can find a collection of open-source example tracks in the [Examples](examples) page.
 
 ## Limitations
 
- - No native semantics around instruments
+ - New project that is still taking shape and finding its place in the world (so, there's not much tooling, yet :sob:)
+ - No working sandbox/editor for `bach` (in the works :construction:)
+ - No interpretation or application of music theory, such as the notes that make up a scale or code (this is the responsibility of [`bach-js`](/dev#bach-js))
+ - No reserved aliases for common semantic durations (e.g. `:bar`, `1/2 * :bar`, etc)
+ - No official support yet for clef
+ - No official semantics around instruments (you can use an `@Instrument` header to indicate this)
  - No local repeater symbols, all tracks are currently considered loopable by default
-
-## Help
+ - Converting `bach.json` into `bach` again (i.e. inverse conversion) is not supported yet

@@ -58,7 +58,7 @@ If you have already made some proposed changes then please ensure that any requi
 
 From there you can simply open a pull request in Github.
 
-Here is a suggested temnplate you can use for your PR, which I've found to be useful in improving organization and archival while avoiding being overbearing.
+Here is a suggested template you can use for your PR, which I've found to be useful in improving organization and archival while avoiding being overbearing.
 
 ```md
 **Changes**
