@@ -24,9 +24,9 @@ Although its primary domain is music, `bach` enables the synchronization of rhyt
  - **Examples**: https://bach.github.io/#/examples
  - **Contribute**: https://bach.github.io/#/contribute
 
-Before diving into the docs, please note that `bach` is a new data format, so naturally there is almost no tooling or integration support for it right now.
+Before diving into the docs, please note that `bach` is a new data format, so naturally there is almost no tooling or integration support for it today.
 
-Whether you are a musician and just want to learn more or a programmer who wants to explore `bach` for their project, we advise that you read our [Guide](https://bach.github.io/#/guide) page since it provides the most comphrensive overview of `bach` available.
+But whether you're an adventerous musician or a developer exploring `bach` for their project, we advise that you read our [Guide](https://bach.github.io/#/guide) page since it provides the most comphrensive overview of `bach` available.
 
 ## Example
 
