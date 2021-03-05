@@ -1,8 +1,11 @@
 :root {
   --base-font-size: 14px;
-  --theme-color: salmon;
+  /* --theme-color: salmon; */
+  /* --theme-color: #FAA372; */
+  --theme-color: #FA9F6D;
   --cover-heading-font-size: 64px;
-  --cover-blockquote-color: salmon;
+  /* --cover-blockquote-color: salmon; */
+  --cover-blockquote-color: var(--theme-color);
 }
 
 .logo {
