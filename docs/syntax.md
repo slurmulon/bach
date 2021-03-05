@@ -29,26 +29,20 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 ## Preview
 
 ```bach
-@Meter = 4|4
-@Tempo = 110
-
-:Bb = Scale('Bb mixolydian')
-:Eb = Scale('Eb mixolydian')
-:Db = Scale('Bb dorian')
-:Gb = Scale('Bb aeolian')
-:Eb = Scale('Bb dorian')
+@Tempo = 159
+@Meter = 6|8
 
 !Play [
-  4 -> :Bb
-  4 -> :Eb
-  5 -> :Bb
-  1 -> :Db
-  1 -> :Gb
-  1 -> :Eb
-  4 -> :Bb
+  1 * 6/8 -> {
+    Scale('D minor')
+    Chord('Dmin')
+  }
+  1 * 6/8 -> Chord('Dmin/F')
+  1 * 6/8 -> Chord('E7b9')
+  1 * 6/8 -> Chord('Bb7')
+  2 * 6/8 -> Chord('A7')
 ]
 ```
-
 
 ## Documentation
 

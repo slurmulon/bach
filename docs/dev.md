@@ -193,13 +193,25 @@ $ npm test
 
 `bach` only becomes functional and therefore useful with the help of a `bach` interpreter library and a `bach` engine.
 
-We have provided official libraries in JavaScript to serve both of these purposes.
+We have provided a web editor an low-level libraries in JavaScript to serve both of these purposes.
 
-We have also started planning an open-source `bach` sandbox/editor tool that will provide a standard experience for rapid, instant-feedback authoring of `bach` tracks.
+### `bach-editor`
 
-Until that time you will need to rely on the following tools in order to fully actualize your `bach` tracks.
+#### About
 
-Of course, open-source contributions are fully welcomed and encouraged to the `bach` ecosystem of tools.
+Official web editor/player for `bach`.
+
+Allows you to hear and visualize your tracks, manage track archives and access useful track information.
+
+Stores all data locally via browser storage, so be careful if you're using a private browser and create periodic archives of your tracks.
+
+#### App
+
+[:musical_keyboard:](https://slurmulon.github.io/bach-editor) https://slurmulon.github.io/bach-editor
+
+#### Repo
+
+[![Github Logo](_media/github.svg)](https://github.com/slurmulon/bach-editor) https://github.com/slurmulon/bach-editor
 
 ### `gig`
 

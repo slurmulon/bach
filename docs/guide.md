@@ -18,13 +18,33 @@ You can find a collection of useful example tracks in the [Examples](#examples) 
 
 > If you are looking for a more technical and low-level resource on `bach`, head to the [Syntax](/syntax) page instead.
 
-> :warning:
->
-> Because `bach` is a new technology, playback support, such as with audio, is currently only accessible to those with programming expertise (via [`gig`](/dev#gig)).
->
-> If you're a musician with little to no programming experience, we still encourage you to continue reading this guide, but just be aware that you are currently unable to run any example tracks or tracks that you author.
->
-> We are working on an open-source web editor that will allow you to author and play `bach` tracks, but in the meantime we hope you enjoy what you read!
+## Editor
+
+An open-source [`bach-editor`](https://github.com/slurmulon/bach-editor) is publically available over the web at **https://slurmulon.github.io/bach-editor**.
+
+You can, and should, use this tool to run example `bach` tracks that you encounter in the guide.
+
+The editor allows you to both hear and visualize the `bach` track, manage collections and access useful information about your track.
+
+It also provides some basic usability settings to enhance and customize your experience.
+
+### Usage
+
+To run an example track in the editor, simply copy the code (or hover over it and click the "Copy to clipboard" button), then replace the contents of the code in your editor, directly under the "Code" tab.
+
+Then simply click the blue play button in the bottom right. You should hear piano keys being played as your screen screen scrolls with the music (optional).
+
+If you run into any problems with the editor, please be sure to open up an [issue on GitHub](https://github.com/slurmulon/bach-editor/issues) with a detailed description of your problem and reproduction steps.
+
+### Limits
+
+It's a new tool and currently only supports playback via piano (limited to the second octave for now, due to complexities acquiring a full open-source collection of sampled instruments keys).
+
+The tool may eventually support multiple instruments, but long-term it will remain as minimal as possible to reduce overall complexity and maintenance overhead.
+
+It also stores all data locally using browser storage due to hosting costs, so be sure to use the archive feature to create backups of your track collections.
+
+> :warning: If you're using a private browser and close the window or end the session, you will lose your tracks unless you already created an archive!
 
 ## Components
 
@@ -50,21 +70,21 @@ The following track represents the chord progression of a soul song.
 
 ```bach
 @Meter = 4|4
-@Tempo = 44
+@Tempo = 175
 
 :B = Chord('Bm')
 :E = Chord('Em')
 :F = Chord('F#m7')
 
 !Play [
-  4 -> {
+  2 -> {
     Scale('B minor')
     :B
   }
-  2 -> :E
-  2 -> :B
-  2 -> :F
-  2 -> :B
+  1 -> :E
+  1 -> :B
+  1 -> :F
+  1 -> :B
 ]
 ```
 
@@ -74,15 +94,15 @@ Putting special characters aside, we can see that several musical elements are c
  - **Tempo**: `44` beats per minute
  - **Chord**: `Bm`, `Em` and `F#m7`
  - **Scale**: `B minor`
- - **Durations**: `4`, `2`
+ - **Durations**: `2`, `1`
 
 Once this track is processed and loaded into an app, it will be interpreted like so:
 
-1. The scale `B minor` and the chord `:B`, or `Bm`, will be played for `4` whole notes, then
-1. The chord `:E`, or `Em`, will be played for `2` whole notes, then
-1. The chord `:B`, or `Bm`, will be played for `2` whole notes, then
-1. The chord `:F`, or `F#m7`, will be played for `2` whole notes, then
-1. The chord `:B`, or `Bm`, will be played for `2` whole notes, then
+1. The scale `B minor` and the chord `:B`, or `Bm`, will be played for `2` whole notes, then
+1. The chord `:E`, or `Em`, will be played for `1` whole note, then
+1. The chord `:B`, or `Bm`, will be played for `1` whole note, then
+1. The chord `:F`, or `F#m7`, will be played for `1` whole notes, then
+1. The chord `:B`, or `Bm`, will be played for `1` whole notes, then
 1. Repeat as desired
 
 > We will go into what "processed" means in the [Authoring](#authoring) section.
@@ -317,10 +337,10 @@ Sets are defined the same way as lists with one key difference: they use curly b
 { Scale('B minor'), Chord('Bm') }
 ```
 
-In the example from the [Tracks](#tracks) section, both a scale and chord will played on the first beat for 4 whole notes.
+In the example from the [Tracks](#tracks) section, both a scale and chord will played on the first beat for 2 whole notes.
 
 ```bach
-4 -> {
+2 -> {
   Scale('B minor')
   Chord('Bm')
 }
@@ -413,7 +433,7 @@ The value of a duration can be an integer, a fraction, or a mathematical express
 1/8  = Eighth note
 1/16 = Sixteenth note
 
-1/512 = Minimum duration
+1/128 = Minimum duration
 1024  = Maximum duration
 
 2 + (1/2) = Two and a half whole notes
@@ -668,13 +688,6 @@ Only one `!Play` element is allowed and expected per track, and anything that is
 
 ## Authoring
 
-> :warning:
->
-> If you are a musician with minimal programming experience, you should consider this is the end of the guide for now.
->
-> We are actively creating a `bach` editor so that anyone can author and playback `bach` tracks in the browser.
->
-> For the time being, track playback is only accessible to [developers](dev).
 
 Now that you are familiar with the fundamentals, we can begin putting `bach` to practical use by authoring some tracks.
 
@@ -684,27 +697,13 @@ It's much better to start off with a block of marble and carve out a sculpture t
 
 That is why we provide an open-source collection of [examples tracks](#examples) for you to copy and modify to your liking.
 
-But before we can even begin to make use of these examples (let alone change or build upon them), we must become familiar with the tools available to us.
-
 ### Tooling
 
-Today, all of the tooling for `bach` is programmatic. In other words, `bach` can easily be used by programmers, but not so easily by musicians since essential high-level tools for `bach` are still being developed.
+You have a `bach` track, so how do we associate and synchronize it with real-time audio (in other words, how do we run it)?
 
-For instsance, eventually we will provide an open-source `bach` web editor that will allow you to author and play `bach` tracks entirely in the browser.
+If you've followed the guide linearly then you're already familiar with our open-source **[web editor](https://slurmulon.github.io/bach-editor)** and have used it to run example tracks.
 
-Until that point, all of `bach`'s tooling is highly technical and built for software engineers.
-
-### Audio
-
-> :warning: Audio playback can currently only be achieved programmatically via [`gig`](dev#gig).
-
-You have a `bach` track written, so how do we associate and synchronize it with audio?
-
-The first thing to note is that, in order to keep `bach` simple and focused, `bach` doesn't explicitly concern itself with audio data.
-
-By taking this approach it allows `bach` to rhythmically align with music produced by a human or to generate music on a computer.
-
-On a practical level, this means it's up to your editor or application to associate audio data with your `bach` tracks.
+If you haven't used the editor yet, we certainly advise that you check it out and run some example tracks. This allows you to see `bach` in action and how everything ultimately comes together.
 
 ## Examples
 
@@ -713,7 +712,6 @@ You can find a collection of open-source example tracks in the [Examples](exampl
 ## Limitations
 
  - New project that is still taking shape and finding its place in the world (so, there's not much tooling, yet :sob:)
- - No working sandbox/editor for `bach` (in the works :construction:)
  - No interpretation or application of music theory, such as the notes that make up a scale or code (this is the responsibility of [`bach-js`](/dev#bach-js))
  - No reserved aliases for common semantic durations (e.g. `:bar`, `1/2 * :bar`, etc)
  - No official support yet for clef
