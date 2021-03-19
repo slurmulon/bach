@@ -2,37 +2,31 @@
 
 All of the examples found here represent the loopable chord and scale progressions of backing/jam tracks.
 
+You can use our open-source **[web editor](https://editor.codebach.tech)** to run any of the examples found here by simply copying and pasting the code into the editor and pressing play.
+
 This collection will eventually be updated to include examples of full songs that include multiple parts.
 
 If you have suggestions or want to contribute example tracks yourself, please head to the [Contribute](contribute) page.
-
-> :construction:
->
-> Tooling support is currently limited and none of these example tracks have runnable audio (yet, but will soon).
->
-> We are working on an open-source `bach` editor that will allow you to play all of these examples with their associated audio, generated via the Web Audio API.
->
-> Until then, you will have to use your imagination, or use something like `tone.js` (until we write an official `bach-tone` library, that is).
 
 ## Basic
 
 ```bach
 @Meter = 4|4
-@Tempo = 44
+@Tempo = 128
 
 :B = Chord('Bm')
 :E = Chord('Em')
 :F = Chord('F#m7')
 
 !Play [
-  4 -> {
+  1 -> {
     Scale('B minor')
     :B
   }
-  2 -> :E
-  2 -> :B
-  2 -> :F
-  2 -> :B
+  1/2 -> :E
+  1/2 -> :B
+  1/2 -> :F
+  1/2 -> :B
 ]
 ```
 
@@ -110,7 +104,7 @@ If you have suggestions or want to contribute example tracks yourself, please he
 
 ```bach
 @Meter = 3|4
-@Tempo = 100
+@Tempo = 132
 
 !Play [
   6/4 -> {

@@ -9,4 +9,4 @@
 
 [Getting Started](#getting-started)
 [Examples](/examples)
-[GitHub](https://github.com/slurmulon/bach)
+[Editor](https://editor.codebach.tech)
