@@ -20,7 +20,7 @@ You can find a collection of useful example tracks in the [Examples](#examples) 
 
 ## Editor
 
-An open-source [`bach-editor`](https://github.com/slurmulon/bach-editor) is publically available over the web at **https://slurmulon.github.io/bach-editor**.
+An open-source [`bach-editor`](https://github.com/slurmulon/bach-editor) is publically available over the web at **https://editor.codebach.tech**.
 
 You can, and should, use this tool to run example `bach` tracks that you encounter in the guide.
 
@@ -701,7 +701,7 @@ That is why we provide an open-source collection of [examples tracks](#examples)
 
 You have a `bach` track, so how do we associate and synchronize it with real-time audio (in other words, how do we run it)?
 
-If you've followed the guide linearly then you're already familiar with our open-source **[web editor](https://slurmulon.github.io/bach-editor)** and have used it to run example tracks.
+If you've followed the guide linearly then you're already familiar with our open-source **[web editor](https://editor.codebach.tech)** and have used it to run example tracks.
 
 If you haven't used the editor yet, we certainly advise that you check it out and run some example tracks. This allows you to see `bach` in action and how everything ultimately comes together.
 

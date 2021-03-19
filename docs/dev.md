@@ -207,7 +207,7 @@ Stores all data locally via browser storage, so be careful if you're using a pri
 
 #### App
 
-[:musical_keyboard:](https://slurmulon.github.io/bach-editor) https://slurmulon.github.io/bach-editor
+[:musical_keyboard:](https://editor.codebach.tech) https://editor.codebach.tech
 
 #### Repo
 

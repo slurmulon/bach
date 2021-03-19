@@ -2,7 +2,7 @@
 
 All of the examples found here represent the loopable chord and scale progressions of backing/jam tracks.
 
-You can use our open-source **[web editor](https://slurmulon.github.io/bach-editor)** to run any of the examples found here by simply copying and pasting the code into the editor and pressing play.
+You can use our open-source **[web editor](https://editor.codebach.tech)** to run any of the examples found here by simply copying and pasting the code into the editor and pressing play.
 
 This collection will eventually be updated to include examples of full songs that include multiple parts.
 
