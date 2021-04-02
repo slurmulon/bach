@@ -73,9 +73,40 @@
                         :elements [:identifier :b]}]]]
               (is (= want (compose/normalize-collection-tree tree)))))))))
 
-; (deftest reduction
-;   (testing "durations"
-;     (testing "beats"
-;       (let [tree [:list
-;                   [:pair
-      ; (is (= want (compose/reduce-durations tree))))))
+(deftest reduction
+  (testing "durations"
+    (testing "beats"
+      (let [tree [:pair
+                  [:number "3"]
+                  [:identifier :a]]
+            ; want [3]]
+            want 3]
+      (is (= want (compose/reduce-durations tree)))))
+    (testing "lists"
+      (let [tree [:list
+                  [:pair
+                   [:number "1"]
+                   [:identifier :a]]
+                  [:pair
+                   [:number "2"]
+                   [:identifier :b]]
+                  [:pair
+                   [:number "3"]
+                   [:identifier :c]]]
+            ; want [5]]
+            want 5]
+        (is (= want (compose/reduce-durations tree)))))
+    (testing "sets"
+      (let [tree [:set
+                  [:pair
+                   [:number "1"]
+                   [:identifier :a]]
+                  [:pair
+                   [:number "4"]
+                   [:identifier :b]]
+                  [:pair
+                   [:number "2"]
+                   [:identifier :c]]]
+            ; want #{4}]
+            want 4]
+        (is (= want (compose/reduce-durations tree)))))))

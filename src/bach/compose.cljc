@@ -448,7 +448,6 @@
     ; NOTE/TODO: Probably just move this all to `reduce-values`, if possible
     (insta/transform
       {:list (fn [& [:as all]] (vec all))
-       ; NOTE: An alternative idea is to, isntead, always use `vec`, but make first element `duration`, and the rest `all`. In the case of `:set`, `duration` can just be `0`, and it will work the same (just depends on what we prefer in data structure, harder to read ([0 :a :b]) vs. readable but verbose ([{:duration 0 :element :a} {:duration 0 :element :b}])
        :set (fn [& [:as all]] (into #{} all))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten-one vec))
        ; TODO: Aim towards this (not accurate yet)
@@ -464,12 +463,9 @@
     (clojure.walk/prewalk
       #(cond
          (map? %) (:duration %)
-         ; (set? %) (greatest-in %)
-         (set? %) (do (println "--- reduce set" %) %) ;(flatten-by max %))
-         (list? %) (flatten-by + %)
-         ; (set? %) (-> % as-durations greatest-in)
-         ; (list? %) (-> % as-durations (flatten-by +))
-         :else %))))
+         (set? %) (flatten-by max %)
+         (list? %) (flatten-by + %)))
+    first))
 
     ; TODO (maybe): Try to replace this with (cond-> )
     ;  - @see: https://jakemccrary.com/blog/2016/04/10/the-usefulness-of-clojures-cond-arrow/
