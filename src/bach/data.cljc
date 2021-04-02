@@ -19,17 +19,25 @@
     a
     (recur b (mod a b))))
 
+; TODO: @see core/fractions (not necessary but probably more pragmatic)
+(defn itemize
+  [size value]
+  (take size (repeat value)))
+
 (defn hiccup-to-hash-map
   "Converts an instaparse :hiccup tree as a hash map"
   [tree]
   (insta/transform
    {:list (fn [& [:as all]] all)
     :set (fn [& [:as all]] all)
+    ; EXPERIMENT: Expanding loop at this level so that we don't have to return a new [:list ...] (or whatever) just to keep working with AST in certain `bach.compose` methods
+    :loop (fn [iters & [:as all]] (->> all (map #(itemize iters) flatten vec)))
     :atom (fn [& [:as all]] {:atom (apply merge all)})
     :arguments (fn [& [:as all]] {:arguments (vec all)})
     :header (fn [& [:as all]] {:header (apply merge all)})
     :meta (fn [el] {:meta el})
     :init (fn [el] {:init el})
+    ; TODO: Rename to `kind`
     :keyword (fn [el] {:keyword el})
     :play (fn [el] {:play el})}
    tree))
@@ -48,6 +56,58 @@
   (-> tree
       hiccup-to-hash-map
       to-json))
+
+(defn cast-tree
+  "Walks an iterable N-ary tree (depth-first) and applies `as` to each node where `is?` matches (`is?` returns true)"
+  [is? as tree]
+  (clojure.walk/prewalk #(if (is? %) (as %) %) tree))
+
+(defn flatten-by
+  [by coll]
+  (if (coll? coll)
+    (reduce by (flatten coll))
+    (by coll)))
+
+(defn greatest-in
+  [coll]
+  (flatten-by max coll))
+
+(defn linearize
+  "Provides a 1-ary linear-space projection of the greatest weights among each root-level node and its children.
+  Input: [2 [3 1] [4 [5 7]]]
+  Outpu: [2 3 7]"
+  [coll]
+  (map greatest-in coll))
+
+(defn linearize-indices
+  "Projects the starting indices of each weighted node in coll/tree onto linear space.
+   Enables consumers to easily index associated data, statefully or statelessly, by providing a linear, ordered (depth-first projection of a weighted N-ary tree.
+   Input: (2 3 4 7)
+   Output: (0 2 5 9)"
+  [coll]
+  (->> coll
+       drop-last
+       linearize
+       (reduce (fn [acc, weight]
+                 (let [base (last acc)
+                       cursor (+ base weight)]
+                   (conj acc cursor))) [0])))
+
+(defn stretch
+  "Provides a 1-ary stepwise projection of a weighted N-ary coll/tree, where each node's value represents its frequency/occurance (in other words, how many elements it takes up in the projected linear sequence).
+  Example:
+   - In: (stretch [1 4 3])
+   - Out: (0 1 1 1 1 2 2 2)"
+  [coll]
+  (->> coll (map-indexed #(itemize %2 %1)) flatten))
+
+;; WORKS!
+; TODO: Rename to quantize-durations
+(defn quantize
+  "Linearizes a weighted N-ary coll/tree, projecting each node's weight (i.e. how many elements it takes up) onto a 1-ary step-wise vector.
+   This data structure is ideal for performing linear bi-directional indexing of non-linear collections."
+  [coll]
+  (->> coll linearize stretch vec))
 
 (defn ratio-to-vector
   "Converts a ratio to a vector."
