@@ -24,9 +24,10 @@
                   [:number 1],
                  :elements
                   [:identifier :a]}
-                 #{[:identifier :b [:identifier :c]]}
-                 #{[:identifier :d [[:identifier :e] [:identifier :f]]]}]]
+                 #{[:identifier :b] [:identifier :c]}
+                 #{[:identifier :d] [[:identifier :e] [:identifier :f]]}]]
       (is (= want (compose/normalize-collection-tree tree))))))
+      ; (is (= want (compose/reduce-durations tree))))))
 
 ; (deftest defaults
 ;   (testing "tempo"

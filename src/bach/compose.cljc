@@ -432,7 +432,7 @@
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
 (defn normalize-collection-tree
-  "Normalizes all collections in parsed AST tree as native structures, for easier handling (mostly around reduction) in subsequent functions.
+  "Normalizes all collections in parsed AST tree as native clojure structures, for easier handling (mostly around reduction) in subsequent functions.
    Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
    Ouput: [:a #{:b :c} #{:d [:e :f]}]"
 ; (defn reduce-collection-tree
@@ -445,7 +445,12 @@
     (insta/transform
       {:list (fn [& [:as all]] (vec all))
        ; NOTE: An alternative idea is to, isntead, always use `vec`, but make first element `duration`, and the rest `all`. In the case of `:set`, `duration` can just be `0`, and it will work the same (just depends on what we prefer in data structure, harder to read ([0 :a :b]) vs. readable but verbose ([{:duration 0 :element :a} {:duration 0 :element :b}])
-       :set (fn [& [:as all]] (sorted-set (apply merge all)))
+       ; :set (fn [& [:as all]] (sorted-set (apply merge all)))
+       ; TODO: If this is hoisted above list, it should allow us to use sorted-set (since it won't try to compare Keyword to Vector)
+       ;:set (fn [& [:as all]] (do (println "\n\nSET!!!!! all") (println "--- result" (into #{} all)) (into #{} all)))
+       ; :set (fn [& [:as all]] (do (println "\n\nsorted set???" all) (into (sorted-set) all)))
+       :set (fn [& [:as all]] (into #{} all))
+       ; :list (fn [& [:as all]] (vec all))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) vec))
        :pair #(assoc {} :duration %1 :elements %2)})))
 
@@ -479,14 +484,15 @@
   [tree]
   (->> tree
     normalize-collection-tree
-    (cast-tree #(cond
-                  (map? %) (:duration %)
-                  ; (set? %) (greatest-in %)
-                  (set? %) (flatten-by max %)
-                  (list? %) (flatten-by + %)
-                  ; (set? %) (-> % as-durations greatest-in)
-                  ; (list? %) (-> % as-durations (flatten-by +))
-                  :else %))))
+    (clojure.walk/prewalk
+      #(cond
+         (map? %) (:duration %)
+         ; (set? %) (greatest-in %)
+         (set? %) (do (println "--- reduce set" %)) ;(flatten-by max %))
+         (list? %) (flatten-by + %)
+         ; (set? %) (-> % as-durations greatest-in)
+         ; (list? %) (-> % as-durations (flatten-by +))
+         :else %))))
 
     ; TODO (maybe): Try to replace this with (cond-> )
     ;  - @see: https://jakemccrary.com/blog/2016/04/10/the-usefulness-of-clojures-cond-arrow/
