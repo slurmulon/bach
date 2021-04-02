@@ -11,7 +11,7 @@
     (testing "sets"
       (let [tree [:list
                   [:pair
-                   [:number 1]
+                   [:number "1"]
                    [:identifier :a]]
                   [:set
                    [:identifier :b]
@@ -21,32 +21,37 @@
                    [:list
                     [:identifier :e]
                     [:identifier :f]]]]
-            want [{:duration
-                    [:number 1],
-                  :elements
-                    [:identifier :a]}
-                  #{[:identifier :b] [:identifier :c]}
-                  #{[:identifier :d] [[:identifier :e] [:identifier :f]]}]]
+            want [{:duration 1,
+                   :elements [:identifier :a]}
+                  #{[:identifier :c] [:identifier :b]}
+                  #{[[:identifier :e] [:identifier :f]] [:identifier :d]}]]
         (is (= want (compose/normalize-collection-tree tree)))))
-    (testing "loops"
-      (testing "root-level"
-        (let [tree [:loop
-                     2
-                     [:list
-                       [:pair
-                         [:number 1]
-                         [:identifier :a]]
-                       [:pair
-                         [:number 3]
-                         [:identifier :b]]]]
-              want [{:duration 1
-                     :elements [:identifier :a]}
-                    {:duration 3
-                     :elements [:identifier :b]}
-                    {:duration 1
-                     :elements [:identifier :a]}
-                    {:duration 3
-                     :elements [:identifier :b]}]]
-            (println (compose/normalize-collection-tree tree))
-            (is (= true true)))))))
+    ))
+    ; (testing "loops"
+    ;   (testing "root-level"
+    ;     (let [tree [:loop
+    ;                  [:number "2"]
+    ;                  [:list
+    ;                    [:pair
+    ;                      [:number "1"]
+    ;                      [:identifier :a]]
+    ;                    [:pair
+    ;                      [:number "3"]
+    ;                      [:identifier :b]]]]
+    ;           want [{:duration 1
+    ;                  :elements [:identifier :a]}
+    ;                 {:duration 3
+    ;                  :elements [:identifier :b]}
+    ;                 {:duration 1
+    ;                  :elements [:identifier :a]}
+    ;                 {:duration 3
+    ;                  :elements [:identifier :b]}]]
+    ;         (println (compose/normalize-collection-tree tree))
+    ;         (is (= want compose/normalize-collection-tree tree)))))))
+
+; (deftest reduction
+;   (testing "durations"
+;     (testing "beats"
+;       (let [tree [:list
+;                   [:pair
       ; (is (= want (compose/reduce-durations tree))))))

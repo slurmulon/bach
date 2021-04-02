@@ -431,6 +431,7 @@
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
+; TODO: Rename to normalize-collections
 (defn normalize-collection-tree
   "Normalizes all collections in parsed AST tree as native clojure structures, for easier handling (mostly around reduction) in subsequent functions.
    Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
@@ -438,6 +439,8 @@
 ; (defn reduce-collection-tree
   [tree]
   (->> tree
+    reduce-values
+    ; reduce-track
     ; reduce-track
     ; NOTE: On the right path, but we don't want to set :elements this early (will mess up following stuff)
     ;  - After this, THEN we will pipe into the `:pair` transformer, and THEN we can group, reduce and linearize
@@ -445,50 +448,21 @@
     (insta/transform
       {:list (fn [& [:as all]] (vec all))
        ; NOTE: An alternative idea is to, isntead, always use `vec`, but make first element `duration`, and the rest `all`. In the case of `:set`, `duration` can just be `0`, and it will work the same (just depends on what we prefer in data structure, harder to read ([0 :a :b]) vs. readable but verbose ([{:duration 0 :element :a} {:duration 0 :element :b}])
-       ; :set (fn [& [:as all]] (sorted-set (apply merge all)))
-       ; TODO: If this is hoisted above list, it should allow us to use sorted-set (since it won't try to compare Keyword to Vector)
-       ;:set (fn [& [:as all]] (do (println "\n\nSET!!!!! all") (println "--- result" (into #{} all)) (into #{} all)))
-       ; :set (fn [& [:as all]] (do (println "\n\nsorted set???" all) (into (sorted-set) all)))
        :set (fn [& [:as all]] (into #{} all))
-       ; :list (fn [& [:as all]] (vec all))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) vec))
        :pair #(assoc {} :duration %1 :elements %2)})))
 
-    ; Call this AFTER so that we can support colls nested in pairs
-    ;  - NOTE/OPTIONAL: This isn't an important use-case, just nice to support from a flexibility and generic perspective
-    ; (insta/transform
-    ;   {:pair #(assoc {} :duration %1 :elements %2)})
-    ; !!!
-    ;  - Instead of hiccup-to-hashmap, simply normalize set as #{} and list as []
-    ;  - Makes it easy to support both ordered and unordered translations of tree.
-    ;    * Specifically, when set?, we take the greatest `:duration`. when list, we `(-> x map #(flatten-by max %))`
-    ;  (set? (conj #{} 
-    ; hiccup-to-hashmap
-
-    ; (insta/transform
-    ;   ; {:list (fn [& [:as all]]
-    ;   {:list (fn [all] nil)
-    ;            ; (insta/transform
-    ;              ; {:
-    ;     :set (fn [ll
-
-    ; (insta/transform
-    ;   ; {:list (fn [& [:as all]] all)
-    ;   ; :set (fn [& [:as all]] all)
-    ;   {:list normalize-beat-pairs
-    ;   ; :set (fn [& [:as all]] (conj #{} all)
-    ;   :loop stretch-loop-tree}
-    ;   ))
+(def normalize-collections normalize-collection-tree)
 
 (defn reduce-durations
   [tree]
   (->> tree
-    normalize-collection-tree
+    normalize-collections
     (clojure.walk/prewalk
       #(cond
          (map? %) (:duration %)
          ; (set? %) (greatest-in %)
-         (set? %) (do (println "--- reduce set" %)) ;(flatten-by max %))
+         (set? %) (do (println "--- reduce set" %) %) ;(flatten-by max %))
          (list? %) (flatten-by + %)
          ; (set? %) (-> % as-durations greatest-in)
          ; (list? %) (-> % as-durations (flatten-by +))
