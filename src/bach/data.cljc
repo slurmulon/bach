@@ -68,6 +68,10 @@
     (reduce by (flatten coll))
     (by coll)))
 
+(defn flatten-one
+  [coll]
+  (mapcat #(if (sequential? %) % [%]) coll))
+
 (defn greatest-in
   [coll]
   (flatten-by max coll))

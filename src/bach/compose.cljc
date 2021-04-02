@@ -28,6 +28,7 @@
                                quantize
                                cast-tree
                                flatten-by
+                               flatten-one
                                problem]]))
 
 (def default-tempo 120)
@@ -449,7 +450,9 @@
       {:list (fn [& [:as all]] (vec all))
        ; NOTE: An alternative idea is to, isntead, always use `vec`, but make first element `duration`, and the rest `all`. In the case of `:set`, `duration` can just be `0`, and it will work the same (just depends on what we prefer in data structure, harder to read ([0 :a :b]) vs. readable but verbose ([{:duration 0 :element :a} {:duration 0 :element :b}])
        :set (fn [& [:as all]] (into #{} all))
-       :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) vec))
+       :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten-one vec))
+       ; TODO: Aim towards this (not accurate yet)
+       ; :loop (fn [iters & [:as all]] (apply merge #(mapcat (itemize iters %)) all))
        :pair #(assoc {} :duration %1 :elements %2)})))
 
 (def normalize-collections normalize-collection-tree)
@@ -457,7 +460,7 @@
 (defn reduce-durations
   [tree]
   (->> tree
-    normalize-collections
+    normalize-collection-tree
     (clojure.walk/prewalk
       #(cond
          (map? %) (:duration %)
