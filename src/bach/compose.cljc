@@ -432,7 +432,7 @@
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
-; TODO: Rename to normalize-collections
+; TODO: Rename to normalize-collections or reduce-collections
 (defn normalize-collection-tree
   "Normalizes all collections in parsed AST tree as native clojure structures, for easier handling (mostly around reduction) in subsequent functions.
    Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
@@ -441,7 +441,6 @@
   [tree]
   (->> tree
     reduce-values
-    ; reduce-track
     ; reduce-track
     ; NOTE: On the right path, but we don't want to set :elements this early (will mess up following stuff)
     ;  - After this, THEN we will pipe into the `:pair` transformer, and THEN we can group, reduce and linearize
@@ -460,12 +459,15 @@
   [tree]
   (->> tree
     normalize-collection-tree
+    (cast-tree map? #(:duration %))
     (clojure.walk/prewalk
       #(cond
-         (map? %) (:duration %)
-         (set? %) (flatten-by max %)
-         (list? %) (flatten-by + %)))
-    first))
+         ; (map? %) (:duration %)
+         (set? %) (flatten-by max (seq %))
+         (vector? %) (flatten-by + %)
+         :else %))
+    ))
+    ; first))
 
     ; TODO (maybe): Try to replace this with (cond-> )
     ;  - @see: https://jakemccrary.com/blog/2016/04/10/the-usefulness-of-clojures-cond-arrow/

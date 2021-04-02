@@ -94,7 +94,7 @@
                    [:number "3"]
                    [:identifier :c]]]
             ; want [5]]
-            want 5]
+            want 6]
         (is (= want (compose/reduce-durations tree)))))
     (testing "sets"
       (let [tree [:set
