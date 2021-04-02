@@ -445,7 +445,10 @@
     (insta/transform
       {:list (fn [& [:as all]] (vec all))
        ; NOTE: An alternative idea is to, isntead, always use `vec`, but make first element `duration`, and the rest `all`. In the case of `:set`, `duration` can just be `0`, and it will work the same (just depends on what we prefer in data structure, harder to read ([0 :a :b]) vs. readable but verbose ([{:duration 0 :element :a} {:duration 0 :element :b}])
-       :set (fn [& [:as all]] (set all))
+       ; :set (fn [& [:as all]] (apply sorted-set all))
+       ; :set (fn [& [:as all]] (do (println "\n---set!" all (type all)) (apply sorted-set all)))
+       ; :set (fn [& [:as all]] (do (println "\n---set!" all (type all)) (-> all conj #(apply sorted-set %))))
+       :set (fn [& [:as all]] (do (println "\n---set!" all (type all)) (apply merge all)))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) vec))
        :pair #(assoc {} :duration %1 :elements %2)})))
 

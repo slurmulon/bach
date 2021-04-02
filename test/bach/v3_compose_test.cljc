@@ -4,24 +4,32 @@
             [bach.compose :as compose]
             [bach.data :refer [to-ratio]]))
 
+; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
+; (deftest ^:v3 normalization
 (deftest normalization
   (testing "collection-tree"
-    (let [tree [:track
-                [:statement
-                 [:list
-                  [:pair
-                   [:number "1"]
-                   [:identifier ":a"]]
-                  [:set
-                   [:identifier ":b"]
-                   [:identifier ":c"]]
-                  [:set
-                   [:identifier ":d"]
-                   [:list
-                    [:identifier ":c"]
-                    [:identifier ":f"]]]]]]]
-      (println (compose/normalize-collection-tree tree))
-      (is (= true true)))))
+    (let [tree [:list
+                [:pair
+                 [:number 1]
+                 [:identifier :a]]
+                [:set
+                 [:identifier :b]
+                 [:identifier :c]]
+                [:set
+                  [:identifier :d]
+                  [:list
+                   [:identifier :e]
+                   [:identifier :f]]]]
+          want [{:duration [:number 1], :elements [:identifier :a]} [:identifier :b [:identifier :c]] [:identifier :d [[:identifier :e] [:identifier :f]]]]]
+          ; want [{:duration [:number 1], :elements [:identifier :a]} #{[:identifier :c] [:identifier :b]} #{[:identifier :e] [:identifier :d] [:identifier :f]}]]
+          ; want [{:duration
+          ;         [:number 1]
+          ;        :elements
+          ;          [:identifier :a]}
+          ;       #{[:identifier :c] [:identifier :b]}
+          ;       #{[:identifier :d] [:identifier :e] [:identifier :f]}]]
+      ; (println (compose/normalize-collection-tree tree))
+      (is (= want (compose/normalize-collection-tree tree))))))
 
 ; (deftest defaults
 ;   (testing "tempo"
