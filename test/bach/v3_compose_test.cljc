@@ -20,15 +20,12 @@
                   [:list
                    [:identifier :e]
                    [:identifier :f]]]]
-          want [{:duration [:number 1], :elements [:identifier :a]} [:identifier :b [:identifier :c]] [:identifier :d [[:identifier :e] [:identifier :f]]]]]
-          ; want [{:duration [:number 1], :elements [:identifier :a]} #{[:identifier :c] [:identifier :b]} #{[:identifier :e] [:identifier :d] [:identifier :f]}]]
-          ; want [{:duration
-          ;         [:number 1]
-          ;        :elements
-          ;          [:identifier :a]}
-          ;       #{[:identifier :c] [:identifier :b]}
-          ;       #{[:identifier :d] [:identifier :e] [:identifier :f]}]]
-      ; (println (compose/normalize-collection-tree tree))
+          want [{:duration
+                  [:number 1],
+                 :elements
+                  [:identifier :a]}
+                 #{[:identifier :b [:identifier :c]]}
+                 #{[:identifier :d [[:identifier :e] [:identifier :f]]]}]]
       (is (= want (compose/normalize-collection-tree tree))))))
 
 ; (deftest defaults
