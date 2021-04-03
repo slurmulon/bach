@@ -6,8 +6,8 @@
 
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
 ; (deftest ^:v3 normalization
-(deftest normalization
-  (testing "collection-tree"
+(deftest tree-normalization
+  (testing "collections"
     (testing "sets"
       (let [tree [:list
                   [:pair
@@ -25,7 +25,7 @@
                    :elements [:identifier :a]}
                   #{[:identifier :c] [:identifier :b]}
                   #{[[:identifier :e] [:identifier :f]] [:identifier :d]}]]
-        (is (= want (compose/normalize-collection-tree tree)))))
+        (is (= want (compose/normalize-collections tree)))))
     (testing "loops"
       (testing "root-level"
         (let [tree [:loop
@@ -45,7 +45,7 @@
                      :elements [:identifier :a]}
                     {:duration 3
                      :elements [:identifier :b]}]]
-            (is (= want (compose/normalize-collection-tree tree)))))
+            (is (= want (compose/normalize-collections tree)))))
       (testing "nested"
         (testing "in list"
           (let [tree [:list
@@ -71,17 +71,14 @@
                         :elements [:identifier :a]}
                        {:duration 3
                         :elements [:identifier :b]}]]]
-              (is (= want (compose/normalize-collection-tree tree)))))))))
-
-(deftest reduction
+              (is (= want (compose/normalize-collections tree))))))))
   (testing "durations"
     (testing "beats"
       (let [tree [:pair
                   [:number "3"]
                   [:identifier :a]]
-            ; want [3]]
             want 3]
-      (is (= want (compose/reduce-durations tree)))))
+      (is (= want (compose/normalize-durations tree)))))
     (testing "lists"
       (let [tree [:list
                   [:pair
@@ -93,9 +90,8 @@
                   [:pair
                    [:number "3"]
                    [:identifier :c]]]
-            ; want [5]]
             want 6]
-        (is (= want (compose/reduce-durations tree)))))
+        (is (= want (compose/normalize-durations tree)))))
     (testing "sets"
       (let [tree [:set
                   [:pair
@@ -107,6 +103,23 @@
                   [:pair
                    [:number "2"]
                    [:identifier :c]]]
-            ; want #{4}]
             want 4]
-        (is (= want (compose/reduce-durations tree)))))))
+        (is (= want (compose/normalize-durations tree))))))
+  (testing "beats"
+    (testing "position"
+      (let [tree [:list
+                  [:pair
+                   [:number "1"]
+                   [:identifier :a]]
+                  [:set
+                   [:pair [:number "2"] [:identifier :b]]
+                   [:pair [:number "3"] [:identifier :c]]]
+                  [:set
+                   [:pair [:number "4"] [:identifier :d]]
+                   [:list
+                    [:pair [:number "5"] [:identifier :e]]
+                    [:pair [:number "6"] [:identifier :f]]]]]
+            want false
+            actual (compose/position-beats tree)]
+        (println "!!! position" actual)
+        (is (= want actual))))))

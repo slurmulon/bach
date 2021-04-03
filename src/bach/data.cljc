@@ -88,14 +88,18 @@
    Enables consumers to easily index associated data, statefully or statelessly, by providing a linear, ordered (depth-first projection of a weighted N-ary tree.
    Input: (2 3 4 7)
    Output: (0 2 5 9)"
-  [coll]
-  (->> coll
-       drop-last
-       linearize
-       (reduce (fn [acc, weight]
-                 (let [base (last acc)
-                       cursor (+ base weight)]
-                   (conj acc cursor))) [0])))
+  ([coll] (linearize-indices linearize))
+  ([xf coll]
+   (->> coll
+        drop-last
+        xf
+        ; linearize
+        ; TODO: Replace `map`+`reduce` with `transduce`, eventually
+        ; (map xf)
+        (reduce (fn [acc, weight]
+                  (let [base (last acc)
+                        cursor (+ base weight)]
+                    (conj acc cursor))) [0]))))
 
 (defn stretch
   "Provides a 1-ary stepwise projection of a weighted N-ary coll/tree, where each node's value represents its frequency/occurance (in other words, how many elements it takes up in the projected linear sequence).

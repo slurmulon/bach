@@ -24,11 +24,13 @@
                                gcd
                                itemize
                                linearize
+                               linearize-indices
                                stretch
                                quantize
                                cast-tree
                                flatten-by
                                flatten-one
+                               greatest-in
                                problem]]))
 
 (def default-tempo 120)
@@ -427,17 +429,20 @@
 ;   (let [meter (get-meter-ratio track)
 ;         pulse-beat (get-pulse-beat track)]
 ;     (insta/transform
-;       {:play normalize-collection-tree}
+;       {:play normalize-collections}
 ;       track)))
+
+(defn as-durations
+  [tree]
+  (cast-tree map? :duration tree))
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
 ; TODO: Rename to normalize-collections or reduce-collections
-(defn normalize-collection-tree
+(defn normalize-collections
   "Normalizes all collections in parsed AST tree as native clojure structures, for easier handling (mostly around reduction) in subsequent functions.
    Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
    Ouput: [:a #{:b :c} #{:d [:e :f]}]"
-; (defn reduce-collection-tree
   [tree]
   (->> tree
     reduce-values
@@ -447,39 +452,42 @@
     ; NOTE/TODO: Probably just move this all to `reduce-values`, if possible
     (insta/transform
       {:list (fn [& [:as all]] (vec all))
+      ; {:list (fn [& [:as all]] (flatten (vec all)))
        :set (fn [& [:as all]] (into #{} all))
-       :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten-one vec))
-       ; TODO: Aim towards this (not accurate yet)
-       ; :loop (fn [iters & [:as all]] (apply merge #(mapcat (itemize iters %)) all))
+       :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten))
        :pair #(assoc {} :duration %1 :elements %2)})))
 
-(def normalize-collections normalize-collection-tree)
 
 (defn reduce-durations
   [tree]
-  (->> tree
-    normalize-collection-tree
-    (cast-tree map? #(:duration %))
-    (clojure.walk/prewalk
-      #(cond
-         ; (map? %) (:duration %)
-         (set? %) (flatten-by max (seq %))
-         (vector? %) (flatten-by + %)
-         :else %))
-    ))
-    ; first))
+  (clojure.walk/postwalk
+    #(cond
+       (set? %) (do (println "SETTT!" %) (flatten-by max (seq %)))
+       (vector? %) (do (println "VECCC!" %) (flatten-by + %))
+       :else %)
+    tree))
 
-    ; TODO (maybe): Try to replace this with (cond-> )
-    ;  - @see: https://jakemccrary.com/blog/2016/04/10/the-usefulness-of-clojures-cond-arrow/
-    ; (cast-tree set? #(-> % as-durations greatest-in))
-    ; (cast-tree list? #(-> % as-durations (flatten-by +)))))
+(defn as-reduced-durations
+  [tree]
+  (->> tree as-durations reduce-durations))
+
+; TODO: Rename to `normalize-durations`
+; (defn reduce-durations
+(defn normalize-durations
+  [tree]
+  (->> tree
+    normalize-collections
+    ; NOTE: These are NOT normalized durations (raw durations, not pulse beats)
+    ;  - TODO: Consider normalizing durations to pulse beats earlier, such as in normalize-collections
+    as-durations
+    reduce-durations))
 
 ; (def linearize-collection-tree
 ;   [tree]
-;   (let [norm-tree (normalize-collection-tree tree)
+;   (let [norm-tree (normalize-collections tree)
         ; TODO (next up!): mirror `normalize-beat` and `normalize-beats` in v3 draft script!
   ; (->> tree
-  ;      normalize-collection-tree
+  ;      normalize-collections
   ;      (cast-tree set? :duration)
 
 ; (def normalize-beat-pairs
@@ -494,9 +502,119 @@
 ;     ;           :elements elements})}
 ;     tree))
 
+; (defn align-beats
+;   [beats]
+;   (let [items (normalize-collections beats)
+
+(defn normalize-beat
+  "Reduces and normalizes a beat and all of its child beats (i.e. beats occuring at the same point in time) into a single element at the provided quantized index."
+  ([beat] (normalize-beat beat 0))
+  ; ([beat positions]
+  ([beat index]
+    (let [beats (cond (map? beat) [beat] (coll? beat) beat)
+          elements (flatten beats)
+          ; FIXME: Don't necessarily want to use greatest-in here!
+          ;  - Should just be able to use `reduce-durations`, I think
+          ; duration (-> beats as-durations greatest-in)]
+          duration (-> beats as-reduced-durations)]
+      {:index index
+       ; NOTE: elements is probably temporary as is (should eventually be replaced with "play" and "stop" props)
+       :elements elements
+       :duration duration})))
+
+; TODO: Need to first linearize beats
+;  - Need to map through each set in a column (see map docs), then conflate/flaten them
+;    - TODO: Probably break out `linearize-beat-set`
+;  - e.g.
+;    Input: [:list [:set [:list [{:duration 2 :data :a} {:duration 3 :data :b}]
+;                        [:list [:duration 1 :data :a2} {:duration 4 :data :b2}]]]
+;                   {:duration 5 :data :c}]]
+;    Input2 [#{[{:duration 2 :data :a} {:duration 3 :data :b}]
+;              [{:duration 1 :data :a2} {:duration 4 :data :b2}]}
+;            {:duration 5 :data :c}]
+;    Output: [#{{:duration 2 :data :a} {:duration 1 :data :a2}}
+;             #{{:duration 3 :data :b} {:duration 4 :data :b2}}
+;             {:duration 5 :data :c}]]
+
+; AKA (and maybe instead) linearize-beat-sets
+(defn linearize-collections
+  [tree]
+  (->> tree
+       normalize-collections
+       (cast-tree set? (fn [set-coll]
+                         (let [set-vecs (filter vector? set-coll)]
+                           ; FIXME: Needs to also consider maps (i.e. beat pairs)
+                           (apply (map conj #{}) set-vecs))))))
+                           ; (cast-tree vector? #(map conj #{} %) set-coll)
+
+
+(defn position-beats
+  [beats]
+  (let [;durations (as-durations beats)
+        coll (normalize-collections beats)
+        durations (map as-reduced-durations coll)
+        ; durations (map as-durations coll)
+        ; indices (linearize-indices reduce-durations durations)
+        indices (linearize-indices identity durations)]
+        ; durations (->> beats normalize-durations (println "---- durations"))]
+        ; durations (map as-reduced-durations beats)]
+        ; durations (->> beats normalize-collections as-durations (println "---- durations"))]
+    (println "---- durations" durations)
+    (println "---- indices" indices)
+    ; WARN: Only for testing, what we really want is to return this struct for each beat
+    ;   - To achieve this, beats must be linearized (grouped by order of occurance based on durations)
+    ;   - In order to achieve this grouping, see comment above defn
+    {:durations durations
+     :indices indices}))
+        ; indices (do (println "!!!!!") (linearize-indices #(map reduce-durations %) durations))]
+    ; (map #(assoc :durations %1
+        ;          :indicies %2) beats)))
+    ; (map (fn [beat]
+    ;       ; (let [durations (as-durations beat)
+    ;       ;       ; FIXME linearize-indices needs to use `reduce-durations` logic, NOT greatest-in (as in `linearize`)
+    ;       ;       indices ]
+    ;         (assoc :durations durations
+    ;                 :indices indices)))))
+
+(defn normalize-beats
+  [beats]
+  ; (juxt 
+  ; (let [positions (map position-beat beats)]
+  ;   (map normalize-beat beats positions)))
+
+  (map (juxt position-beats normalize-beat) beats))
+
+  ; FIXME: Don't necessarily want to use greatest-in here!
+  ; (let [indices (-> beats as-reduced-durations linearize-indices)]
+  ; (let [positions (map (assoc :durations (as-reduced-durations %)
+  ;                             :indices (linearize-indices )
+        ; indices (->> beats (map as-reduced-durations) linearize-indices)]
+    ; (map normalize-beat beats indices)))
+
+; (defn linearize-beats
+;   [beats]
+;   (map (
+  ; (let [xf (comp #(normalize-beat %))]
+  ; (let [xf identity]
+  ;   (transduce xf (comp normalize-collections conj) beats)))
+  ; (transduce identity conj beats))
+
+  ; TODO: Now (maybe) reduce sets separately, so the final structure we work with matches our original tree structure in bach-research
+  ;  - Well, in our case is easier to just merge sets and retain separate set/list structs
+
 (defn reduce-set-tree
   [tree]
   nil)
+
+; TODO: Rename to just normalize eventually
+(defn linearize-track
+  [track]
+  (let [meter (get-meter-ratio track)
+        pulse-beat (get-pulse-beat track)]
+    (insta/transform
+      {:play normalize-collections}
+      track)))
+
 
 (defn stretch-loop-tree
   "Input (bach): 2 of [1 -> :a, 2 -> :z]
