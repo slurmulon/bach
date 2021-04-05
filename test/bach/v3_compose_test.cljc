@@ -155,7 +155,6 @@
                  [:list
                   [:pair [:number "6"] [:identifier :f]]
                   [:pair [:number "7"] [:identifier :g]]]]]
-          ; WARN: If we want to return 4,5,6,8 in a list, this method really becomes `streamline-collections`
           want [{:duration 1 :elements [:identifier :a]}
                 #{{:duration 2 :elements [:identifier :b]}
                   {:duration 3 :elements [:identifier :c]}}
@@ -164,7 +163,6 @@
                  #{{:duration 5 :elements [:identifier :e]}
                    {:duration 7 :elements [:identifier :g]}}]]
           actual (compose/orchestrate-collections tree)]
-          ; TEST/TEMP
-          ; actual (compose/normalize-collections tree)]
-      (println "\n\n\nlinearized colls!!!!" actual)
+      (println "\n\n\nlinearized colls!!!!" (compose/linearize-collections tree))
+      ; (println "\n\n\nlinearized colls!!!!" actual)
       (is (= want actual)))))

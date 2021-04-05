@@ -542,10 +542,10 @@
 ; (defn linearize-collections
 ; (defn streamline-collections
 (defn orchestrate-collections
-  "Rhythmically aligns and re-organizes the collection elements of a parsed AST tree.
-   More specifically, vectors nested in sets, which should occur concurrently in linear time-space, have their elements reduced into a single vector.
+  "Rhythmically aligns and re-organizes the collections of a parsed AST tree, enabling linear time-invariant iteration at higher levels.
+   More specifically, vectors nested in sets, which should be iterated in parallel in linear time-space, have their elements reduced into a single vector composed of sets (essentially, collection inversion).
    In this vector, each element is a set containing all of the elements occuring at that time-index (i.e. column index), across all child vectors.
-   Does NOT perform linearization, intentionally retaining the original tree structure.
+   Does NOT perform linearization, intentionally retaining the original tree hierarchy.
    Input (pseudo):
      [#{[:a :b] [:c :d]} :e :f]
    Ouput (psuedo):
@@ -560,6 +560,12 @@
                            (if (next aligned-items)
                              aligned-items
                              (first aligned-items)))))))
+
+(defn linearize-collections
+  [tree]
+  (->> tree
+       orchestrate-collections
+       (reduce #(concat %1 (if (sequential? %2) %2 [%2])) [])))
 
 
 (defn position-beats
