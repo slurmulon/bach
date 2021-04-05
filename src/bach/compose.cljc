@@ -550,20 +550,43 @@
                          ;  - Or, we can just map all beats as single-element vectors before processing
                          ; NOTE: set-items normalizes all items in set as a vector for easier processing
                          ;   - This is the original format we played with in bach-research, which is now proving to be useful (for transpose)
+                         ; (let [cast-tree sequential? vec
+
+                         ; LAST
                          (let [set-items (map #(cond
                                                  (sequential? %) (vec %)
-                                                 ; (set? %) (vec %)
-                                                 ; (vector? %) %
+                                                 ; FIXME: We should handle non-sequentials differently. Consider using `cast-tree seqential? f` instead.
+                                                 ;  - Could also probably just ignore the values entirely and merge in at the end, since we're using unordered set here
                                                  :else [%]) set-coll)
-                         ; (let [set-items (map #(if (coll? %) % [%]) set-coll)
-                               set-vecs (filter vector? set-coll)]
+                               ; aligned-items (->> set-items transpose (map #(into #{} %)))]
+                               ; FIXME: Issue here is, through transposition, we want to actually replace the node with 2 nodes (so, add a child node)
+                               ;  - Solution here is to either perform a nested cast-tree on only sets nested in lists (i.e. lists containing sets)
+                               ;  - ASK: Should it also be, or instead be, sets containing lists?
+                               ;    - If we can take an approach where we can replace a node with itself and a sibling (onr for each `set-item`), then this problem goes away, generically
+                               aligned-items (->> set-items transpose (mapv #(into #{} %)))]
                            ; FIXME: Needs to also consider maps (i.e. beat pairs)
                            ;  - ALSO: We want to return a vecotr instead of a set when we have set-vecs
                            ;  - @see: https://stackoverflow.com/a/29240104
                            ; (transpose set-vecs)
                            ; (-> set-vecs transpose set))))))
                            (println "SET ITEMS" set-items)
-                           (->> set-items transpose (map set)))))))
+                           (println "\n\n---------\n\n")
+                           (println "@@@ ALIGNED ITEMS @@@\n\n" (count aligned-items) aligned-items)
+
+                           (if (next aligned-items)
+                             aligned-items
+                             (first aligned-items)))))
+                           ; aligned-items)))
+       ; (tree-seq next rest)
+       ))
+                           ; LAST
+                           ; (->> set-items transpose (mapcat set)))))))
+                           ; CLOSE
+                           ; (->> set-items transpose (map #(into #{} %))))))))
+                           ; (->> set-items transpose (into #{}) set))))))
+
+                           ; (->> set-items transpose (mapv set)))))))
+                           ; (->> set-items transpose set))))))
                            ; (apply (map conj #{}) set-vecs))))))
                            ; (cast-tree vector? #(map conj #{} %) set-coll)
 

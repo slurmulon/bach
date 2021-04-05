@@ -127,19 +127,41 @@
 
 (deftest linearization
   (testing "collections"
+    ; (testing "list nested in sets"
+    ; (let [tree [:list
+    ;               [:pair
+    ;                [:number "1"]
+    ;                [:identifier :a]]
+    ;               [:set
+    ;                [:pair [:number "2"] [:identifier :b]]
+    ;                [:pair [:number "3"] [:identifier :c]]]
+    ;               [:set
+    ;                [:pair [:number "4"] [:identifier :d]]
+    ;                [:list
+    ;                 [:pair [:number "5"] [:identifier :e]]
+    ;                 [:pair [:number "6"] [:identifier :f]]]]]
     (let [tree [:list
-                  [:pair
-                   [:number "1"]
-                   [:identifier :a]]
-                  [:set
-                   [:pair [:number "2"] [:identifier :b]]
-                   [:pair [:number "3"] [:identifier :c]]]
-                  [:set
-                   [:pair [:number "4"] [:identifier :d]]
-                   [:list
-                    [:pair [:number "5"] [:identifier :e]]
-                    [:pair [:number "6"] [:identifier :f]]]]]
-          want false
+                [:pair
+                 [:number "1"]
+                 [:identifier :a]]
+                [:set
+                 [:pair [:number "2"] [:identifier :b]]
+                 [:pair [:number "3"] [:identifier :c]]]
+                [:set
+                 [:list
+                  [:pair [:number "4"] [:identifier :d]]
+                  [:pair [:number "5"] [:identifier :e]]]
+                 [:list
+                  [:pair [:number "6"] [:identifier :f]]
+                  [:pair [:number "7"] [:identifier :g]]]]]
+          ; WARN: If we want to return 4,5,6,8 in a list, this method really becomes `streamline-collections`
+          want [{:duration 1 :elements [:identifier :a]}
+                #{{:duration 2 :elements [:identifier :b]}
+                  {:duration 3 :elements [:identifier :c]}}
+                [#{{:duration 4 :elements [:identifier :d]}
+                  {:duration 6 :elements [:identifier :f]}}
+                 #{{:duration 5 :elements [:identifier :e]}
+                   {:duration 7 :elements [:identifier :g]}}]]
           actual (compose/linearize-collections tree)]
           ; TEST/TEMP
           ; actual (compose/normalize-collections tree)]
