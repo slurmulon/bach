@@ -125,7 +125,8 @@
         ; (is (= want actual))))))
         (is (= want false))))))
 
-(deftest linearization
+; (deftest linearization
+(deftest orchestration
   (testing "collections"
     ; (testing "list nested in sets"
     ; (let [tree [:list
@@ -162,7 +163,7 @@
                   {:duration 6 :elements [:identifier :f]}}
                  #{{:duration 5 :elements [:identifier :e]}
                    {:duration 7 :elements [:identifier :g]}}]]
-          actual (compose/linearize-collections tree)]
+          actual (compose/orchestrate-collections tree)]
           ; TEST/TEMP
           ; actual (compose/normalize-collections tree)]
       (println "\n\n\nlinearized colls!!!!" actual)

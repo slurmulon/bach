@@ -539,56 +539,27 @@
 ;             {:duration 5 :data :c}]]
 
 ; AKA (and maybe instead) linearize-beat-sets
-(defn linearize-collections
+; (defn linearize-collections
+; (defn streamline-collections
+(defn orchestrate-collections
+  "Rhythmically aligns and re-organizes the collection elements of a parsed AST tree.
+   More specifically, vectors nested in sets, which should occur concurrently in linear time-space, have their elements reduced into a single vector.
+   In this vector, each element is a set containing all of the elements occuring at that time-index (i.e. column index), across all child vectors.
+   Does NOT perform linearization, intentionally retaining the original tree structure.
+   Input (pseudo):
+     [#{[:a :b] [:c :d]} :e :f]
+   Ouput (psuedo):
+     [[#{:a :c} #{:b :d}] :e :f]"
   [tree]
   (->> tree
        normalize-collections
-       ; FIXME: Causes some infinite recursion craziness (might need to do postwalk instead of prewalk)
        (post-tree set? (fn [set-coll]
-                         (println "^^^^^ set coll" set-coll)
-                         ; TODO: Might need to make this deep and provide a semi-flattened list (still needs to be 2d at least for transpose)
-                         ;  - Or, we can just map all beats as single-element vectors before processing
-                         ; NOTE: set-items normalizes all items in set as a vector for easier processing
-                         ;   - This is the original format we played with in bach-research, which is now proving to be useful (for transpose)
-                         ; (let [cast-tree sequential? vec
-
-                         ; LAST
-                         (let [set-items (map #(cond
-                                                 (sequential? %) (vec %)
-                                                 ; FIXME: We should handle non-sequentials differently. Consider using `cast-tree seqential? f` instead.
-                                                 ;  - Could also probably just ignore the values entirely and merge in at the end, since we're using unordered set here
-                                                 :else [%]) set-coll)
-                               ; aligned-items (->> set-items transpose (map #(into #{} %)))]
-                               ; FIXME: Issue here is, through transposition, we want to actually replace the node with 2 nodes (so, add a child node)
-                               ;  - Solution here is to either perform a nested cast-tree on only sets nested in lists (i.e. lists containing sets)
-                               ;  - ASK: Should it also be, or instead be, sets containing lists?
-                               ;    - If we can take an approach where we can replace a node with itself and a sibling (onr for each `set-item`), then this problem goes away, generically
+                         (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
                                aligned-items (->> set-items transpose (mapv #(into #{} %)))]
-                           ; FIXME: Needs to also consider maps (i.e. beat pairs)
-                           ;  - ALSO: We want to return a vecotr instead of a set when we have set-vecs
-                           ;  - @see: https://stackoverflow.com/a/29240104
-                           ; (transpose set-vecs)
-                           ; (-> set-vecs transpose set))))))
-                           (println "SET ITEMS" set-items)
-                           (println "\n\n---------\n\n")
-                           (println "@@@ ALIGNED ITEMS @@@\n\n" (count aligned-items) aligned-items)
-
+                           ; NOTE: Not ideal logic, but sufficient (in-place conjoin avoids this, but not possible with cast-tree since it has to return one node/elem)
                            (if (next aligned-items)
                              aligned-items
-                             (first aligned-items)))))
-                           ; aligned-items)))
-       ; (tree-seq next rest)
-       ))
-                           ; LAST
-                           ; (->> set-items transpose (mapcat set)))))))
-                           ; CLOSE
-                           ; (->> set-items transpose (map #(into #{} %))))))))
-                           ; (->> set-items transpose (into #{}) set))))))
-
-                           ; (->> set-items transpose (mapv set)))))))
-                           ; (->> set-items transpose set))))))
-                           ; (apply (map conj #{}) set-vecs))))))
-                           ; (cast-tree vector? #(map conj #{} %) set-coll)
+                             (first aligned-items)))))))
 
 
 (defn position-beats
