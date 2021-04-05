@@ -6,7 +6,7 @@
 
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
 ; (deftest ^:v3 normalization
-(deftest tree-normalization
+(deftest normalize-tree
   (testing "collections"
     (testing "sets"
       (let [tree [:list
@@ -125,8 +125,7 @@
         ; (is (= want actual))))))
         (is (= want false))))))
 
-; (deftest linearization
-(deftest orchestration
+(deftest transpose-tree
   (testing "collections"
     ; (testing "list nested in sets"
     ; (let [tree [:list
@@ -162,7 +161,33 @@
                   {:duration 6 :elements [:identifier :f]}}
                  #{{:duration 5 :elements [:identifier :e]}
                    {:duration 7 :elements [:identifier :g]}}]]
-          actual (compose/orchestrate-collections tree)]
-      (println "\n\n\nlinearized colls!!!!" (compose/linearize-collections tree))
-      ; (println "\n\n\nlinearized colls!!!!" actual)
+          actual (compose/transpose-collections tree)]
       (is (= want actual)))))
+
+(deftest linearize-tree
+  (testing "collections"
+    (let [tree [:list
+                [:pair
+                 [:number "1"]
+                 [:identifier :a]]
+                [:set
+                 [:pair [:number "2"] [:identifier :b]]
+                 [:pair [:number "3"] [:identifier :c]]]
+                [:set
+                 [:list
+                  [:pair [:number "4"] [:identifier :d]]
+                  [:pair [:number "5"] [:identifier :e]]]
+                 [:list
+                  [:pair [:number "6"] [:identifier :f]]
+                  [:pair [:number "7"] [:identifier :g]]]]]
+          want [{:duration 1 :elements [:identifier :a]}
+                #{{:duration 2 :elements [:identifier :b]}
+                  {:duration 3 :elements [:identifier :c]}}
+                #{{:duration 4 :elements [:identifier :d]}
+                  {:duration 6 :elements [:identifier :f]}}
+                #{{:duration 5 :elements [:identifier :e]}
+                  {:duration 7 :elements [:identifier :g]}}]
+          actual (compose/linearize-collections tree)]
+      (is (= want actual)))))
+
+

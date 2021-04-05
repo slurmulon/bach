@@ -524,28 +524,11 @@
        :elements elements
        :duration duration})))
 
-; TODO: Need to first linearize beats
-;  - Need to map through each set in a column (see map docs), then conflate/flaten them
-;    - TODO: Probably break out `linearize-beat-set`
-;  - e.g.
-;    Input: [:list [:set [:list [{:duration 2 :data :a} {:duration 3 :data :b}]
-;                        [:list [:duration 1 :data :a2} {:duration 4 :data :b2}]]]
-;                   {:duration 5 :data :c}]]
-;    Input2 [#{[{:duration 2 :data :a} {:duration 3 :data :b}]
-;              [{:duration 1 :data :a2} {:duration 4 :data :b2}]}
-;            {:duration 5 :data :c}]
-;    Output: [#{{:duration 2 :data :a} {:duration 1 :data :a2}}
-;             #{{:duration 3 :data :b} {:duration 4 :data :b2}}
-;             {:duration 5 :data :c}]]
-
-; AKA (and maybe instead) linearize-beat-sets
-; (defn linearize-collections
-; (defn streamline-collections
-(defn orchestrate-collections
-  "Rhythmically aligns and re-organizes the collections of a parsed AST tree, enabling linear time-invariant iteration at higher levels.
-   More specifically, vectors nested in sets, which should be iterated in parallel in linear time-space, have their elements reduced into a single vector composed of sets (essentially, collection inversion).
+(defn transpose-collections
+  "Aligns and transposes parallel collections of a parsed AST tree, enabling linear time-invariant iteration at higher levels.
+   More specifically, vectors nested in sets, which should be iterated in parallel in linear time-space, have their elements transposed into a single vector composed of sets (essentially, collection inversion).
    In this vector, each element is a set containing all of the elements occuring at that time-index (i.e. column index), across all child vectors.
-   Does NOT perform linearization, intentionally retaining the original tree hierarchy.
+   Does NOT perform linearization and intentionally retains the original tree hierarchy.
    Input (pseudo):
      [#{[:a :b] [:c :d]} :e :f]
    Ouput (psuedo):
@@ -556,17 +539,16 @@
        (post-tree set? (fn [set-coll]
                          (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
                                aligned-items (->> set-items transpose (mapv #(into #{} %)))]
-                           ; NOTE: Not ideal logic, but sufficient (in-place conjoin avoids this, but not possible with cast-tree since it has to return one node/elem)
-                           (if (next aligned-items)
-                             aligned-items
-                             (first aligned-items)))))))
+                           ; NOTE: Not ideal logic, but sufficient.
+                           ;       In-place concat avoids this, but not possible w/ cast-tree since it works with single nodes
+                           (if (next aligned-items) aligned-items (first aligned-items)))))))
 
+; TODO: Test with deeply nested collections. Might needs to use recur or something.
 (defn linearize-collections
   [tree]
   (->> tree
-       orchestrate-collections
+       transpose-collections
        (reduce #(concat %1 (if (sequential? %2) %2 [%2])) [])))
-
 
 (defn position-beats
   [beats]
