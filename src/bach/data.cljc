@@ -58,9 +58,14 @@
       to-json))
 
 (defn cast-tree
-  "Walks an iterable N-ary tree (depth-first) and applies `as` to each node where `is?` matches (`is?` returns true)"
+  "Walks an iterable N-ary tree (depth-first, pre-order) and applies `as` to each node where `is?` matches (`is?` returns true)"
   [is? as tree]
   (clojure.walk/prewalk #(if (is? %) (as %) %) tree))
+
+(defn post-tree
+  "Walks an iterable N-ary tree (depth-first, post-order) and applies `as` to each node where `is?` matches (`is?` returns true)"
+  [is? as tree]
+  (clojure.walk/postwalk #(if (is? %) (as %) %) tree))
 
 (defn flatten-by
   [by coll]
@@ -93,9 +98,6 @@
    (->> coll
         drop-last
         xf
-        ; linearize
-        ; TODO: Replace `map`+`reduce` with `transduce`, eventually
-        ; (map xf)
         (reduce (fn [acc, weight]
                   (let [base (last acc)
                         cursor (+ base weight)]
@@ -116,6 +118,19 @@
    This data structure is ideal for performing linear bi-directional indexing of non-linear collections."
   [coll]
   (->> coll linearize stretch vec))
+
+(defn transpose
+  "Takes a collection of vectors and produces an inverted linear project, where each element contains every element at the same index across each vector.
+  @see: https://stackoverflow.com/a/29240104
+  Input: [[1 2] [3 4] [5 6] [7 8 9]]
+  Output: [[1 3 5 7] [2 4 6 8] [9]]"
+  [coll]
+  (mapv (fn [ind]
+          (mapv #(get % ind)
+                (filter #(contains? % ind) coll)))
+        (->> (map count coll)
+             (apply max)
+             range)))
 
 (defn ratio-to-vector
   "Converts a ratio to a vector."

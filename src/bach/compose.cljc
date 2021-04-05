@@ -28,9 +28,11 @@
                                stretch
                                quantize
                                cast-tree
+                               post-tree
                                flatten-by
                                flatten-one
                                greatest-in
+                               transpose
                                problem]]))
 
 (def default-tempo 120)
@@ -462,8 +464,8 @@
   [tree]
   (clojure.walk/postwalk
     #(cond
-       (set? %) (do (println "SETTT!" %) (flatten-by max (seq %)))
-       (vector? %) (do (println "VECCC!" %) (flatten-by + %))
+       (set? %) (flatten-by max (seq %))
+       (vector? %) (flatten-by + %)
        :else %)
     tree))
 
@@ -541,10 +543,28 @@
   [tree]
   (->> tree
        normalize-collections
-       (cast-tree set? (fn [set-coll]
-                         (let [set-vecs (filter vector? set-coll)]
+       ; FIXME: Causes some infinite recursion craziness (might need to do postwalk instead of prewalk)
+       (post-tree set? (fn [set-coll]
+                         (println "^^^^^ set coll" set-coll)
+                         ; TODO: Might need to make this deep and provide a semi-flattened list (still needs to be 2d at least for transpose)
+                         ;  - Or, we can just map all beats as single-element vectors before processing
+                         ; NOTE: set-items normalizes all items in set as a vector for easier processing
+                         ;   - This is the original format we played with in bach-research, which is now proving to be useful (for transpose)
+                         (let [set-items (map #(cond
+                                                 (sequential? %) (vec %)
+                                                 ; (set? %) (vec %)
+                                                 ; (vector? %) %
+                                                 :else [%]) set-coll)
+                         ; (let [set-items (map #(if (coll? %) % [%]) set-coll)
+                               set-vecs (filter vector? set-coll)]
                            ; FIXME: Needs to also consider maps (i.e. beat pairs)
-                           (apply (map conj #{}) set-vecs))))))
+                           ;  - ALSO: We want to return a vecotr instead of a set when we have set-vecs
+                           ;  - @see: https://stackoverflow.com/a/29240104
+                           ; (transpose set-vecs)
+                           ; (-> set-vecs transpose set))))))
+                           (println "SET ITEMS" set-items)
+                           (->> set-items transpose (map set)))))))
+                           ; (apply (map conj #{}) set-vecs))))))
                            ; (cast-tree vector? #(map conj #{} %) set-coll)
 
 
