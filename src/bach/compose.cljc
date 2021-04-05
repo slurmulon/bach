@@ -543,12 +543,9 @@
                            ;       In-place concat avoids this, but not possible w/ cast-tree since it works with single nodes
                            (if (next aligned-items) aligned-items (first aligned-items)))))))
 
-; TODO: Test with deeply nested collections. Might needs to use recur or something.
 (defn linearize-collections
   [tree]
-  (->> tree
-       transpose-collections
-       (reduce #(concat %1 (if (sequential? %2) %2 [%2])) [])))
+  (->> tree transpose-collections flatten))
 
 (defn position-beats
   [beats]
