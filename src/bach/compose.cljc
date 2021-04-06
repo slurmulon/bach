@@ -484,13 +484,10 @@
 (defn transpose-collections
   "Aligns and transposes parallel collections of a parsed AST tree, enabling linear time-invariant iteration at higher levels.
    More specifically, vectors nested in sets, which should be iterated in parallel in linear time-space, have their elements transposed into a single vector composed of sets (essentially, collection inversion).
-   In this vector, each element is a set containing all of the elements occuring at its time-index (i.e. column index), across all child vectors.
-   This ensures that all resulting sets are order agnostic, only containing non-sequentials and other sets.
-   Does NOT perform linearization and intentionally retains the original tree hierarchy,
-   Input (pseudo):
-     [#{[:a :b] [:c :d]} :e :f]
-   Ouput (psuedo):
-     [[#{:a :c} #{:b :d}] :e :f]"
+   In this vector, each element is a set containing all of the elements occuring at its time-index (i.e. column index), across all sibling vectors.
+   This ensures that resulting set trees are order agnostic, only containing non-sequentials and other sets.
+   Input: [#{[:a :b] [:c :d]} :e :f]
+   Ouput: [[#{:a :c} #{:b :d}] :e :f]"
   [tree]
   (->> tree
        normalize-collections
@@ -504,15 +501,24 @@
   [tree]
   (-> tree transpose-collections squash-tree))
 
+; TODO!!!! Need to normalize all beat durations (as pulse beats) before or during this
+; TODO: Probably just turn this into `normalize-beats`
 (defn position-beats
-  [beats]
-  (let [;linear-beats (linearize-collections beats)
-        ;durations (map as-reduced-durations linear-beats)
-        durations (->> beats linearize-collections (map as-reduced-durations))
+  "Linearizes beats in parsed AST tree and into a 1-ary vector where each element is
+  a map containing the beat, its duration (in quantized pulses) and its index (also in quantized pulses)."
+  [tree]
+  (let [beats (linearize-collections tree)
+        ; durations (->> beats linearize-collections (map as-reduced-durations))
+        durations (map as-reduced-durations beats)
         indices (linearize-indices identity durations)]
-        ; durations (->> beats normalize-durations (println "---- durations"))]
-        ; durations (->> beats normalize-collections as-durations (println "---- durations"))]
-    (map #(assoc {} :duration %1 :index %2) durations indices)))
+    ; TODO: Consider merging with beats here as :items
+    (map #(assoc {} :items %1 :duration %2 :index %3) beats durations indices)))
+    ; (map #(assoc {} :duration %1 :index %2) durations indices)))
+    ; (map #(assoc {} :duration %1 :index %2) durations indices)))
+
+; (defn normalize-beats
+;   [tree]
+;   (
 
 ; (defn normalize-beat
 ;   "Reduces and normalizes a beat and all of its child beats (i.e. beats occuring at the same point in time) into a single element at the provided quantized index."
@@ -528,20 +534,27 @@
 ;        :duration duration})))
 
 ; (defn normalize-beats
-;   [beats]
+;   [tree]
 ;   (letfn [(normalize-beat
 ;             ([beat] (normalize-beat beat 0))
 ;             ([beat positions]
 ;             ; ([beat index]
 ;               (let [beats (cond (map? beat) [beat] (coll? beat) beat)
-;                     elements (flatten beats)
+;                     elements beats
+;                     ; elements (flatten beats)
 ;                     ; TODO: Use when-let here instead
-;                     index (:indices positions)
-;                     duration (-> beats as-reduced-durations)]
+;                     index (:index positions)
+;                     duration (:duration positions)]
+;                 (println "---- BEATS" beats)
 ;                 {:index index
 ;                 ; NOTE: elements is probably temporary as is (should eventually be replaced with "play" and "stop" props)
 ;                 :elements elements
-;                 :duration duration})))
+;                 :duration duration})))]
+;     (let [beats (linearize-collections tree)
+;           ; positions (position-beats beats)]
+;           positions (position-beats tree)]
+;       (map normalize-beat beats positions))))
+
 
 ;   ; (juxt 
 ;   ; (let [positions (map position-beat beats)]

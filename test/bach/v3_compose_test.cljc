@@ -224,8 +224,6 @@
             ;         #{{:duration 7 :elements [:identifier :g]}
             ;           {:duration 8 :elements [:identifier :h]}}}]
             actual (compose/linearize-collections tree)]
-        (println "\n\n~~~~~~~~~~~~ actual ~~~~~~~~~~\n\n`")
-        (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
 
@@ -247,9 +245,31 @@
                     [:set
                      [:pair [:number "7"] [:identifier :g]]
                      [:pair [:number "8"] [:identifier :h]]]]]]
-          want [{:duration 1 :index 0}
-                {:duration 3 :index 1}
-                {:duration 6 :index 4}
-                {:duration 8 :index 10}] 
+          ; want [{:duration 1 :index 0}
+          ;       {:duration 3 :index 1}
+          ;       {:duration 6 :index 4}
+          ;       {:duration 8 :index 10}]
+          want [{:items {:duration 1, :elements [:identifier :a]},
+                 :duration 1,
+                 :index 0}
+                {:items
+                 #{{:duration 3, :elements [:identifier :c]}
+                   {:duration 2, :elements [:identifier :b]}},
+                 :duration 3,
+                 :index 1}
+                {:items
+                 #{{:duration 4, :elements [:identifier :d]}
+                   {:duration 6, :elements [:identifier :f]}},
+                 :duration 6,
+                 :index 4}
+                {:items
+                 #{{:duration 8, :elements [:identifier :h]}
+                   {:duration 7, :elements [:identifier :g]}
+                   {:duration 5, :elements [:identifier :e]}},
+                 :duration 8,
+                 :index 10}]
           actual (compose/position-beats tree)]
+      (println "\n\n~~~~~~~~~~~~~~~~~~~\n\n")
+      ; (clojure.pprint/pprint (compose/normalize-beats tree))
+      (clojure.pprint/pprint actual)
       (is (= want actual)))))
