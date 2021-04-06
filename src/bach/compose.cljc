@@ -470,19 +470,15 @@
   [tree]
   (->> tree as-durations reduce-durations))
 
-; TODO: Rename to `normalize-durations`
-; (defn reduce-durations
+; TODO: Probably rename in light of `position-beats`
 (defn normalize-durations
   [tree]
-  (->> tree
-    normalize-collections
-    as-durations
-    reduce-durations))
+  (->> tree normalize-collections as-reduced-durations))
 
 (defn transpose-collections
   "Aligns and transposes parallel collections of a parsed AST tree, enabling linear time-invariant iteration by consumers.
-   More specifically, vectors nested in sets, which should be iterated in parallel in linear time-space, have their elements transposed into a single vector composed of sets (essentially, collection inversion).
-   In this vector, each element is a set containing all of the elements occuring at its time-index (i.e. column index), across all sibling vectors.
+   More specifically, vectors nested in sets, which should be iterated in parallel in time-space, have their elements transposed into a single vector composed of sets (essentially, collection inversion).
+   In this vector, each element is a set containing all of the elements occuring at its time-index (i.e. column index), across all parallel/sibling vectors.
    This ensures that resulting set trees are order agnostic, only containing non-sequentials and other sets.
    Input: [#{[:a :b] [:c :d]} :e :f]
    Ouput: [[#{:a :c} #{:b :d}] :e :f]"
@@ -502,7 +498,7 @@
 (defn position-beats
   "Linearizes beats in parsed AST tree into a 1-ary vector where each element is a map
   containing the beat's item(s), its duration (in q-pulses) and its index (also in q-pulses).
-  Assumes all durations are integers as they are used for indexing."
+  Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
   (let [durations (map as-reduced-durations beats)
         indices (linearize-indices identity durations)]
@@ -512,13 +508,9 @@
   [tree]
   (-> tree linearize-collections position-beats))
 
-; (defn linearize-beats
-; (defn normalize-beat-durations
-; (defn normalize-element-durations
-; (defn quantize-beats
 (defn normalize-beats
-  "Normalizes beats for linear consumption by decorating beat elements with
-  durations and indices based on pulse beats (or custom unit) in meter."
+  "Normalizes beats for linear and quantized consumption by decorating beat elements
+  with durations and indices based on pulse beats (or custom unit) within a meter."
   ([tree]
     (let [track (reduce-track tree)
           meter (get-meter-ratio track)
@@ -529,13 +521,6 @@
         linearize-collections
         (cast-tree
           #(and (map? %) (:duration %))
-          ; map?
-          ; WORKS!
-          ; (fn [elem]
-          ;   (let [duration (int (normalize-duration (:duration elem) unit meter))]
-          ;     (assoc elem :duration duration))))
-
-          ; #(assoc % :duration (int (normalize-duration (:duration %) unit meter))))
           #(let [duration (int (normalize-duration (:duration %) unit meter))]
              (assoc % :duration duration)))
         position-beats)))

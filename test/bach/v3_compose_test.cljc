@@ -4,6 +4,24 @@
             [bach.compose :as compose]
             [bach.data :refer [to-ratio]]))
 
+(def fixture-nested-sets
+  [:list
+    [:pair
+      [:number "1"]
+      [:identifier :a]]
+    [:set
+      [:pair [:number "2"] [:identifier :b]]
+      [:pair [:number "3"] [:identifier :c]]]
+    [:set
+      [:list
+        [:pair [:number "4"] [:identifier :d]]
+        [:pair [:number "5"] [:identifier :e]]]
+      [:list
+        [:pair [:number "6"] [:identifier :f]]
+        [:set
+          [:pair [:number "7"] [:identifier :g]]
+          [:pair [:number "8"] [:identifier :h]]]]]])
+
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
 ; (deftest ^:v3 normalization
 (deftest normalize-tree
@@ -193,22 +211,7 @@
             actual (compose/linearize-collections tree)]
         (is (= want actual))))
     (testing "set -> list -> set"
-      (let [tree [:list
-                  [:pair
-                   [:number "1"]
-                   [:identifier :a]]
-                  [:set
-                   [:pair [:number "2"] [:identifier :b]]
-                   [:pair [:number "3"] [:identifier :c]]]
-                  [:set
-                   [:list
-                    [:pair [:number "4"] [:identifier :d]]
-                    [:pair [:number "5"] [:identifier :e]]]
-                   [:list
-                    [:pair [:number "6"] [:identifier :f]]
-                    [:set
-                     [:pair [:number "7"] [:identifier :g]]
-                     [:pair [:number "8"] [:identifier :h]]]]]]
+      (let [tree fixture-nested-sets
             want [{:duration 1 :elements [:identifier :a]}
                   #{{:duration 2 :elements [:identifier :b]}
                     {:duration 3 :elements [:identifier :c]}}
@@ -217,40 +220,12 @@
                   #{{:duration 5 :elements [:identifier :e]}
                     {:duration 7 :elements [:identifier :g]}
                     {:duration 8 :elements [:identifier :h]}}]
-            ; want [{:duration 1 :elements [:identifier :a]}
-            ;       #{{:duration 2 :elements [:identifier :b]}
-            ;         {:duration 3 :elements [:identifier :c]}}
-            ;       #{{:duration 4 :elements [:identifier :d]}
-            ;         {:duration 6 :elements [:identifier :f]}}
-            ;       #{{:duration 5 :elements [:identifier :e]}
-            ;         #{{:duration 7 :elements [:identifier :g]}
-            ;           {:duration 8 :elements [:identifier :h]}}}]
             actual (compose/linearize-collections tree)]
         (is (= want actual))))))
 
-
-(deftest position-beats
-  (testing "basic"
-    (let [tree [:list
-                  [:pair
-                   [:number "1"]
-                   [:identifier :a]]
-                  [:set
-                   [:pair [:number "2"] [:identifier :b]]
-                   [:pair [:number "3"] [:identifier :c]]]
-                  [:set
-                   [:list
-                    [:pair [:number "4"] [:identifier :d]]
-                    [:pair [:number "5"] [:identifier :e]]]
-                   [:list
-                    [:pair [:number "6"] [:identifier :f]]
-                    [:set
-                     [:pair [:number "7"] [:identifier :g]]
-                     [:pair [:number "8"] [:identifier :h]]]]]]
-          ; want [{:duration 1 :index 0}
-          ;       {:duration 3 :index 1}
-          ;       {:duration 6 :index 4}
-          ;       {:duration 8 :index 10}]
+(deftest beats
+  (testing "linearize"
+    (let [tree fixture-nested-sets
           want [{:items {:duration 1, :elements [:identifier :a]},
                  :duration 1,
                  :index 0}
@@ -270,10 +245,33 @@
                    {:duration 5, :elements [:identifier :e]}},
                  :duration 8,
                  :index 10}]
-          ; actual (compose/position-beats tree)]
           actual (compose/linearize-beats tree)]
-      (println "\n\n~~~~~~~~~~~~~~~~~~~\n\n")
-      (clojure.pprint/pprint (compose/normalize-beats tree 1/8 4/4))
+      ; (println "\n\n~~~~~~~~~~~~~~~~~~~\n\n")
+      ; (clojure.pprint/pprint (compose/normalize-beats tree 1 4/4))
       ; (clojure.pprint/pprint (compose/quantize-beats tree))
       ; (clojure.pprint/pprint actual)
+      (is (= want actual))))
+  (testing "normalize"
+    (let [tree fixture-nested-sets
+          want [{:items {:duration 2, :elements [:identifier :a]},
+                 :duration 2,
+                 :index 0}
+                {:items
+                 #{{:duration 6, :elements [:identifier :c]}
+                   {:duration 4, :elements [:identifier :b]}},
+                 :duration 6,
+                 :index 2}
+                {:items
+                 #{{:duration 12, :elements [:identifier :f]}
+                   {:duration 8, :elements [:identifier :d]}},
+                 :duration 12,
+                 :index 8}
+                {:items
+                 #{{:duration 16, :elements [:identifier :h]}
+                   {:duration 10, :elements [:identifier :e]}
+                   {:duration 14, :elements [:identifier :g]}},
+                 :duration 16,
+                 :index 20}]
+          actual (compose/normalize-beats tree 1/2 1)]
+      (clojure.pprint/pprint actual)
       (is (= want actual)))))
