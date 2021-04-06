@@ -77,7 +77,18 @@
   [coll]
   (mapcat #(if (sequential? %) % [%]) coll))
 
+(defn flatten-sets
+  "Like flatten, but pulls elements out of sets instead of sequences.
+  Does NOT support sequences nested in sets (only homogenous set trees).
+  @see: https://gist.github.com/bdesham/1005837"
+  [coll]
+  (set (filter (complement set?)
+               (rest (tree-seq set? seq (set coll))))))
+
+; flatten-supreme
+; flatten-ultra
 (defn smoosh
+; (defn flatten-tree
   "Like `clojure.core/flatten` but better, stronger, faster.
   Takes any nested combination of sequential things (lists, vectors,
   etc.) and returns their contents as a single, flat, lazy sequence.
@@ -94,6 +105,12 @@
                     (concat (flat node) (flat (rest items)))
                     (cons node (flat (rest items))))))))]
     (if (sequential? tree) (flat tree) tree)))
+    ; (cond
+    ;   (sequential? tree) (flat tree)
+    ;   ; NOPE: Doesn't work because everything is cast to seq, which is good
+    ;   (set? tree) (flatten-sets tree)
+    ;   :else tree)))
+(smoosh #{:a #{:b :c}})
 
 (defn greatest-in
   [coll]

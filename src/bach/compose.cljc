@@ -31,6 +31,7 @@
                                post-tree
                                flatten-by
                                flatten-one
+                               flatten-sets
                                greatest-in
                                transpose
                                smoosh
@@ -546,7 +547,8 @@
   [tree]
   (->> tree
        transpose-collections
-       smoosh))
+       smoosh
+       (cast-tree set? flatten-sets)))
        ; (reduce #(concat %1 (if (vector? %2) (flatten %2) [%2])) [])
        ; (into [])
 
