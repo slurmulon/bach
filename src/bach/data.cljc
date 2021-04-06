@@ -85,10 +85,7 @@
   (set (filter (complement set?)
                (rest (tree-seq set? seq (set coll))))))
 
-; flatten-supreme
-; flatten-ultra
-(defn smoosh
-; (defn flatten-tree
+(defn flatten-tree
   "Like `clojure.core/flatten` but better, stronger, faster.
   Takes any nested combination of sequential things (lists, vectors,
   etc.) and returns their contents as a single, flat, lazy sequence.
@@ -110,7 +107,15 @@
     ;   ; NOPE: Doesn't work because everything is cast to seq, which is good
     ;   (set? tree) (flatten-sets tree)
     ;   :else tree)))
-(smoosh #{:a #{:b :c}})
+
+(defn squash-tree
+  "Same as flatten-tree, but also flattens all sets (TODO: Try to avoid doing this secondarily).
+   Sets are assumed to be homogenous (can only contain sets and other non-sequentials)."
+  [tree]
+  (->> tree
+       flatten-tree
+       (cast-tree set? flatten-sets)))
+; (squash-tree #{:a #{:b :c}})
 
 (defn greatest-in
   [coll]

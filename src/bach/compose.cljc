@@ -32,9 +32,10 @@
                                flatten-by
                                flatten-one
                                flatten-sets
+                               flatten-tree
+                               squash-tree
                                greatest-in
                                transpose
-                               smoosh
                                problem]]))
 
 (def default-tempo 120)
@@ -545,12 +546,7 @@
 
 (defn linearize-collections
   [tree]
-  (->> tree
-       transpose-collections
-       smoosh
-       (cast-tree set? flatten-sets)))
-       ; (reduce #(concat %1 (if (vector? %2) (flatten %2) [%2])) [])
-       ; (into [])
+  (-> tree transpose-collections squash-tree))
 
 (defn position-beats
   [beats]

@@ -213,9 +213,20 @@
                   #{{:duration 4 :elements [:identifier :d]}
                     {:duration 6 :elements [:identifier :f]}}
                   #{{:duration 5 :elements [:identifier :e]}
-                    #{{:duration 7 :elements [:identifier :g]}
-                      {:duration 8 :elements [:identifier :h]}}}]
+                    {:duration 7 :elements [:identifier :g]}
+                    {:duration 8 :elements [:identifier :h]}}]
+
+            ; want [{:duration 1 :elements [:identifier :a]}
+            ;       #{{:duration 2 :elements [:identifier :b]}
+            ;         {:duration 3 :elements [:identifier :c]}}
+            ;       #{{:duration 4 :elements [:identifier :d]}
+            ;         {:duration 6 :elements [:identifier :f]}}
+            ;       #{{:duration 5 :elements [:identifier :e]}
+            ;         #{{:duration 7 :elements [:identifier :g]}
+            ;           {:duration 8 :elements [:identifier :h]}}}]
             actual (compose/linearize-collections tree)]
+        (println "\n\n~~~~~~~~~~~~ actual ~~~~~~~~~~\n\n`")
+        (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
 
