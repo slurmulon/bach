@@ -476,8 +476,6 @@
   [tree]
   (->> tree
     normalize-collections
-    ; NOTE: These are NOT normalized durations (raw durations, not pulse beats)
-    ;  - TODO: Consider normalizing durations to pulse beats earlier, such as in normalize-collections
     as-durations
     reduce-durations))
 
@@ -501,33 +499,50 @@
   [tree]
   (-> tree transpose-collections squash-tree))
 
-; TODO!!!! Need to normalize all beat durations (as pulse beats) before or during this
-; TODO: Probably just turn this into `normalize-beats`
 (defn position-beats
   "Linearizes beats in parsed AST tree into a 1-ary vector where each element is a map
   containing the beat's item(s), its duration (in q-pulses) and its index (also in q-pulses).
   Assumes all durations are integers as they are used for indexing."
-  ; [tree 
-  [tree]
-  (let [beats (linearize-collections tree)
-        durations (map as-reduced-durations beats)
+  [beats]
+  (let [durations (map as-reduced-durations beats)
         indices (linearize-indices identity durations)]
     (map #(assoc {} :items %1 :duration %2 :index %3) beats durations indices)))
 
+(defn linearize-beats
+  [tree]
+  (-> tree linearize-collections position-beats))
+
+; (defn linearize-beats
 ; (defn normalize-beat-durations
 ; (defn normalize-element-durations
-(defn quantize-beats
-  ([track]
-    (let [meter (get-meter-ratio track)
+; (defn quantize-beats
+(defn normalize-beats
+  "Normalizes beats for linear consumption by decorating beat elements with
+  durations and indices based on pulse beats (or custom unit) in meter."
+  ([tree]
+    (let [track (reduce-track tree)
+          meter (get-meter-ratio track)
           unit (get-pulse-beat track)]
-      (quantize-beats track meter unit)))
+      (normalize-beats track meter unit)))
   ([tree unit meter]
    (->> tree
+        linearize-collections
         (cast-tree
           #(and (map? %) (:duration %))
+          ; map?
+          ; WORKS!
+          ; (fn [elem]
+          ;   (let [duration (int (normalize-duration (:duration elem) unit meter))]
+          ;     (assoc elem :duration duration))))
+
+          ; #(assoc % :duration (int (normalize-duration (:duration %) unit meter))))
           #(let [duration (int (normalize-duration (:duration %) unit meter))]
              (assoc % :duration duration)))
         position-beats)))
+
+; compose-beats
+;  ->> normalize-beats
+;      signify-beats
 
 ; TODO: Rename to just normalize eventually
 (defn linearize-track
