@@ -62,18 +62,15 @@
   [is? as tree]
   (clojure.walk/prewalk #(if (is? %) (as %) %) tree))
 
-(defn post-tree
-  "Walks an iterable N-ary tree (depth-first, post-order) and applies `as` to each node where `is?` matches (`is?` returns true)"
-  [is? as tree]
-  (clojure.walk/postwalk #(if (is? %) (as %) %) tree))
-
 (defn flatten-by
+  "Flattens and reduces collection/tree using provided function."
   [by coll]
   (if (sequential? coll)
     (reduce by (flatten coll))
     (by coll)))
 
 (defn flatten-one
+  "Flattens nested collection or tree by only one level."
   [coll]
   (mapcat #(if (sequential? %) % [%]) coll))
 
@@ -102,11 +99,6 @@
                     (concat (flat node) (flat (rest items)))
                     (cons node (flat (rest items))))))))]
     (if (sequential? tree) (flat tree) tree)))
-    ; (cond
-    ;   (sequential? tree) (flat tree)
-    ;   ; NOPE: Doesn't work because everything is cast to seq, which is good
-    ;   (set? tree) (flatten-sets tree)
-    ;   :else tree)))
 
 (defn squash-tree
   "Same as flatten-tree, but also flattens all sets (TODO: Try to avoid doing this secondarily).
@@ -123,15 +115,15 @@
 
 (defn linearize
   "Provides a 1-ary linear-space projection of the greatest weights among each root-level node and its children.
-  Input: [2 [3 1] [4 [5 7]]]
-  Outpu: [2 3 7]"
+  Input:  [2 [3 1] [4 [5 7]]]
+  Output: [2 3 7]"
   [coll]
   (map greatest-in coll))
 
 (defn linearize-indices
   "Projects the starting indices of each weighted node in coll/tree onto linear space.
    Enables consumers to easily index associated data, statefully or statelessly, by providing a linear, ordered (depth-first projection of a weighted N-ary tree.
-   Input: (2 3 4 7)
+   Input:  (2 3 4 7)
    Output: (0 2 5 9)"
   ([coll] (linearize-indices linearize))
   ([xf coll]
@@ -146,8 +138,8 @@
 (defn stretch
   "Provides a 1-ary stepwise projection of a weighted N-ary coll/tree, where each node's value represents its frequency/occurance (in other words, how many elements it takes up in the projected linear sequence).
   Example:
-   - In: (stretch [1 4 3])
-   - Out: (0 1 1 1 1 2 2 2)"
+   - Input:  (stretch [1 4 3])
+   - Output: (0 1 1 1 1 2 2 2)"
   [coll]
   (->> coll (map-indexed #(itemize %2 %1)) flatten))
 
@@ -162,7 +154,7 @@
 (defn transpose
   "Takes a collection of vectors and produces an inverted linear project, where each element contains every element at the same index across each vector.
   @see: https://stackoverflow.com/a/29240104
-  Input: [[1 2] [3 4] [5 6] [7 8 9]]
+  Input:  [[1 2] [3 4] [5 6] [7 8 9]]
   Output: [[1 3 5 7] [2 4 6 8] [9]]"
   [coll]
   (mapv (fn [ind]

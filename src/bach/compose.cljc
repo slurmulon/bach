@@ -28,7 +28,6 @@
                                stretch
                                quantize
                                cast-tree
-                               post-tree
                                flatten-by
                                flatten-one
                                flatten-sets
@@ -451,17 +450,12 @@
   [tree]
   (->> tree
     reduce-values
-    ; reduce-track
-    ; NOTE: On the right path, but we don't want to set :elements this early (will mess up following stuff)
-    ;  - After this, THEN we will pipe into the `:pair` transformer, and THEN we can group, reduce and linearize
     ; NOTE/TODO: Probably just move this all to `reduce-values`, if possible
     (insta/transform
       {:list (fn [& [:as all]] (vec all))
-      ; {:list (fn [& [:as all]] (flatten (vec all)))
        :set (fn [& [:as all]] (into #{} all))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten))
        :pair #(assoc {} :duration %1 :elements %2)})))
-
 
 (defn reduce-durations
   [tree]
@@ -487,51 +481,12 @@
     as-durations
     reduce-durations))
 
-; (def linearize-collection-tree
-;   [tree]
-;   (let [norm-tree (normalize-collections tree)
-        ; TODO (next up!): mirror `normalize-beat` and `normalize-beats` in v3 draft script!
-  ; (->> tree
-  ;      normalize-collections
-  ;      (cast-tree set? :duration)
-
-; (def normalize-beat-pairs
-; ; (defn reduce-list-tree
-;   [tree]
-;   (insta/transform
-;     ; WARN: Actually we dont' want to do this here. This should happen outside of this. All this method should care about is reducing loops into weighted nodes.
-;     ;  - TODO: Do this AFTER
-;     {:pair #(assoc {} :duration %1 :elements %2)}
-;     ; {:pair (fn [duration elements]
-;     ;          {:duration duration
-;     ;           :elements elements})}
-;     tree))
-
-; (defn align-beats
-;   [beats]
-;   (let [items (normalize-collections beats)
-
-(defn normalize-beat
-  "Reduces and normalizes a beat and all of its child beats (i.e. beats occuring at the same point in time) into a single element at the provided quantized index."
-  ([beat] (normalize-beat beat 0))
-  ; ([beat positions]
-  ([beat index]
-    (let [beats (cond (map? beat) [beat] (coll? beat) beat)
-          elements (flatten beats)
-          ; FIXME: Don't necessarily want to use greatest-in here!
-          ;  - Should just be able to use `reduce-durations`, I think
-          ; duration (-> beats as-durations greatest-in)]
-          duration (-> beats as-reduced-durations)]
-      {:index index
-       ; NOTE: elements is probably temporary as is (should eventually be replaced with "play" and "stop" props)
-       :elements elements
-       :duration duration})))
-
 (defn transpose-collections
   "Aligns and transposes parallel collections of a parsed AST tree, enabling linear time-invariant iteration at higher levels.
    More specifically, vectors nested in sets, which should be iterated in parallel in linear time-space, have their elements transposed into a single vector composed of sets (essentially, collection inversion).
-   In this vector, each element is a set containing all of the elements occuring at that time-index (i.e. column index), across all child vectors.
-   Does NOT perform linearization and intentionally retains the original tree hierarchy.
+   In this vector, each element is a set containing all of the elements occuring at its time-index (i.e. column index), across all child vectors.
+   This ensures that all resulting sets are order agnostic, only containing non-sequentials and other sets.
+   Does NOT perform linearization and intentionally retains the original tree hierarchy,
    Input (pseudo):
      [#{[:a :b] [:c :d]} :e :f]
    Ouput (psuedo):
@@ -545,19 +500,19 @@
                            (if (next aligned-items) aligned-items (first aligned-items)))))))
 
 (defn linearize-collections
+  "Linearly transposes and flattens all collections in the provided N-ary tree into a 1-ary sequence."
   [tree]
   (-> tree transpose-collections squash-tree))
 
 (defn position-beats
   [beats]
   (let [;durations (as-durations beats)
-        coll (normalize-collections beats)
+        ; coll (normalize-collections beats)
+        coll (linearize-collections beats)
         durations (map as-reduced-durations coll)
-        ; durations (map as-durations coll)
         ; indices (linearize-indices reduce-durations durations)
         indices (linearize-indices identity durations)]
         ; durations (->> beats normalize-durations (println "---- durations"))]
-        ; durations (map as-reduced-durations beats)]
         ; durations (->> beats normalize-collections as-durations (println "---- durations"))]
     (println "---- durations" durations)
     (println "---- indices" indices)
@@ -576,6 +531,21 @@
     ;         (assoc :durations durations
     ;                 :indices indices)))))
 
+(defn normalize-beat
+  "Reduces and normalizes a beat and all of its child beats (i.e. beats occuring at the same point in time) into a single element at the provided quantized index."
+  ([beat] (normalize-beat beat 0))
+  ; ([beat positions]
+  ([beat index]
+    (let [beats (cond (map? beat) [beat] (coll? beat) beat)
+          elements (flatten beats)
+          ; FIXME: Don't necessarily want to use greatest-in here!
+          ;  - Should just be able to use `reduce-durations`, I think
+          ; duration (-> beats as-durations greatest-in)]
+          duration (-> beats as-reduced-durations)]
+      {:index index
+       ; NOTE: elements is probably temporary as is (should eventually be replaced with "play" and "stop" props)
+       :elements elements
+       :duration duration})))
 (defn normalize-beats
   [beats]
   ; (juxt 
@@ -599,13 +569,6 @@
   ;   (transduce xf (comp normalize-collections conj) beats)))
   ; (transduce identity conj beats))
 
-  ; TODO: Now (maybe) reduce sets separately, so the final structure we work with matches our original tree structure in bach-research
-  ;  - Well, in our case is easier to just merge sets and retain separate set/list structs
-
-(defn reduce-set-tree
-  [tree]
-  nil)
-
 ; TODO: Rename to just normalize eventually
 (defn linearize-track
   [track]
@@ -614,17 +577,6 @@
     (insta/transform
       {:play normalize-collections}
       track)))
-
-
-(defn stretch-loop-tree
-  "Input (bach): 2 of [1 -> :a, 2 -> :z]
-   Ouput (pseudo): [:a :z :z :a :z :z]"
-  [tree]
-  (insta/transform
-    ; {:loop #(itemize % %)}
-    {:loop (fn [iterations coll]
-             (itemize iterations coll))}
-     tree))
 
 (defn signify-normalized-beats
   []
