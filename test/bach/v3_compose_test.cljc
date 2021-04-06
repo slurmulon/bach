@@ -215,7 +215,6 @@
                   #{{:duration 5 :elements [:identifier :e]}
                     {:duration 7 :elements [:identifier :g]}
                     {:duration 8 :elements [:identifier :h]}}]
-
             ; want [{:duration 1 :elements [:identifier :a]}
             ;       #{{:duration 2 :elements [:identifier :b]}
             ;         {:duration 3 :elements [:identifier :c]}}
@@ -230,3 +229,27 @@
         (is (= want actual))))))
 
 
+(deftest position-beats
+  (testing "basic"
+    (let [tree [:list
+                  [:pair
+                   [:number "1"]
+                   [:identifier :a]]
+                  [:set
+                   [:pair [:number "2"] [:identifier :b]]
+                   [:pair [:number "3"] [:identifier :c]]]
+                  [:set
+                   [:list
+                    [:pair [:number "4"] [:identifier :d]]
+                    [:pair [:number "5"] [:identifier :e]]]
+                   [:list
+                    [:pair [:number "6"] [:identifier :f]]
+                    [:set
+                     [:pair [:number "7"] [:identifier :g]]
+                     [:pair [:number "8"] [:identifier :h]]]]]]
+          want [{:duration 1 :index 0}
+                {:duration 3 :index 1}
+                {:duration 6 :index 4}
+                {:duration 8 :index 10}] 
+          actual (compose/position-beats tree)]
+      (is (= want actual)))))

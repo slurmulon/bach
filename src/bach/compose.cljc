@@ -506,53 +506,48 @@
 
 (defn position-beats
   [beats]
-  (let [;durations (as-durations beats)
-        ; coll (normalize-collections beats)
-        coll (linearize-collections beats)
-        durations (map as-reduced-durations coll)
-        ; indices (linearize-indices reduce-durations durations)
+  (let [;linear-beats (linearize-collections beats)
+        ;durations (map as-reduced-durations linear-beats)
+        durations (->> beats linearize-collections (map as-reduced-durations))
         indices (linearize-indices identity durations)]
         ; durations (->> beats normalize-durations (println "---- durations"))]
         ; durations (->> beats normalize-collections as-durations (println "---- durations"))]
-    (println "---- durations" durations)
-    (println "---- indices" indices)
-    ; WARN: Only for testing, what we really want is to return this struct for each beat
-    ;   - To achieve this, beats must be linearized (grouped by order of occurance based on durations)
-    ;   - In order to achieve this grouping, see comment above defn
-    {:durations durations
-     :indices indices}))
-        ; indices (do (println "!!!!!") (linearize-indices #(map reduce-durations %) durations))]
-    ; (map #(assoc :durations %1
-        ;          :indicies %2) beats)))
-    ; (map (fn [beat]
-    ;       ; (let [durations (as-durations beat)
-    ;       ;       ; FIXME linearize-indices needs to use `reduce-durations` logic, NOT greatest-in (as in `linearize`)
-    ;       ;       indices ]
-    ;         (assoc :durations durations
-    ;                 :indices indices)))))
+    (map #(assoc {} :duration %1 :index %2) durations indices)))
 
-(defn normalize-beat
-  "Reduces and normalizes a beat and all of its child beats (i.e. beats occuring at the same point in time) into a single element at the provided quantized index."
-  ([beat] (normalize-beat beat 0))
-  ; ([beat positions]
-  ([beat index]
-    (let [beats (cond (map? beat) [beat] (coll? beat) beat)
-          elements (flatten beats)
-          ; FIXME: Don't necessarily want to use greatest-in here!
-          ;  - Should just be able to use `reduce-durations`, I think
-          ; duration (-> beats as-durations greatest-in)]
-          duration (-> beats as-reduced-durations)]
-      {:index index
-       ; NOTE: elements is probably temporary as is (should eventually be replaced with "play" and "stop" props)
-       :elements elements
-       :duration duration})))
-(defn normalize-beats
-  [beats]
-  ; (juxt 
-  ; (let [positions (map position-beat beats)]
-  ;   (map normalize-beat beats positions)))
+; (defn normalize-beat
+;   "Reduces and normalizes a beat and all of its child beats (i.e. beats occuring at the same point in time) into a single element at the provided quantized index."
+;   ([beat] (normalize-beat beat 0))
+;   ; ([beat positions]
+;   ([beat index]
+;     (let [beats (cond (map? beat) [beat] (coll? beat) beat)
+;           elements (flatten beats)
+;           duration (-> beats as-reduced-durations)]
+;       {:index index
+;        ; NOTE: elements is probably temporary as is (should eventually be replaced with "play" and "stop" props)
+;        :elements elements
+;        :duration duration})))
 
-  (map (juxt position-beats normalize-beat) beats))
+; (defn normalize-beats
+;   [beats]
+;   (letfn [(normalize-beat
+;             ([beat] (normalize-beat beat 0))
+;             ([beat positions]
+;             ; ([beat index]
+;               (let [beats (cond (map? beat) [beat] (coll? beat) beat)
+;                     elements (flatten beats)
+;                     ; TODO: Use when-let here instead
+;                     index (:indices positions)
+;                     duration (-> beats as-reduced-durations)]
+;                 {:index index
+;                 ; NOTE: elements is probably temporary as is (should eventually be replaced with "play" and "stop" props)
+;                 :elements elements
+;                 :duration duration})))
+
+;   ; (juxt 
+;   ; (let [positions (map position-beat beats)]
+;   ;   (map normalize-beat beats positions)))
+
+;   (map (juxt position-beats normalize-beat) beats))
 
   ; FIXME: Don't necessarily want to use greatest-in here!
   ; (let [indices (-> beats as-reduced-durations linearize-indices)]
