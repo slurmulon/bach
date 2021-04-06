@@ -77,6 +77,24 @@
   [coll]
   (mapcat #(if (sequential? %) % [%]) coll))
 
+(defn smoosh
+  "Like `clojure.core/flatten` but better, stronger, faster.
+  Takes any nested combination of sequential things (lists, vectors,
+  etc.) and returns their contents as a single, flat, lazy sequence.
+  If the argument is non-sequential (numbers, maps, strings, nil, 
+  etc.), returns the original argument.
+  @credit 'Notes': https://clojuredocs.org/clojure.core/flatten"
+  {:static true}
+  [tree]
+  (letfn [(flat [coll]
+            (lazy-seq
+              (when-let [items (seq coll)]
+                (let [node (first items)]
+                  (if (sequential? node)
+                    (concat (flat node) (flat (rest items)))
+                    (cons node (flat (rest items))))))))]
+    (if (sequential? tree) (flat tree) tree)))
+
 (defn greatest-in
   [coll]
   (flatten-by max coll))

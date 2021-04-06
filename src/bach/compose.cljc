@@ -33,6 +33,7 @@
                                flatten-one
                                greatest-in
                                transpose
+                               smoosh
                                problem]]))
 
 (def default-tempo 120)
@@ -536,20 +537,18 @@
   [tree]
   (->> tree
        normalize-collections
-       ; (post-tree set? (fn [set-coll]
        (cast-tree set? (fn [set-coll]
                          (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
                                aligned-items (->> set-items transpose (mapv #(into #{} %)))]
-                           ; NOTE: Not ideal logic, but sufficient.
-                           ;       In-place concat avoids this, but not possible w/ cast-tree since it works with single nodes
                            (if (next aligned-items) aligned-items (first aligned-items)))))))
 
 (defn linearize-collections
   [tree]
   (->> tree
        transpose-collections
-       (reduce #(concat %1 (if (vector? %2) (flatten %2) [%2])) [])
-       (into [])))
+       smoosh))
+       ; (reduce #(concat %1 (if (vector? %2) (flatten %2) [%2])) [])
+       ; (into [])
 
 (defn position-beats
   [beats]

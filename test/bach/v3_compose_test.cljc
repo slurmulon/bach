@@ -216,8 +216,6 @@
                     #{{:duration 7 :elements [:identifier :g]}
                       {:duration 8 :elements [:identifier :h]}}}]
             actual (compose/linearize-collections tree)]
-        (println "-------------------")
-        (println "\n\n" actual)
         (is (= want actual))))))
 
 
