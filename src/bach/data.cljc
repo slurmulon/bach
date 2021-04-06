@@ -69,7 +69,7 @@
 
 (defn flatten-by
   [by coll]
-  (if (coll? coll)
+  (if (sequential? coll)
     (reduce by (flatten coll))
     (by coll)))
 

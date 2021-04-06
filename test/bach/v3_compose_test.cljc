@@ -166,28 +166,58 @@
 
 (deftest linearize-tree
   (testing "collections"
-    (let [tree [:list
-                [:pair
-                 [:number "1"]
-                 [:identifier :a]]
-                [:set
-                 [:pair [:number "2"] [:identifier :b]]
-                 [:pair [:number "3"] [:identifier :c]]]
-                [:set
-                 [:list
-                  [:pair [:number "4"] [:identifier :d]]
-                  [:pair [:number "5"] [:identifier :e]]]
-                 [:list
-                  [:pair [:number "6"] [:identifier :f]]
-                  [:pair [:number "7"] [:identifier :g]]]]]
-          want [{:duration 1 :elements [:identifier :a]}
-                #{{:duration 2 :elements [:identifier :b]}
-                  {:duration 3 :elements [:identifier :c]}}
-                #{{:duration 4 :elements [:identifier :d]}
-                  {:duration 6 :elements [:identifier :f]}}
-                #{{:duration 5 :elements [:identifier :e]}
-                  {:duration 7 :elements [:identifier :g]}}]
-          actual (compose/linearize-collections tree)]
-      (is (= want actual)))))
+    (testing "set -> list"
+      (let [tree [:list
+                  [:pair
+                   [:number "1"]
+                   [:identifier :a]]
+                  [:set
+                   [:pair [:number "2"] [:identifier :b]]
+                   [:pair [:number "3"] [:identifier :c]]]
+                  [:set
+                   [:list
+                    [:pair [:number "4"] [:identifier :d]]
+                    [:pair [:number "5"] [:identifier :e]]]
+                   [:list
+                    [:pair [:number "6"] [:identifier :f]]
+                    [:pair [:number "7"] [:identifier :g]]]]]
+            want [{:duration 1 :elements [:identifier :a]}
+                  #{{:duration 2 :elements [:identifier :b]}
+                    {:duration 3 :elements [:identifier :c]}}
+                  #{{:duration 4 :elements [:identifier :d]}
+                    {:duration 6 :elements [:identifier :f]}}
+                  #{{:duration 5 :elements [:identifier :e]}
+                    {:duration 7 :elements [:identifier :g]}}]
+            actual (compose/linearize-collections tree)]
+        (is (= want actual))))
+    (testing "set -> list -> set"
+      (let [tree [:list
+                  [:pair
+                   [:number "1"]
+                   [:identifier :a]]
+                  [:set
+                   [:pair [:number "2"] [:identifier :b]]
+                   [:pair [:number "3"] [:identifier :c]]]
+                  [:set
+                   [:list
+                    [:pair [:number "4"] [:identifier :d]]
+                    [:pair [:number "5"] [:identifier :e]]]
+                   [:list
+                    [:pair [:number "6"] [:identifier :f]]
+                    [:set
+                     [:pair [:number "7"] [:identifier :g]]
+                     [:pair [:number "8"] [:identifier :h]]]]]]
+            want [{:duration 1 :elements [:identifier :a]}
+                  #{{:duration 2 :elements [:identifier :b]}
+                    {:duration 3 :elements [:identifier :c]}}
+                  #{{:duration 4 :elements [:identifier :d]}
+                    {:duration 6 :elements [:identifier :f]}}
+                  #{{:duration 5 :elements [:identifier :e]}
+                    #{{:duration 7 :elements [:identifier :g]}
+                      {:duration 8 :elements [:identifier :h]}}}]
+            actual (compose/linearize-collections tree)]
+        (println "-------------------")
+        (println "\n\n" actual)
+        (is (= want actual))))))
 
 

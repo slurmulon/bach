@@ -536,7 +536,8 @@
   [tree]
   (->> tree
        normalize-collections
-       (post-tree set? (fn [set-coll]
+       ; (post-tree set? (fn [set-coll]
+       (cast-tree set? (fn [set-coll]
                          (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
                                aligned-items (->> set-items transpose (mapv #(into #{} %)))]
                            ; NOTE: Not ideal logic, but sufficient.
@@ -545,7 +546,10 @@
 
 (defn linearize-collections
   [tree]
-  (->> tree transpose-collections flatten))
+  (->> tree
+       transpose-collections
+       (reduce #(concat %1 (if (vector? %2) (flatten %2) [%2])) [])
+       (into [])))
 
 (defn position-beats
   [beats]
