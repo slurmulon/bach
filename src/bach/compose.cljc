@@ -55,6 +55,14 @@
                       :ms-per-pulse-beat 0
                       :ms-per-beat-unit 0})
 
+(def element-id #(nano-id 4))
+
+(defn element-kind
+  [elem]
+  (keyword (:kind elem)))
+
+; TODO: Probably just use nanoid instead and remove `tag`
+
 (defn variable-scope
   "Provides a localized scope/stack for tracking variables."
   [scope]
@@ -444,30 +452,20 @@
 
 ; TODO: Proably move to `ast` namespace
 (defn parse-atom
-  ; [elem]
-  ; (let [kind (-> elem rest first last)
-  ;       args (-> elem rest last rest)]
-  ; [atom-kind atom-elem]
-  ; (let [kind (last atom-kind)
-  ;       args (
+  "Creates an element from provided atom kind and arguments.
+   Parsed bach 'atoms' are considered 'elements', each with a unique id."
   [kind args]
-    {:id (nano-id 4)
-     :kind (clojure.string/lower-case kind)
-     ; :value (first args)
-     :value (-> args first str)
-     :props (rest args)})
-
-; INPROG
-(defn parse-pair
-  [duration elements]
-  {:duration duration
-   :elements (map parse-atom elements)})
+  {:id element-id
+   :kind (clojure.string/lower-case kind)
+   :value (-> args first str)
+   :props (rest args)})
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
 ; TODO: Rename to normalize-collections or reduce-collections
 (defn normalize-collections
-  "Normalizes all collections in parsed AST tree as native clojure structures, for easier handling (mostly around reduction) in subsequent functions.
+  "Normalizes all bach collections in parsed AST tree as native clojure structures.
+   Enables pragmatic handling of trees and colls in subsequent functions.
    Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
    Ouput: [:a #{:b :c} #{:d [:e :f]}]"
   [tree]
@@ -479,18 +477,15 @@
       {:list (fn [& [:as all]] (vec all))
        :set (fn [& [:as all]] (into #{} all))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten))
-       ; :atom parse-atom
-       ; :atom (fn [& [:as all]] (do (println "ATOMMMM?" all) all))
-       :atom (fn [kind args] (parse-atom (last kind) (last args)))
+       :atom (fn [[_ kind] [_ & args]] (parse-atom kind args))
        :pair #(assoc {} :duration %1 :elements %2)})))
-       ; :pair parse-pair})))
 
 (defn reduce-durations
   [tree]
   (clojure.walk/postwalk
     #(cond
        (set? %) (flatten-by max (seq %))
-       (vector? %) (flatten-by + %)
+       (sequential? %) (flatten-by + %)
        :else %)
     tree))
 
@@ -523,8 +518,9 @@
   [tree]
   (-> tree transpose-collections squash-tree))
 
+; unitize-tree
 (defn unitize-collections
-  "Linearizes and normalizes every element's :duration in parsed AST tree against the unit in a meter.
+  "Linearizes and normalizes every element's :duration in parsed AST tree against the unit within a meter.
    Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
    In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   [tree unit meter]
@@ -535,6 +531,7 @@
          #(let [duration (int (normalize-duration (:duration %) unit meter))]
             (assoc % :duration duration)))))
 
+; itemize-beats
 (defn position-beats
   "Linearizes beats in parsed AST tree into a 1-ary sequence where each element is a map
   containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
@@ -560,8 +557,8 @@
 
 
 (defn normalize-beats
-  "Normalizes beats for linear and quantized consumption by decorating beat elements
-  with durations and indices based on pulse beats (or custom unit) within a meter."
+  "Normalizes beats for linear uniform iteration by decorating beat elements
+  with durations and indices based on a unit (q-pulse by default) within a meter."
   ([tree]
     (let [track (reduce-track tree)
           meter (get-meter-ratio track)
@@ -574,13 +571,6 @@
 ;  ->> normalize-beats
 ;      sectionize-beats
 ;      signify-beats
-
-(defn element-kind
-  [elem]
-  (keyword (:kind elem)))
-
-; TODO: Probably just use nanoid instead and remove `tag`
-(def element-id #(nano-id 4))
 
 (defn all-beat-elements
   [beats]
