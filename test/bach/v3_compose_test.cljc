@@ -226,7 +226,7 @@
 (deftest beats
   (testing "linearize"
     (let [tree fixture-nested-sets
-          want [{:items {:duration 1, :elements [:identifier :a]},
+          want [{:items #{{:duration 1, :elements [:identifier :a]}},
                  :duration 1,
                  :index 0}
                 {:items
@@ -253,7 +253,7 @@
       (is (= want actual))))
   (testing "normalize"
     (let [tree fixture-nested-sets
-          want [{:items {:duration 2, :elements [:identifier :a]},
+          want [{:items #{{:duration 2, :elements [:identifier :a]}},
                  :duration 2,
                  :index 0}
                 {:items

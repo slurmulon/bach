@@ -11,31 +11,32 @@
 (ns bach.compose
   (:require [instaparse.core :as insta]
             [bach.ast :refer [parse]]
-            [bach.data :refer [hiccup-to-hash-map
-                               ratio-to-vector
-                               trim-matrix-row
-                               inverse-ratio
-                               safe-ratio
-                               to-json
-                               to-string
-                               math-floor
-                               math-ceil
-                               powers-of-two
-                               gcd
-                               itemize
-                               linearize
-                               linearize-indices
-                               stretch
-                               quantize
-                               cast-tree
-                               flatten-by
-                               flatten-one
-                               flatten-sets
-                               flatten-tree
-                               squash-tree
-                               greatest-in
-                               transpose
-                               problem]]))
+            [bach.data :refer :all]))
+            ; [bach.data :refer [hiccup-to-hash-map
+            ;                    ratio-to-vector
+            ;                    trim-matrix-row
+            ;                    inverse-ratio
+            ;                    safe-ratio
+            ;                    to-json
+            ;                    to-string
+            ;                    math-floor
+            ;                    math-ceil
+            ;                    powers-of-two
+            ;                    gcd
+            ;                    itemize
+            ;                    linearize
+            ;                    linearize-indices
+            ;                    stretch
+            ;                    quantize
+            ;                    cast-tree
+            ;                    flatten-by
+            ;                    flatten-one
+            ;                    flatten-sets
+            ;                    flatten-tree
+            ;                    squash-tree
+            ;                    greatest-in
+            ;                    transpose
+            ;                    problem]]))
 
 (def default-tempo 120)
 (def default-meter [4 4])
@@ -496,13 +497,13 @@
   (-> tree transpose-collections squash-tree))
 
 (defn position-beats
-  "Linearizes beats in parsed AST tree into a 1-ary vector where each element is a map
-  containing the beat's item(s), its duration (in q-pulses) and its index (also in q-pulses).
+  "Linearizes beats in parsed AST tree into a 1-ary sequence where each element is a map
+  containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
   (let [durations (map as-reduced-durations beats)
         indices (linearize-indices identity durations)]
-    (map #(assoc {} :items %1 :duration %2 :index %3) beats durations indices)))
+    (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
 (defn linearize-beats
   [tree]
@@ -527,6 +528,7 @@
 
 ; compose-beats
 ;  ->> normalize-beats
+;      sectionize-beats
 ;      signify-beats
 
 ; TODO: Rename to just normalize eventually
