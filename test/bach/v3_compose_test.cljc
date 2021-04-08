@@ -289,6 +289,9 @@
       (clojure.pprint/pprint actual)
       (is (= want actual)))))
 
-(println "OKAAYYY")
-(clojure.pprint/pprint (compose/normalize-collections (atomize-fixture fixture-nested-sets)))
+(println "smoke test")
+; TODO: Works, but write tests for this
+; (clojure.pprint/pprint (compose/normalize-collections (atomize-fixture fixture-nested-sets)))
 ; (clojure.pprint/pprint (atomize-fixture fixture-nested-sets))
+
+(clojure.pprint/pprint (compose/map-element-signals (atomize-fixture fixture-nested-sets)))

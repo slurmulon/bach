@@ -455,7 +455,7 @@
   "Creates an element from provided atom kind and arguments.
    Parsed bach 'atoms' are considered 'elements', each with a unique id."
   [kind args]
-  {:id element-id
+  {:id (element-id)
    :kind (clojure.string/lower-case kind)
    :value (-> args first str)
    :props (rest args)})
@@ -557,8 +557,8 @@
 
 
 (defn normalize-beats
-  "Normalizes beats for linear uniform iteration by decorating beat elements
-  with durations and indices based on a unit (q-pulse by default) within a meter."
+  "Normalizes beats for linear uniform iteration by decorating them with
+  durations and indices based on a unit (q-pulse by default) within a meter."
   ([tree]
     (let [track (reduce-track tree)
           meter (get-meter-ratio track)
@@ -572,26 +572,35 @@
 ;      sectionize-beats
 ;      signify-beats
 
+(defn all-beats
+  [beats as]
+  (->> beats (cast-tree map? as) flatten distinct)) ;vec))
+
 (defn all-beat-elements
   [beats]
-  (->> beats (cast-tree map? :elements) flatten distinct vec))
+  ; WARN: if elements have an id already, all-beats/distinct is meaningless!
+  (all-beats beats :elements))
+
+(defn all-beat-element-keys
+  [beats]
+  (all-beats beats #(get-in % [:elements :id])))
 
 (defn all-beat-items
   [beats]
-  (->> beats (cast-tree map? :items) flatten distinct vec))
+  (all-beats beats :items))
 
 (defn map-beat-elements
   "Creates a single map containing all of the beat elements and their values, grouped by 'kind'.
-   Primarily used for creating unique minimal references that can be used in place of full elements."
+   Primarily used for centralizing and grouping the element reference pointers across every beat."
   [beats]
   (->> beats
     all-beat-elements
     (reduce (fn [acc element]
-      (let [kind (element-kind element)
-            values (get acc kind [])]
+      (let [id (or (:id element) (element-id))
+            kind (element-kind element)]
         (if (empty? element)
           acc
-          (assoc-in acc [kind (element-id)] (:value element))))) {})))
+          (assoc-in acc [kind id] (:value element))))) {})))
 
 ; TODO: Rename to just normalize eventually
 ; (defn linearize-track
@@ -611,17 +620,33 @@
 ; (defn signify-beats
 ; ; (defn signify-normalized-beats
 ;   "Replaces :elements with :play and :stop vectors containing references to each beat element
-;    that should be started or stopped on a given q-pulse."
-;   [tree]
-;   (let [beats (normalize-beats tree)
-;         elems (all-beat-elements beats)
-;         ; items (all-beat-items items)
-;         play-steps (map :index beats)
-;         ; stop-steps (map #(:items beats play-steps)
-;         stop-steps (mapcat (fn [beat]
-;                              (let [index (:index beat)
-;                                    items (seq (:items beat))
-;                                    stops (map #(+ index (:duration %)) items)]
+;    that should be started or stopped on a given q-pulse / step."
+(defn map-element-signals
+  [tree]
+  (let [beats (normalize-beats tree)
+        ; elems (all-beat-elements beats)
+        ; items (all-beat-items beats)
+        ; steps (->> beats
+        ;            (map #(dissoc % :items))
+        ;            as-durations
+        ;            (map-indexed #(itemize %
+        ; play-sigs (map :index beats)
+        play-sigs (mapcat (fn [beat]
+                            (let [items (->> beat :items seq (sort-by :duration))
+                                  duration (->> items as-durations greatest-in)
+                                  ;items (seq (:items beat))
+                                  elems (all-beat-element-keys items)]
+                              ; NOTE: Similar approach needed for stop-sigs, but needs to use `update` b/c we can't just use take+repeat
+                              (cons elems (take (- duration 1) (repeat 0))))) beats)
+                              ]
+    {:play play-sigs}))
+
+        ; stop-steps (map #(:items beats play-steps)
+        ; stop-sigs (mapcat (fn [beat, play]
+        ;                     (let [items (seq (:items beat))
+        ;                           elems (all-beat-elements items)
+        ;                           ; stop (map #(+ index (:duration %)) items play-sigs)]
+        ;                           stop (map #(+ play (:duration %)) beats play-sigs)]
 
         ; stop-steps (mapcat #(% -> :items seq)
 
