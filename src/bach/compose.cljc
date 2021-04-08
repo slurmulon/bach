@@ -496,6 +496,18 @@
   [tree]
   (-> tree transpose-collections squash-tree))
 
+(defn unitize-collections
+  "Linearizes and normalizes every element's :duration in parsed AST tree against the unit in a meter.
+   Used to ensure that all durations are whole integers and can be used for indexing and quantized iteration.
+   Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing."
+  [tree unit meter]
+  (->> tree
+       linearize-collections
+       (cast-tree
+         #(and (map? %) (:duration %))
+         #(let [duration (int (normalize-duration (:duration %) unit meter))]
+            (assoc % :duration duration)))))
+
 (defn position-beats
   "Linearizes beats in parsed AST tree into a 1-ary sequence where each element is a map
   containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
@@ -518,13 +530,7 @@
           unit (get-pulse-beat track)]
       (normalize-beats track meter unit)))
   ([tree unit meter]
-   (->> tree
-        linearize-collections
-        (cast-tree
-          #(and (map? %) (:duration %))
-          #(let [duration (int (normalize-duration (:duration %) unit meter))]
-             (assoc % :duration duration)))
-        position-beats)))
+   (-> tree (unitize-collections unit meter) position-beats)))
 
 ; compose-beats
 ;  ->> normalize-beats
