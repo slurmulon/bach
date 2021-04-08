@@ -1,6 +1,7 @@
 (ns bach.v3-compose-test
   (:require #?(:clj [clojure.test :refer [deftest is testing]]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
+            [instaparse.core :as insta]
             [bach.compose :as compose]
             [bach.data :refer [to-ratio]]))
 
@@ -21,6 +22,18 @@
         [:set
           [:pair [:number "7"] [:identifier :g]]
           [:pair [:number "8"] [:identifier :h]]]]]])
+
+(defn atomize-fixture
+  [fixture]
+  (insta/transform
+    {:pair (fn [duration beat]
+             [:pair
+              duration
+              [:atom
+                [:keyword [:name "stub"]]
+                ; [:string "'stub'"]
+                ; [:arguments [:string (name (last beat))]]]]])} fixture))
+                [:arguments [:string (->> beat last name (format "'%s'"))]]]])} fixture))
 
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
 ; (deftest ^:v3 normalization
@@ -275,3 +288,7 @@
           actual (compose/normalize-beats tree 1/2 1)]
       (clojure.pprint/pprint actual)
       (is (= want actual)))))
+
+(println "OKAAYYY")
+(clojure.pprint/pprint (compose/normalize-collections (atomize-fixture fixture-nested-sets)))
+; (clojure.pprint/pprint (atomize-fixture fixture-nested-sets))

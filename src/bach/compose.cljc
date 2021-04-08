@@ -10,6 +10,7 @@
 
 (ns bach.compose
   (:require [instaparse.core :as insta]
+            [nano-id.core :refer [nano-id]]
             [bach.ast :refer [parse]]
             [bach.data :refer :all]))
             ; [bach.data :refer [hiccup-to-hash-map
@@ -441,6 +442,27 @@
   [tree]
   (cast-tree map? :duration tree))
 
+; TODO: Proably move to `ast` namespace
+(defn parse-atom
+  ; [elem]
+  ; (let [kind (-> elem rest first last)
+  ;       args (-> elem rest last rest)]
+  ; [atom-kind atom-elem]
+  ; (let [kind (last atom-kind)
+  ;       args (
+  [kind args]
+    {:id (nano-id 4)
+     :kind (clojure.string/lower-case kind)
+     ; :value (first args)
+     :value (-> args first str)
+     :props (rest args)})
+
+; INPROG
+(defn parse-pair
+  [duration elements]
+  {:duration duration
+   :elements (map parse-atom elements)})
+
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
 ; TODO: Rename to normalize-collections or reduce-collections
@@ -450,13 +472,18 @@
    Ouput: [:a #{:b :c} #{:d [:e :f]}]"
   [tree]
   (->> tree
+    ; TODO: Probably want to use reduce-track instead, to ease handling of beat :elements later
     reduce-values
     ; NOTE/TODO: Probably just move this all to `reduce-values`, if possible
     (insta/transform
       {:list (fn [& [:as all]] (vec all))
        :set (fn [& [:as all]] (into #{} all))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten))
+       ; :atom parse-atom
+       ; :atom (fn [& [:as all]] (do (println "ATOMMMM?" all) all))
+       :atom (fn [kind args] (parse-atom (last kind) (last args)))
        :pair #(assoc {} :duration %1 :elements %2)})))
+       ; :pair parse-pair})))
 
 (defn reduce-durations
   [tree]
@@ -498,8 +525,8 @@
 
 (defn unitize-collections
   "Linearizes and normalizes every element's :duration in parsed AST tree against the unit in a meter.
-   Used to ensure that all durations are whole integers and can be used for indexing and quantized iteration.
-   Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing."
+   Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
+   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   [tree unit meter]
   (->> tree
        linearize-collections
@@ -517,9 +544,20 @@
         indices (linearize-indices identity durations)]
     (pmap #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
+; (defn assoc-beats
+;   [beats]
+;   "Associates beats with unique identifiers that can be used as reference pointers to the beat"
+;   (-> cast-tree
+;       (and (map? %) (:elements %))
+;       (fn [beat]
+;         (let [elems (:
+
 (defn linearize-beats
   [tree]
   (-> tree linearize-collections position-beats))
+
+
+
 
 (defn normalize-beats
   "Normalizes beats for linear and quantized consumption by decorating beat elements
@@ -537,18 +575,65 @@
 ;      sectionize-beats
 ;      signify-beats
 
-; TODO: Rename to just normalize eventually
-(defn linearize-track
-  [track]
-  (let [meter (get-meter-ratio track)
-        pulse-beat (get-pulse-beat track)]
-    (insta/transform
-      {:play normalize-collections}
-      track)))
+(defn element-kind
+  [elem]
+  (keyword (:kind elem)))
 
-(defn signify-normalized-beats
-  []
-  nil)
+; TODO: Probably just use nanoid instead and remove `tag`
+(def element-id #(nano-id 4))
+
+(defn all-beat-elements
+  [beats]
+  (->> beats (cast-tree map? :elements) flatten distinct vec))
+
+(defn all-beat-items
+  [beats]
+  (->> beats (cast-tree map? :items) flatten distinct vec))
+
+(defn map-beat-elements
+  "Creates a single map containing all of the beat elements and their values, grouped by 'kind'.
+   Primarily used for creating unique minimal references that can be used in place of full elements."
+  [beats]
+  (->> beats
+    all-beat-elements
+    (reduce (fn [acc element]
+      (let [kind (element-kind element)
+            values (get acc kind [])]
+        (if (empty? element)
+          acc
+          (assoc-in acc [kind (element-id)] (:value element))))) {})))
+
+; TODO: Rename to just normalize eventually
+; (defn linearize-track
+;   [track]
+;   (let [meter (get-meter-ratio track)
+;         pulse-beat (get-pulse-beat track)]
+;     (insta/transform
+;       {:play normalize-collections}
+;       track)))
+
+; (defn sectionize-beats
+;   [tree]
+;   (let [beats (normalize-beats tree)
+;         el
+
+; TODO: Consider keeping elements and instead proving "play" and "stop" quantized vectors outside of composed scroll/script
+; (defn signify-beats
+; ; (defn signify-normalized-beats
+;   "Replaces :elements with :play and :stop vectors containing references to each beat element
+;    that should be started or stopped on a given q-pulse."
+;   [tree]
+;   (let [beats (normalize-beats tree)
+;         elems (all-beat-elements beats)
+;         ; items (all-beat-items items)
+;         play-steps (map :index beats)
+;         ; stop-steps (map #(:items beats play-steps)
+;         stop-steps (mapcat (fn [beat]
+;                              (let [index (:index beat)
+;                                    items (seq (:items beat))
+;                                    stops (map #(+ index (:duration %)) items)]
+
+        ; stop-steps (mapcat #(% -> :items seq)
 
 ; i.e. quantize
 ; defn stepify
