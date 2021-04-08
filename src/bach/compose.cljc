@@ -501,9 +501,9 @@
   containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
-  (let [durations (map as-reduced-durations beats)
+  (let [durations (pmap as-reduced-durations beats)
         indices (linearize-indices identity durations)]
-    (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
+    (pmap #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
 (defn linearize-beats
   [tree]
