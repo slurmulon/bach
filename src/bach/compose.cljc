@@ -626,27 +626,24 @@
             (let [items (sorted-beat-items beat)
                   elems (all-beat-element-ids items)
                   duration (->> items as-durations greatest-in)]
-              (cons elems (take (- duration 1) (repeat 0))))) beats))
+              (cons elems (take (- duration 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
   [beats]
   (let [duration (->> beats as-durations (flatten-by +))
-        signals (-> duration (take (repeat 0)) vec)]
-    (->> beats
-         (mapcat
-           (fn [beat]
-             (let [items (sorted-beat-items beat)]
-               (reduce
-                 (fn [acc item]
-                   (let [index (cyclic-index duration (+ (:index beat) (:duration item)))
-                         item-elems (many (get-in item [:elements :id]))
-                         acc-elems (many (get acc index))
-                         elems (concat item-elems acc-elems)]
-                     (assoc acc index (distinct elems)))) {} items))))
-          (into (sorted-map))
-          (reduce-kv (fn [acc index elems]
-                       (assoc acc index elems)) signals) seq)))
-
+        signals (-> duration (take (repeat nil)) vec)]
+    (reduce
+      (fn [stops beat]
+        (let [items (sorted-beat-items beat)]
+          (reduce
+            (fn [acc item]
+              (let [index (cyclic-index duration (+ (:index beat) (:duration item)))
+                    item-elems (many (get-in item [:elements :id]))
+                    acc-elems (many (get acc index))
+                    elems (concat item-elems acc-elems)]
+                (assoc acc index (distinct elems))))
+            stops items)))
+        signals beats)))
 
 ; TODO: Consider keeping elements and instead proving "play" and "stop" quantized vectors outside of composed scroll/script
 ; (defn signify-beats
