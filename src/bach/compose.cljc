@@ -651,11 +651,13 @@
                                         elems (concat item-elems acc-elems)]
                                     (assoc acc index (distinct elems)))) {} items))))
                   (into (sorted-map)))]
-    (println "stops???????" duration stops)
-    (map-indexed (fn [index _]
-                   (let [cyndex (cyclic-index duration index)]
-                     (println "   ----   wut" index cyndex (get stops cyndex))
-                     (get stops cyndex))) signals)))
+    (reduce-kv (fn [acc index elems]
+                 (assoc acc index elems)) signals stops)))
+    ; (map-indexed (fn [index
+    ; (map-indexed (fn [index _]
+    ;                (let [cyndex (cyclic-index duration index)]
+    ;                  (println "   ----   wut" index cyndex (get stops cyndex))
+    ;                  (get stops cyndex))) signals)))
     ; (reduce (fn [acc [index elems]]
     ;           (let [sig-index (cyclic-index 
     ;           (println "@@@ index elems" index elems)

@@ -28,9 +28,10 @@
 (defn many
   "Normalizes sequences, sets, maps and scalar values into a sequence."
   [x]
-  (if (or (sequential? x) (set? x))
-    (seq x)
-    (cons x [])))
+  (cond
+    (or (sequential? x) (set? x)) (seq x)
+    (nil? x) []
+    :else (cons x [])))
 
 (defn cyclic-index
   [limit index]
