@@ -645,7 +645,7 @@
                               (reduce
                                 (fn [acc item]
                                   (println "stop item" item)
-                                  (let [index (cyclic-index duration (+ 1 (:index beat) (:duration item)))
+                                  (let [index (cyclic-index duration (+ (:index beat) (:duration item)))
                                         item-elems (many (get-in item [:elements :id]))
                                         acc-elems (many (get acc index))
                                         elems (concat item-elems acc-elems)]
