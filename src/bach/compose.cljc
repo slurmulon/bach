@@ -625,26 +625,64 @@
   (mapcat (fn [beat]
             (let [items (sorted-beat-items beat)
                   elems (all-beat-element-ids items)
-                  ; duration (:duration beat)
                   duration (->> items as-durations greatest-in)]
-              ; NOTE: Similar approach needed for stop-sigs, but needs to use `update` b/c we can't just use take+repeat
               (cons elems (take (- duration 1) (repeat 0))))) beats))
 
 (defn element-stop-signals
   [beats]
-  (mapcat (fn [beat]
-            (let [items (sorted-beat-items beat)
-                  duration (:duration beat)
-                  steps (-> duration (take (repeat 0)) vec)]
-                  ; duration (->> items as-durations greatest-in)
-                  ; elems (all-beat-elements items)
-              (reduce (fn [acc, item]
-                        (let [;elems (-> item vec all-beat-element-ids)
-                              elems (-> item (get-in [:elements :id]))
-                              ; index (- (:duration item) 1)]
-                              index (cyclic-index (+ 1 duration) (:duration item))]
-                          (println "--- reduce index" index item elems)
-                          (assoc acc index elems))) steps items))) beats))
+  (let [duration (->> beats as-durations (flatten-by +))
+        ; items (->> beats (mapcat sorted-beat-items))
+        signals (-> duration (take (repeat 0)) vec)
+        ; stops (reduce (fn [beat]
+        ;                 (let [items (sorted-beat-items beat)]
+        ;                   (reduce (fn [item]
+        ;                             (let [base (+ (:index beat) (:duration beat))
+        ;                                   index (cyclic-index duration base)]
+
+        stops (->> beats
+                  (mapcat (fn [beat]
+                           (let [items (sorted-beat-items beat)]
+                              (reduce
+                                (fn [acc item]
+                                  (println "stop item" item)
+                                  (let [index (cyclic-index duration (+ 1 (:index beat) (:duration item)))
+                                        item-elems (many (get-in item [:elements :id]))
+                                        acc-elems (many (get acc index))
+                                        elems (concat item-elems acc-elems)]
+                                    (assoc acc index (distinct elems)))) {} items))))
+                  (into (sorted-map)))]
+    (println "stops???????" duration stops)
+    (map-indexed (fn [index _]
+                   (let [cyndex (cyclic-index duration index)]
+                     (println "   ----   wut" index cyndex (get stops cyndex))
+                     (get stops cyndex))) signals)))
+    ; (reduce (fn [acc [index elems]]
+    ;           (let [sig-index (cyclic-index 
+    ;           (println "@@@ index elems" index elems)
+    ;           (assoc acc index elems)) signals stops)))
+
+        ; signals (-> duration (take (repeat 0)) vec)
+        ; size (+ 1 (count signals))]
+  ; FIXME: This approach using mapcat won't quite work because we have to loop back outside of a beat when doing stop indices (for instance, last beat that stops at beginning of next loop/repeat).
+  ; (mapcat (fn [beat]
+            ; (let [items (sorted-beat-items beat)
+            ;       index (:index beat)
+            ;       size (:duration beat)
+                  ; steps (-> size (take (repeat 0)) vec)
+                  ;size (+ 1 (count steps))]
+                  ; ]
+              ; (reduce (fn [acc, item]
+
+              ; (reduce (fn [acc, beat]
+              ;           (let [elems (get-in item [:elements :id])
+              ;                 duration (:duration item)
+              ;                 index (:index item)
+              ;                 ; steps (-> duration (take (repeat 0)) vec)
+              ;                 cyndex (cyclic-index size (+ index duration))]
+              ;                 ; index (cyclic-index duration (+ 1 (:duration item)))]
+              ;             ; FIXME: Now needs second reduce. Trying sorted-map approach instead.
+              ;             (assoc acc cindex elems))) signals beats)))
+  ; beats))
 
 
 
