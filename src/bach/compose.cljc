@@ -455,10 +455,11 @@
   "Creates an element from provided atom kind and arguments.
    Parsed bach 'atoms' are considered 'elements', each with a unique id."
   [kind args]
-  {:id (element-id)
-   :kind (clojure.string/lower-case kind)
-   :value (-> args first str)
-   :props (rest args)})
+  (let [element-kind (clojure.string/lower-case kind)]
+    {:id (str element-kind ":" (element-id))
+     :kind element-kind
+     :value (-> args first str)
+     :props (rest args)}))
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
@@ -541,20 +542,9 @@
         indices (linearize-indices identity durations)]
     (pmap #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
-; (defn assoc-beats
-;   [beats]
-;   "Associates beats with unique identifiers that can be used as reference pointers to the beat"
-;   (-> cast-tree
-;       (and (map? %) (:elements %))
-;       (fn [beat]
-;         (let [elems (:
-
 (defn linearize-beats
   [tree]
   (-> tree linearize-collections position-beats))
-
-
-
 
 (defn normalize-beats
   "Normalizes beats for linear uniform iteration by decorating them with
@@ -574,7 +564,7 @@
 
 (defn all-beats
   [beats as]
-  (->> beats (cast-tree map? as) flatten distinct)) ;vec))
+  (->> beats (cast-tree map? as) flatten distinct))
 
 (defn all-beat-elements
   [beats]
@@ -590,8 +580,7 @@
   (all-beats beats :items))
 
 (defn map-beat-elements
-  "Creates a single map containing all of the beat elements and their values, grouped by 'kind'.
-   Primarily used for centralizing and grouping the element reference pointers across every beat."
+  "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'."
   [beats]
   (->> beats
     all-beat-elements
@@ -618,15 +607,14 @@
 
 (defn sorted-beat-items
   [beat]
-  ; TODO: Consider adding index to each beat item here, for simpler element-stop-signals
-  ; (->> beat :items seq (sort-by :duration)))
-  (->> beat
-       :items
+  (->> beat :items
        (map #(assoc % :index (:index beat)))
-       seq
        (sort-by :duration)))
 
 (defn element-play-signals
+  "Provides a quantized (to q-pulses) sequence where each pulse beat contains the id
+  of every element that should be played when the pulse is visited during iteration.
+  Assumes beats are already normalized."
   [beats]
   (mapcat (fn [beat]
             (let [items (sorted-beat-items beat)
@@ -635,6 +623,9 @@
               (cons elems (take (- duration 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
+  "Provides a quantized (to q-pulses) sequence where each pulse beat contains the id
+  of every element that should be stopped when the pulse is visited during iteration.
+  Assumes beats are already normalized."
   [beats]
   (let [duration (as-reduced-durations beats)
         signals (-> duration (take (repeat nil)) vec)
@@ -655,26 +646,10 @@
 (defn map-element-signals
   [tree]
   (let [beats (normalize-beats tree)
-        ; elems (all-beat-elements beats)
-        ; items (all-beat-items beats)
-        ; steps (->> beats
-        ;            (map #(dissoc % :items))
-        ;            as-durations
-        ;            (map-indexed #(itemize %
-        ; play-sigs (map :index beats)
         play-sigs (element-play-signals beats)
         stop-sigs (element-stop-signals beats)]
     {:play play-sigs
      :stop stop-sigs}))
-
-        ; stop-steps (map #(:items beats play-steps)
-        ; stop-sigs (mapcat (fn [beat, play]
-        ;                     (let [items (seq (:items beat))
-        ;                           elems (all-beat-elements items)
-        ;                           ; stop (map #(+ index (:duration %)) items play-sigs)]
-        ;                           stop (map #(+ play (:duration %)) beats play-sigs)]
-
-        ; stop-steps (mapcat #(% -> :items seq)
 
 ; i.e. quantize
 ; defn stepify
