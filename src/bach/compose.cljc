@@ -502,7 +502,7 @@
 (defn transpose-collections
   "Aligns and transposes parallel collections of a parsed AST tree, enabling linear time-invariant iteration by consumers.
    More specifically, vectors nested in sets, which should be iterated in parallel in time-space, have their elements transposed into a single vector composed of sets (essentially, collection inversion).
-   In this vector, each element is a set containing all of the elements occuring at its time-index (i.e. column index), across all parallel/sibling vectors.
+   Each item of the vector is a set containing all of the elements occuring at its time-index (i.e. column index), across all parallel/sibling vectors.
    This ensures that resulting set trees are order agnostic, only containing non-sequentials and other sets.
    Input: [#{[:a :b] [:c :d]} :e :f]
    Ouput: [[#{:a :c} #{:b :d}] :e :f]"
@@ -563,8 +563,9 @@
 ;      signify-beats
 
 (defn all-beats
-  [beats as]
-  (->> beats (cast-tree map? as) flatten distinct))
+  ([beats] (all-beats beats identity))
+  ([beats as]
+   (->> beats (cast-tree map? as) flatten distinct)))
 
 (defn all-beat-elements
   [beats]
@@ -605,7 +606,7 @@
 ;   (let [beats (normalize-beats tree)
 ;         el
 
-(defn sorted-beat-items
+(defn index-beat-items
   [beat]
   (->> beat :items
        (map #(assoc % :index (:index beat)))
@@ -617,10 +618,9 @@
   Assumes beats are already normalized."
   [beats]
   (mapcat (fn [beat]
-            (let [items (sorted-beat-items beat)
-                  elems (all-beat-element-ids items)
-                  duration (->> items as-durations greatest-in)]
-              (cons elems (take (- duration 1) (repeat nil))))) beats))
+            (let [items (index-beat-items beat)
+                  elems (all-beat-element-ids items)]
+              (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
   "Provides a quantized (to q-pulses) sequence where each pulse beat contains the id
@@ -628,8 +628,8 @@
   Assumes beats are already normalized."
   [beats]
   (let [duration (as-reduced-durations beats)
-        signals (-> duration (take (repeat nil)) vec)
-        items (mapcat sorted-beat-items beats)]
+        items (mapcat index-beat-items beats)
+        signals (-> duration (take (repeat nil)) vec)]
     (reduce
       (fn [acc item]
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
@@ -638,11 +638,6 @@
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) signals items)))
 
-; TODO: Consider keeping elements and instead proving "play" and "stop" quantized vectors outside of composed scroll/script
-; (defn signify-beats
-; ; (defn signify-normalized-beats
-;   "Replaces :elements with :play and :stop vectors containing references to each beat element
-;    that should be started or stopped on a given q-pulse / step."
 (defn map-element-signals
   [tree]
   (let [beats (normalize-beats tree)
