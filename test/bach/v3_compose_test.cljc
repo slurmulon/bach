@@ -295,3 +295,4 @@
 ; (clojure.pprint/pprint (atomize-fixture fixture-nested-sets))
 
 (clojure.pprint/pprint (compose/map-element-signals (atomize-fixture fixture-nested-sets)))
+

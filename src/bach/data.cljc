@@ -24,10 +24,17 @@
   [size value]
   (take size (repeat value)))
 
+; cast-many
 (defn many
-  "Normalizes all sequences, sets, maps and scalar values into a sequence."
+  "Normalizes sequences, sets, maps and scalar values into a sequence."
   [x]
-  (if (or (sequential? x) (set? x)) (seq x) (cons x [])))
+  (if (or (sequential? x) (set? x))
+    (seq x)
+    (cons x [])))
+
+(defn cyclic-index
+  [limit index]
+  (mod (if (>= index 0) index (+ limit index)) limit))
 
 (defn hiccup-to-hash-map
   "Converts an instaparse :hiccup tree as a hash map"

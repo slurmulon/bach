@@ -581,7 +581,7 @@
   ; WARN: if elements have an id already, all-beats/distinct is meaningless!
   (all-beats beats :elements))
 
-(defn all-beat-element-keys
+(defn all-beat-element-ids
   [beats]
   (all-beats beats #(get-in % [:elements :id])))
 
@@ -616,6 +616,38 @@
 ;   (let [beats (normalize-beats tree)
 ;         el
 
+(defn sorted-beat-items
+  [beat]
+  (->> beat :items seq (sort-by :duration)))
+
+(defn element-play-signals
+  [beats]
+  (mapcat (fn [beat]
+            (let [items (sorted-beat-items beat)
+                  elems (all-beat-element-ids items)
+                  ; duration (:duration beat)
+                  duration (->> items as-durations greatest-in)]
+              ; NOTE: Similar approach needed for stop-sigs, but needs to use `update` b/c we can't just use take+repeat
+              (cons elems (take (- duration 1) (repeat 0))))) beats))
+
+(defn element-stop-signals
+  [beats]
+  (mapcat (fn [beat]
+            (let [items (sorted-beat-items beat)
+                  duration (:duration beat)
+                  steps (-> duration (take (repeat 0)) vec)]
+                  ; duration (->> items as-durations greatest-in)
+                  ; elems (all-beat-elements items)
+              (reduce (fn [acc, item]
+                        (let [;elems (-> item vec all-beat-element-ids)
+                              elems (-> item (get-in [:elements :id]))
+                              ; index (- (:duration item) 1)]
+                              index (cyclic-index (+ 1 duration) (:duration item))]
+                          (println "--- reduce index" index item elems)
+                          (assoc acc index elems))) steps items))) beats))
+
+
+
 ; TODO: Consider keeping elements and instead proving "play" and "stop" quantized vectors outside of composed scroll/script
 ; (defn signify-beats
 ; ; (defn signify-normalized-beats
@@ -631,15 +663,10 @@
         ;            as-durations
         ;            (map-indexed #(itemize %
         ; play-sigs (map :index beats)
-        play-sigs (mapcat (fn [beat]
-                            (let [items (->> beat :items seq (sort-by :duration))
-                                  duration (->> items as-durations greatest-in)
-                                  ;items (seq (:items beat))
-                                  elems (all-beat-element-keys items)]
-                              ; NOTE: Similar approach needed for stop-sigs, but needs to use `update` b/c we can't just use take+repeat
-                              (cons elems (take (- duration 1) (repeat 0))))) beats)
-                              ]
-    {:play play-sigs}))
+        play-sigs (element-play-signals beats)
+        stop-sigs (element-stop-signals beats)]
+    {:play play-sigs
+     :stop stop-sigs}))
 
         ; stop-steps (map #(:items beats play-steps)
         ; stop-sigs (mapcat (fn [beat, play]
