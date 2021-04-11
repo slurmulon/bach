@@ -500,19 +500,19 @@
   (->> tree normalize-collections as-reduced-durations))
 
 (defn transpose-collections
-  "Aligns and transposes parallel collections of a parsed AST tree, enabling linear time-invariant iteration by consumers.
-   More specifically, vectors nested in sets, which should be iterated in parallel in time-space, have their elements transposed into a single vector composed of sets (essentially, collection inversion).
-   Each item of the vector is a set containing all of the elements occuring at its time-index (i.e. column index), across all parallel/sibling vectors.
+  "Aligns and transposes parallel collection elements of a parsed AST tree, enabling linear time-invariant iteration by consumers.
+   Each item of the resulting sequence is a set containing all of the elements occuring at its time/column-index, across all parallel/sibling vectors.
    This ensures that resulting set trees are order agnostic, only containing non-sequentials and other sets.
    Input: [#{[:a :b] [:c :d]} :e :f]
    Ouput: [[#{:a :c} #{:b :d}] :e :f]"
   [tree]
   (->> tree
        normalize-collections
-       (cast-tree set? (fn [set-coll]
-                         (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
-                               aligned-items (->> set-items transpose (mapv #(into #{} %)))]
-                           (if (next aligned-items) aligned-items (first aligned-items)))))))
+       (cast-tree set?
+         (fn [set-coll]
+           (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
+                 aligned-items (->> set-items transpose (mapv #(into #{} %)))]
+             (if (next aligned-items) aligned-items (first aligned-items)))))))
 
 (defn linearize-collections
   "Linearly transposes and flattens all collections in the provided N-ary tree into a 1-ary sequence."
