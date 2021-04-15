@@ -503,13 +503,19 @@
   "Linearizes and normalizes every element's :duration in parsed AST tree against the unit within a meter.
    Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
    In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
-  [tree unit meter]
-  (->> tree
-       linearize-collections
-       (cast-tree
-         #(and (map? %) (:duration %))
-         #(let [duration (int (normalize-duration (:duration %) unit meter))]
-            (assoc % :duration duration)))))
+  ; TODO: Probably break out as unitize-track
+  ([tree]
+    (let [track (reduce-track tree)
+          unit (get-pulse-beat track)
+          meter (get-meter-ratio track)]
+      (unitize-collections track unit meter)))
+  ([tree unit meter]
+    (->> tree
+        linearize-collections
+        (cast-tree
+          #(and (map? %) (:duration %))
+          #(let [duration (int (normalize-duration (:duration %) unit meter))]
+              (assoc % :duration duration))))))
 
 ; itemize-beats
 (defn position-beats
@@ -530,11 +536,13 @@
   durations and indices based on a unit (q-pulse by default) within a meter."
   ([tree]
     (let [track (reduce-track tree)
-          meter (get-meter-ratio track)
-          unit (get-pulse-beat track)]
-      (normalize-beats track meter unit)))
+          unit (get-pulse-beat track)
+          meter (get-meter-ratio track)]
+      (normalize-beats track unit meter)))
   ([tree unit meter]
    (-> tree (unitize-collections unit meter) position-beats)))
+
+(def normalize-beats! (memoize normalize-beats))
 
 (defn all-beat-items
   "Provides all of the items in collection of beats as a vector.
@@ -565,22 +573,6 @@
   [elem]
   (->> elem many (map :id)))
 
-(defn provision-elements
-  "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'.
-  Assumes beats are already normalized."
-  [beats]
-  (->>
-    beats
-    all-beat-elements
-    (reduce
-      (fn [acc element]
-        (let [id (:id element)
-              kind (element-kind element)
-              data (select-keys element [:value :props])]
-          (if (empty? element)
-            acc
-            (assoc-in acc [kind id] data)))) {})))
-
 (defn index-beat-items
   "Adds the provided beat's index to each of its items.
   Allows beat items to be handled independently of their parent beat.
@@ -589,6 +581,12 @@
   (->> beat :items
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
+
+(defn pulse-beat-signals
+  "Transforms parsed AST tree into a quantized sequence (to q-pulses) where each pulse beat contains
+  the index of its associated normalized beat (i.e. intersecting with the beat's quantized duration)."
+  [tree]
+  (->> tree unitize-collections (map as-reduced-durations) stretch))
 
 (defn element-play-signals
   "Provides a quantized sequence (in q-pulses) where each pulse beat contains the id
@@ -616,15 +614,32 @@
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) signals items)))
 
+(defn provision-elements
+  "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'.
+  Assumes beats are already normalized."
+  [beats]
+  (->>
+    beats
+    all-beat-elements
+    (reduce
+      (fn [acc element]
+        (let [id (:id element)
+              kind (element-kind element)
+              data (select-keys element [:value :props])]
+          (if (empty? element)
+            acc
+            (assoc-in acc [kind id] data)))) {})))
+
 (defn provision-signals
   "Provisions quantized play and stop signals for every beat element in the tree.
   Enables state-agnostic and declarative event handling of beat elements by consumers."
-  [beats]
-  ; [tree]
-  ; (let [beats (normalize-beats tree)
-  (let [play-sigs (element-play-signals beats)
+  [tree]
+  (let [beats (normalize-beats! tree)
+        beat-sigs (pulse-beat-signals tree)
+        play-sigs (element-play-signals beats)
         stop-sigs (element-stop-signals beats)]
-    {:play play-sigs
+    {:beat beat-sigs
+     :play play-sigs
      :stop stop-sigs}))
 
 (defn provision-beat-items
@@ -697,19 +712,17 @@
 (defn provision
   [track]
   (when (validate track)
-    ; (println "\n\n-------- VALID TRACK!\n\n")
-    ; (clojure.pprint/pprint track)
-    (let [headers (provision-headers track)
+    (let [beats (normalize-beats! track)
+          headers (provision-headers track)
           units (provision-units track)
-          beats (normalize-beats track)
-          data (provision-beats beats)
-          signals (provision-signals beats)
+          signals (provision-signals track)
           elements (provision-elements beats)
+          data (provision-beats beats)
           source {:headers headers
                   :units units
                   :signals signals
                   :elements elements
-                  :data data}]
+                  :beats data}]
       #?(:clj source
          :cljs (to-json source)))))
 

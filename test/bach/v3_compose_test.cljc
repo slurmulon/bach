@@ -381,7 +381,13 @@
                    nil
                    nil
                    ["stub:5"]]]
-         (is (= want actual)))))))
+         (is (= want actual)))))
+   (testing "pulse beats"
+     (reset-id!)
+     (let [tree (atomize-fixture fixture-a)
+           actual (compose/pulse-beat-signals tree)
+           want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
+       (is (= want actual))))))
 
 (deftest provision
   (with-redefs [compose/element-id next-id!]
@@ -402,5 +408,9 @@
 
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/validate))
 (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
+; (println (time (-> fixture-a atomize-fixture compose/provision)))
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision-beats))
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/normalize-beats compose/provision-beats))
+; (clojure.pprint/pprint (-> fixture-a compose/normalize-beats))
+; (clojure.pprint/pprint (-> fixture-a compose/linearize-collections))
+; (clojure.pprint/pprint (-> fixture-a compose/pulse-beat-signals))
