@@ -315,22 +315,22 @@
       (is (= want actual)))))
 
 (deftest signals
-  (with-redefs [compose/element-id next-id!]
+  (with-redefs [compose/unique-id next-id!]
     (testing "play"
       (reset-id!)
       (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/element-play-signals)
-            want [["stub:1"]
-                  ["stub:2" "stub:3"]
+            want [["stub.1"]
+                  ["stub.2" "stub.3"]
                   nil
                   nil
-                  ["stub:4" "stub:6"]
+                  ["stub.4" "stub.6"]
                   nil
                   nil
                   nil
                   nil
                   nil
-                  ["stub:5" "stub:7" "stub:8"]
+                  ["stub.5" "stub.7" "stub.8"]
                   nil
                   nil
                   nil
@@ -344,43 +344,43 @@
        (reset-id!)
        (let [tree (atomize-fixture fixture-a)
              actual (-> tree compose/normalize-beats compose/element-stop-signals)
-             want [["stub:8"]
-                   ["stub:1"]
+             want [["stub.8"]
+                   ["stub.1"]
                    nil
-                   ["stub:2"]
-                   ["stub:3"]
-                   nil
-                   nil
-                   nil
-                   ["stub:4"]
-                   nil
-                   ["stub:6"]
+                   ["stub.2"]
+                   ["stub.3"]
                    nil
                    nil
                    nil
+                   ["stub.4"]
                    nil
-                   ["stub:5"]
+                   ["stub.6"]
                    nil
-                   ["stub:7"]]]
+                   nil
+                   nil
+                   nil
+                   ["stub.5"]
+                   nil
+                   ["stub.7"]]]
          (is (= want actual))))
      (testing "simultaneous occurence"
        (reset-id!)
        (let [tree (atomize-fixture fixture-b)
              actual (-> tree compose/normalize-beats compose/element-stop-signals)
-             want [["stub:7"]
-                   ["stub:1"]
+             want [["stub.7"]
+                   ["stub.1"]
                    nil
-                   ["stub:2"]
-                   ["stub:3"]
-                   nil
-                   nil
-                   nil
-                   ["stub:4" "stub:6"]
+                   ["stub.2"]
+                   ["stub.3"]
                    nil
                    nil
                    nil
+                   ["stub.4" "stub.6"]
                    nil
-                   ["stub:5"]]]
+                   nil
+                   nil
+                   nil
+                   ["stub.5"]]]
          (is (= want actual)))))
    (testing "pulse beats"
      (reset-id!)
@@ -390,20 +390,21 @@
        (is (= want actual))))))
 
 (deftest provision
-  (with-redefs [compose/element-id next-id!]
+  (with-redefs [compose/unique-id next-id!]
     (testing "elements"
       (reset-id!)
       (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/provision-elements)
             want {:stub
-                   {"stub:1" {:value "a", :props ()},
-                    "stub:2" {:value "b", :props ()},
-                    "stub:3" {:value "c", :props ()},
-                    "stub:6" {:value "f", :props ()},
-                    "stub:4" {:value "d", :props ()},
-                    "stub:8" {:value "h", :props ()},
-                    "stub:5" {:value "e", :props ()},
-                    "stub:7" {:value "g", :props ()}}}]
+                   {"stub.1" {:value "a", :props ()},
+                    "stub.2" {:value "b", :props ()},
+                    "stub.3" {:value "c", :props ()},
+                    "stub.6" {:value "f", :props ()},
+                    "stub.4" {:value "d", :props ()},
+                    "stub.8" {:value "h", :props ()},
+                    "stub.5" {:value "e", :props ()},
+                    "stub.7" {:value "g", :props ()}}}]
+        (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/validate))

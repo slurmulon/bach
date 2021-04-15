@@ -32,11 +32,21 @@
                     :ms-per-pulse-beat 0
                     :ms-per-beat-unit 0})
 
-(def element-id #(nano-id 4))
+; (def element-id #(nano-id 4))
+(def unique-id #(nano-id 4))
 
 (defn element-kind
   [elem]
-  (keyword (:kind elem)))
+  ; TODO: if-let
+  (if (map? elem)
+    (-> elem :kind element-kind)
+    (-> elem name clojure.string/lower-case keyword)))
+
+(defn element-id
+  ([{id :id} elem] id)
+  ([elem]
+   ; (str kind "." (micro-id))))
+   (str (-> elem element-kind name) "." (unique-id))))
 
 ; TODO: Probably just use nanoid instead and remove `tag`
 
@@ -432,11 +442,12 @@
   "Creates an element from provided atom kind and arguments.
    Parsed bach 'atoms' are considered 'elements', each with a unique id."
   [kind args]
-  (let [element-kind (clojure.string/lower-case kind)]
-    {:id (str element-kind ":" (element-id))
-     :kind element-kind
+  ; (let [element-kind (clojure.string/lower-case kind)]
+    {;:id (str element-kind ":" (element-id))
+     :id (element-id kind)
+     :kind (element-kind kind) ;element-kind
      :value (-> args first str)
-     :props (rest args)}))
+     :props (rest args)})
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
@@ -623,8 +634,9 @@
     all-beat-elements
     (reduce
       (fn [acc element]
+        ; when-let
         (let [id (:id element)
-              kind (element-kind element)
+              kind (:kind element)
               data (select-keys element [:value :props])]
           (if (empty? element)
             acc
@@ -650,8 +662,8 @@
            (assoc % :elements elems)) items))
 
 (defn provision-beat
-  "Provision a single beat and its items for playback.
-  Assumes beats are already normalized."
+  "Provision a single normalized beat and its items for playback.
+  Assumes beat is already normalized."
   [beat]
   (let [items (-> beat :items provision-beat-items)]
     (assoc beat :items items)))
