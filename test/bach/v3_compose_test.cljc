@@ -20,7 +20,10 @@
 (def next-id! #(swap! id-counter inc))
 (def next-ids! #(take % (repeatedly next-id!)))
 
-(def fixture-nested-sets
+; Nested collections
+;  - Ordered (lists) within unordered (sets)
+;  - Simultaneous play signals, separate stop signals
+(def fixture-a
   [:list
     [:pair
       [:number "1"]
@@ -37,6 +40,25 @@
         [:set
           [:pair [:number "7"] [:identifier :g]]
           [:pair [:number "8"] [:identifier :h]]]]]])
+
+; Nested collections
+;  - Ordered (lists) within unordered (sets)
+;  - Simultaneous play signals, simultaneous stop signals
+(def fixture-b
+  [:list
+    [:pair
+      [:number "1"]
+      [:identifier :a]]
+    [:set
+      [:pair [:number "2"] [:identifier :b]]
+      [:pair [:number "3"] [:identifier :c]]]
+    [:set
+      [:list
+        [:pair [:number "4"] [:identifier :d]]
+        [:pair [:number "5"] [:identifier :e]]]
+      [:list
+        [:pair [:number "4"] [:identifier :f]]
+        [:pair [:number "6"] [:identifier :f]]]]])
 
 (defn atomize-fixture
   [fixture]
@@ -239,7 +261,7 @@
             actual (compose/linearize-collections tree)]
         (is (= want actual))))
     (testing "set -> list -> set"
-      (let [tree fixture-nested-sets
+      (let [tree fixture-a
             want [{:duration 1 :elements [:identifier :a]}
                   #{{:duration 2 :elements [:identifier :b]}
                     {:duration 3 :elements [:identifier :c]}}
@@ -253,7 +275,7 @@
 
 (deftest beats
   (testing "linearize"
-    (let [tree fixture-nested-sets
+    (let [tree fixture-a
           want [{:items #{{:duration 1, :elements [:identifier :a]}},
                  :duration 1,
                  :index 0}
@@ -276,7 +298,7 @@
           actual (compose/linearize-beats tree)]
       (is (= want actual))))
   (testing "normalize"
-    (let [tree fixture-nested-sets
+    (let [tree fixture-a
           want [{:items #{{:duration 2, :elements [:identifier :a]}},
                  :duration 2,
                  :index 0}
@@ -304,7 +326,7 @@
   (with-redefs [compose/element-id next-id!]
     (testing "play"
       (reset-id!)
-      (let [tree (atomize-fixture fixture-nested-sets)
+      (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/element-play-signals)
             want [["stub:1"]
                   ["stub:2" "stub:3"]
@@ -326,35 +348,55 @@
                   nil]]
         (is (= want actual))))
    (testing "stop"
-      (reset-id!)
-      (let [tree (atomize-fixture fixture-nested-sets)
-            actual (-> tree compose/normalize-beats compose/element-stop-signals)
-            want [["stub:8"]
-                  ["stub:1"]
-                  nil
-                  ["stub:2"]
-                  ["stub:3"]
-                  nil
-                  nil
-                  nil
-                  ["stub:4"]
-                  nil
-                  ["stub:6"]
-                  nil
-                  nil
-                  nil
-                  nil
-                  ["stub:5"]
-                  nil
-                  ["stub:7"]]]
-        (is (= want actual))))))
+     (testing "separate occurence"
+       (reset-id!)
+       (let [tree (atomize-fixture fixture-a)
+             actual (-> tree compose/normalize-beats compose/element-stop-signals)
+             want [["stub:8"]
+                   ["stub:1"]
+                   nil
+                   ["stub:2"]
+                   ["stub:3"]
+                   nil
+                   nil
+                   nil
+                   ["stub:4"]
+                   nil
+                   ["stub:6"]
+                   nil
+                   nil
+                   nil
+                   nil
+                   ["stub:5"]
+                   nil
+                   ["stub:7"]]]
+         (is (= want actual))))
+     (testing "simultaneous occurence"
+       (reset-id!)
+       (let [tree (atomize-fixture fixture-b)
+             actual (-> tree compose/normalize-beats compose/element-stop-signals)
+             want [["stub:7"]
+                   ["stub:1"]
+                   nil
+                   ["stub:2"]
+                   ["stub:3"]
+                   nil
+                   nil
+                   nil
+                   ["stub:4" "stub:6"]
+                   nil
+                   nil
+                   nil
+                   nil
+                   ["stub:5"]]]
+         (is (= want actual)))))))
 
 ; (println "smoke test")
 ; TODO: Works, but write tests for this
-; (clojure.pprint/pprint (compose/normalize-beats (atomize-fixture fixture-nested-sets)))
-; (clojure.pprint/pprint (atomize-fixture fixture-nested-sets))
+; (clojure.pprint/pprint (compose/normalize-beats (atomize-fixture fixture-a)))
+; (clojure.pprint/pprint (atomize-fixture fixture-a))
 
-; (clojure.pprint/pprint (compose/map-element-signals (atomize-fixture fixture-nested-sets)))
+; (clojure.pprint/pprint (compose/map-element-signals (atomize-fixture fixture-a)))
 
 ; (println "\n\nIDSSSSS\n\n")
 ; (clojure.pprint/pprint (get-seq-ids 10))
