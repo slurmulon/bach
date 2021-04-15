@@ -540,46 +540,50 @@
 (defn all-beats
   ([beats] (all-beats beats identity))
   ([beats as]
-   (->> beats (cast-tree map? as) flatten distinct)))
+   (->> beats
+        (cast-tree set? vec)
+        (cast-tree map? as)
+        flatten)))
 
-(defn all-beat-elements
-  [beats]
-  ; WARN: if elements have an id already, all-beats/distinct is meaningless!
-  (all-beats beats :elements))
-
+; FIXME: Only works if provided an item, can't pass in the entire beat tree
 (defn all-beat-element-ids
   [beats]
   (all-beats beats #(get-in % [:elements :id])))
 
 (defn all-beat-items
   [beats]
-  (all-beats beats :items))
+  (mapcat #(-> % :items vec) beats))
 
-(defn map-beat-elements
-  "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'."
+(defn all-beat-elements
   [beats]
-  (->> beats
-    all-beat-elements
-    (reduce (fn [acc element]
-      (let [id (or (:id element) (element-id))
-            kind (element-kind element)]
-        (if (empty? element)
-          acc
-          (assoc-in acc [kind id] (:value element))))) {})))
+  (->> beats all-beat-items (map :elements)))
 
-; TODO: Rename to just normalize eventually
-; (defn linearize-track
-;   [track]
-;   (let [meter (get-meter-ratio track)
-;         pulse-beat (get-pulse-beat track)]
-;     (insta/transform
-;       {:play normalize-collections}
-;       track)))
+; (defn map-beat-elements
+(defn provision-elements
+  "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'.
+  Assumes beats are already normalized."
+  [beats]
+  (all-beat-elements beats))
+  ; (all-beats beats))
+  ; (get-in (all-beats beats) [:items :elements]))
+  ; (all-beat-element-ids beats))
+  ; (all-beat-items beats))
 
-; (defn sectionize-beats
-;   [tree]
-;   (let [beats (normalize-beats tree)
-;         el
+  ; (all-beat-elements beats))
+  ; beats)
+  ;(->> beats
+  ;  ;all-beat-elements
+  ;  all-beat-items
+  ;  ; all-beat-element-ids
+  ; ))
+    ; (reduce
+    ;   (fn [acc element]
+    ;     (let [id (:id element)
+    ;           kind (element-kind element)
+    ;           data (select-keys element [:value :props])]
+    ;       (if (empty? element)
+    ;         acc
+    ;         (assoc-in acc [kind id] data)))) {})))
 
 (defn index-beat-items
   "Adds beat index to each of the beat items.
@@ -616,7 +620,7 @@
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) signals items)))
 
-(defn map-element-signals
+(defn provision-signals
   [tree]
   (let [beats (normalize-beats tree)
         play-sigs (element-play-signals beats)
@@ -624,12 +628,25 @@
     {:play play-sigs
      :stop stop-sigs}))
 
-; i.e. quantize
-; defn stepify
-
-; provision-units
+(defn provision-units
+  [track]
+  {:total-beats (get-total-beats track)
+   :total-beat-units (get-total-beat-units track)
+   :total-pulse-beats (get-total-pulse-beats track)
+   :beat-units-per-measure (get-beat-units-per-measure track)
+   :pulse-beats-per-measure (get-pulse-beats-per-measure track)
+   :ms-per-beat-unit (get-ms-per-beat track :unit)
+   :ms-per-pulse-beat (get-ms-per-beat track :pulse)
+   :beat-unit (get-beat-unit track)
+   :pulse-beat (get-pulse-beat track)})
 
 (defn provision-headers
+  [track]
+  (let [headers (get-headers track)
+        meter (get-meter track)]
+    (assoc headers :meter meter)))
+
+(defn provision-headers-orig
   "Combines default static meta information with dynamic meta information to provide a provisioned set of headers.
   Several headers could easily be calculated by a client interpreter, but they are intentionally defined here to refine rhythmic semantics and simplify synchronization."
   [track]
@@ -656,9 +673,25 @@
            :beat-unit beat-unit
            :pulse-beat pulse-beat)))
 
+(defn provision
+  [track]
+  (when (validate track)
+    (let [headers (provision-headers track)
+          units (provision-units track)
+          beats (normalize-beats track)
+          signals (provision-signals beats)
+          ; elements (provision-elements beats)
+          source {:headers headers
+                  :units units
+                  :signals signals
+                  :data beats}]
+      #?(:clj source
+         :cljs (to-json source)))))
+
+
 ; TODO: Allow track to be provisioned in flat/stream mode (i.e. no measures, just evenly sized beats)
 ; TODO: Add `version` property
-(defn provision
+(defn provision-orig
   "Provisions a parsed track, generating and organizating all of the information necessary to easily
    interpret a track as a single stream of normalized data (no references, all values are resolved and optimized)."
   [track]
