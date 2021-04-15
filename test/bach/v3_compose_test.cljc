@@ -1,9 +1,25 @@
 (ns bach.v3-compose-test
   (:require #?(:clj [clojure.test :refer [deftest is testing]]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
+            ; #?(:clj [clojure.test.check.generators :as gen])
+            ; https://github.com/clojure/test.check/blob/master/doc/intro.md#clojurescript
             [instaparse.core :as insta]
             [bach.compose :as compose]
             [bach.data :refer [to-ratio]]))
+
+; (def seq-ids #(take 1 (range)))
+; (def gen-seq-ids (gen/fmap sort (gen/vector-distinct gen/small-integer)))
+
+; (defn get-seq-ids
+;   [n]
+;   (-> (gen/sample gen-seq-ids n) flatten distinct sort))
+; ; (gen/sample seq-ids n)
+
+(def counter (atom 0))
+
+(def next-id #(swap! counter inc))
+
+(def next-ids #(take % (repeatedly next-id)))
 
 (def fixture-nested-sets
   [:list
@@ -259,10 +275,6 @@
                  :duration 8,
                  :index 10}]
           actual (compose/linearize-beats tree)]
-      ; (println "\n\n~~~~~~~~~~~~~~~~~~~\n\n")
-      ; (clojure.pprint/pprint (compose/normalize-beats tree 1 4/4))
-      ; (clojure.pprint/pprint (compose/quantize-beats tree))
-      ; (clojure.pprint/pprint actual)
       (is (= want actual))))
   (testing "normalize"
     (let [tree fixture-nested-sets
@@ -289,10 +301,40 @@
       (clojure.pprint/pprint actual)
       (is (= want actual)))))
 
-(println "smoke test")
+(deftest signals
+  ; (with-redefs-fn (#'compose/element-id (fn [] (next-id)))
+  (with-redefs [compose/element-id next-id]
+    (testing "play"
+      (let [tree (atomize-fixture fixture-nested-sets)
+            actual (-> tree compose/normalize-beats compose/element-play-signals)
+            want [["stub:1"]
+                  ["stub:2" "stub:3"]
+                  nil
+                  nil
+                  ["stub:4" "stub:6"]
+                  nil
+                  nil
+                  nil
+                  nil
+                  nil
+                  ["stub:5" "stub:7" "stub:8"]
+                  nil
+                  nil
+                  nil
+                  nil
+                  nil
+                  nil
+                  nil]]
+        (println "\n\n--------- signals play -----------\n\n")
+        (clojure.pprint/pprint actual)
+        (is (= want actual))))))
+
+; (println "smoke test")
 ; TODO: Works, but write tests for this
-; (clojure.pprint/pprint (compose/normalize-collections (atomize-fixture fixture-nested-sets)))
+; (clojure.pprint/pprint (compose/normalize-beats (atomize-fixture fixture-nested-sets)))
 ; (clojure.pprint/pprint (atomize-fixture fixture-nested-sets))
 
-(clojure.pprint/pprint (compose/map-element-signals (atomize-fixture fixture-nested-sets)))
+; (clojure.pprint/pprint (compose/map-element-signals (atomize-fixture fixture-nested-sets)))
 
+; (println "\n\nIDSSSSS\n\n")
+; (clojure.pprint/pprint (get-seq-ids 10))
