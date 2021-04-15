@@ -7,14 +7,6 @@
             [bach.compose :as compose]
             [bach.data :refer [to-ratio]]))
 
-; (def seq-ids #(take 1 (range)))
-; (def gen-seq-ids (gen/fmap sort (gen/vector-distinct gen/small-integer)))
-
-; (defn get-seq-ids
-;   [n]
-;   (-> (gen/sample gen-seq-ids n) flatten distinct sort))
-; ; (gen/sample seq-ids n)
-
 (def id-counter (atom 0))
 (def reset-id! #(reset! id-counter 0))
 (def next-id! #(swap! id-counter inc))
@@ -65,12 +57,11 @@
   (insta/transform
     {:pair (fn [duration beat]
              [:pair
-              duration
-              [:atom
-                [:keyword [:name "stub"]]
-                ; [:string "'stub'"]
-                ; [:arguments [:string (name (last beat))]]]]])} fixture))
-                [:arguments [:string (->> beat last name (format "'%s'"))]]]])} fixture))
+               duration
+               [:atom
+                 [:keyword [:name "stub"]]
+                 [:arguments [:string (->> beat last name (format "'%s'"))]]]])}
+    fixture))
 
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
 ; (deftest ^:v3 normalization
@@ -391,12 +382,20 @@
                    ["stub:5"]]]
          (is (= want actual)))))))
 
-; (println "smoke test")
-; TODO: Works, but write tests for this
-; (clojure.pprint/pprint (compose/normalize-beats (atomize-fixture fixture-a)))
-; (clojure.pprint/pprint (atomize-fixture fixture-a))
+(deftest provision
+  (with-redefs [compose/element-id next-id!]
+    (testing "elements"
+      (reset-id!)
+      (let [tree (atomize-fixture fixture-a)
+            actual (-> tree compose/normalize-beats compose/provision-elements)
+            want {:stub
+                   {"stub:1" {:value "a", :props ()},
+                    "stub:2" {:value "b", :props ()},
+                    "stub:3" {:value "c", :props ()},
+                    "stub:6" {:value "f", :props ()},
+                    "stub:4" {:value "d", :props ()},
+                    "stub:8" {:value "h", :props ()},
+                    "stub:5" {:value "e", :props ()},
+                    "stub:7" {:value "g", :props ()}}}]
+        (is (= want actual))))))
 
-; (clojure.pprint/pprint (compose/map-element-signals (atomize-fixture fixture-a)))
-
-; (println "\n\nIDSSSSS\n\n")
-; (clojure.pprint/pprint (get-seq-ids 10))

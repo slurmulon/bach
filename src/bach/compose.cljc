@@ -563,30 +563,20 @@
   "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'.
   Assumes beats are already normalized."
   [beats]
-  (all-beat-elements beats))
-  ; (all-beats beats))
-  ; (get-in (all-beats beats) [:items :elements]))
-  ; (all-beat-element-ids beats))
-  ; (all-beat-items beats))
-
-  ; (all-beat-elements beats))
-  ; beats)
-  ;(->> beats
-  ;  ;all-beat-elements
-  ;  all-beat-items
-  ;  ; all-beat-element-ids
-  ; ))
-    ; (reduce
-    ;   (fn [acc element]
-    ;     (let [id (:id element)
-    ;           kind (element-kind element)
-    ;           data (select-keys element [:value :props])]
-    ;       (if (empty? element)
-    ;         acc
-    ;         (assoc-in acc [kind id] data)))) {})))
+  (->>
+    beats
+    all-beat-elements
+    (reduce
+      (fn [acc element]
+        (let [id (:id element)
+              kind (element-kind element)
+              data (select-keys element [:value :props])]
+          (if (empty? element)
+            acc
+            (assoc-in acc [kind id] data)))) {})))
 
 (defn index-beat-items
-  "Adds beat index to each of the beat items.
+  "Adds the provided beat's index to each of its items.
   Allows beat items to be handled independently of their parent beat.
   Assumes beats are already normalized."
   [beat]
