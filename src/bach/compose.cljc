@@ -408,26 +408,7 @@
      reduced-track)
     @measures))
 
-
-
-  ; defn normalize-elements
-  ;  - Transforms native AST tree structure into a simplified form, preparing it for consumption
-
-  ; Iterate through each high-level loop exported by Play!
-  ;  - May need to post-process instaparse/transform
-  ; For each of these root loops, reduce all nested loops and their elements, in order. "Reduce" meaning:
-  ;  - Combined total duration (in pulse beats!) of child loops
-  ;    - Use `normalize-duration` for this
-  ;  - Upsert list of elements that occur at each pulse beat
-  ; NOTE:
-  ;  - `quantize-track`, once written, should use the output of this to create a step-wise list where each element represents a single pulse beat
-; (defn linearize-track
-;   [track]
-;   (let [meter (get-meter-ratio track)
-;         pulse-beat (get-pulse-beat track)]
-;     (insta/transform
-;       {:play normalize-collections}
-;       track)))
+; ------ V3 --------
 
 (defn as-durations
   [tree]
@@ -466,6 +447,8 @@
        :pair #(assoc {} :duration %1 :elements %2)})))
 
 (defn reduce-durations
+  "Transforms a tree of duration nodes and into a single total duration
+  according to bach's nesting rules (max of sets, sum of seqentials)."
   [tree]
   (clojure.walk/postwalk
     #(cond
@@ -475,14 +458,17 @@
     tree))
 
 (defn as-reduced-durations
+  "Transforms a parsed AST tree into a homogenous duration tree, then reduces it."
   [tree]
   (->> tree as-durations reduce-durations))
 
 (defn quantize-durations
+  "Transforms a parsed AST tree into a 1-ary sequence quantized to the tree's reduced durations.
+  In practice this enables uniform, linear and stateless interpolation of a nested tree of durations."
   [tree]
-  (->> tree (map as-reduced-durations) stretch))
+  (->> tree (pmap as-reduced-durations) stretch))
 
-; TODO: Probably rename in light of `position-beats`
+; TODO: Probably just remove
 (defn normalize-durations
   [tree]
   (->> tree normalize-collections as-reduced-durations))
