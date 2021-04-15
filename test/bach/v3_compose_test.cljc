@@ -15,11 +15,10 @@
 ;   (-> (gen/sample gen-seq-ids n) flatten distinct sort))
 ; ; (gen/sample seq-ids n)
 
-(def counter (atom 0))
-
-(def next-id #(swap! counter inc))
-
-(def next-ids #(take % (repeatedly next-id)))
+(def id-counter (atom 0))
+(def reset-id! #(reset! id-counter 0))
+(def next-id! #(swap! id-counter inc))
+(def next-ids! #(take % (repeatedly next-id!)))
 
 (def fixture-nested-sets
   [:list
@@ -302,9 +301,9 @@
       (is (= want actual)))))
 
 (deftest signals
-  ; (with-redefs-fn (#'compose/element-id (fn [] (next-id)))
-  (with-redefs [compose/element-id next-id]
+  (with-redefs [compose/element-id next-id!]
     (testing "play"
+      (reset-id!)
       (let [tree (atomize-fixture fixture-nested-sets)
             actual (-> tree compose/normalize-beats compose/element-play-signals)
             want [["stub:1"]
@@ -325,8 +324,29 @@
                   nil
                   nil
                   nil]]
-        (println "\n\n--------- signals play -----------\n\n")
-        (clojure.pprint/pprint actual)
+        (is (= want actual))))
+   (testing "stop"
+      (reset-id!)
+      (let [tree (atomize-fixture fixture-nested-sets)
+            actual (-> tree compose/normalize-beats compose/element-stop-signals)
+            want [["stub:8"]
+                  ["stub:1"]
+                  nil
+                  ["stub:2"]
+                  ["stub:3"]
+                  nil
+                  nil
+                  nil
+                  ["stub:4"]
+                  nil
+                  ["stub:6"]
+                  nil
+                  nil
+                  nil
+                  nil
+                  ["stub:5"]
+                  nil
+                  ["stub:7"]]]
         (is (= want actual))))))
 
 ; (println "smoke test")
