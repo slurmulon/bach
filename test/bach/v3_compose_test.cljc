@@ -7,6 +7,8 @@
             [bach.compose :as compose]
             [bach.data :refer [to-ratio]]))
 
+; For more idiomatic solution
+; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
 (def reset-id! #(reset! id-counter 0))
 (def next-id! #(swap! id-counter inc))
@@ -310,7 +312,6 @@
                  :duration 16,
                  :index 20}]
           actual (compose/normalize-beats tree 1/2 1)]
-      (clojure.pprint/pprint actual)
       (is (= want actual)))))
 
 (deftest signals
@@ -399,3 +400,7 @@
                     "stub:7" {:value "g", :props ()}}}]
         (is (= want actual))))))
 
+; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/validate))
+(clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
+; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision-beats))
+; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/normalize-beats compose/provision-beats))

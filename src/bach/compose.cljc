@@ -619,31 +619,34 @@
 (defn provision-signals
   "Provisions quantized play and stop signals for every beat element in the tree.
   Enables state-agnostic and declarative event handling of beat elements by consumers."
-  [tree]
-  (let [beats (normalize-beats tree)
-        play-sigs (element-play-signals beats)
+  [beats]
+  ; [tree]
+  ; (let [beats (normalize-beats tree)
+  (let [play-sigs (element-play-signals beats)
         stop-sigs (element-stop-signals beats)]
     {:play play-sigs
      :stop stop-sigs}))
 
 (defn provision-beat-items
+  "Provision a single beat's items for playback.
+  Assumes beats items are already normalized."
   [items]
   (mapv #(let [elems (-> % :elements cast-beat-element-ids vec)]
-           (assoc % :elements elems))) items)
+           (assoc % :elements elems)) items))
 
 (defn provision-beat
+  "Provision a single beat and its items for playback.
+  Assumes beats are already normalized."
   [beat]
-  (let [items (provision-beat-items (:items beat))]
+  (let [items (-> beat :items provision-beat-items)]
     (assoc beat :items items)))
 
 (defn provision-beats
-  "Provision beats normalized for playback, replacing each beat element with more succinct id references."
-  [tree]
-  (->> tree
-    normalize-beats
-    (map provision-beat)))
-
-
+  "Provisions normalized beats for serialization and playback,
+  replacing each beat element with its identifier string.
+  Assumes beats are already normalized."
+  [beats]
+  (mapv provision-beat beats))
 
 (defn provision-units
   [track]
@@ -694,18 +697,19 @@
 (defn provision
   [track]
   (when (validate track)
-    (println "\n\n-------- VALID TRACK!\n\n")
-    (clojure.pprint/pprint track)
+    ; (println "\n\n-------- VALID TRACK!\n\n")
+    ; (clojure.pprint/pprint track)
     (let [headers (provision-headers track)
           units (provision-units track)
           beats (normalize-beats track)
-          ; signals (provision-signals beats)
-          ; elements (provision-elements beats)
+          data (provision-beats beats)
+          signals (provision-signals beats)
+          elements (provision-elements beats)
           source {:headers headers
                   :units units
-                  ; :signals signals
-                  ; :elements elements
-                  :data beats}]
+                  :signals signals
+                  :elements elements
+                  :data data}]
       #?(:clj source
          :cljs (to-json source)))))
 
