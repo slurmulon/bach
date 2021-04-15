@@ -454,6 +454,8 @@
        :set (fn [& [:as all]] (into #{} all))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten))
        :atom (fn [[_ kind] [_ & args]] (parse-atom kind args))
+       ; TODO: Refactor towards this!
+       ; :pair #(assoc {} :duration %1 :elements (many %2))})))
        :pair #(assoc {} :duration %1 :elements %2)})))
 
 (defn reduce-durations
@@ -532,33 +534,30 @@
   ([tree unit meter]
    (-> tree (unitize-collections unit meter) position-beats)))
 
-; compose-beats
-;  ->> normalize-beats
-;      sectionize-beats
-;      signify-beats
-
-(defn all-beats
-  ([beats] (all-beats beats identity))
-  ([beats as]
-   (->> beats
-        (cast-tree set? vec)
-        (cast-tree map? as)
-        flatten)))
-
-; FIXME: Only works if provided an item, can't pass in the entire beat tree
-(defn all-beat-element-ids
-  [beats]
-  (all-beats beats #(get-in % [:elements :id])))
-
 (defn all-beat-items
+  "Provides all of the items across beats as a vector.
+  Assumes beats are already normalized."
   [beats]
   (mapcat #(-> % :items vec) beats))
 
 (defn all-beat-elements
+  "Provides all of the elements across beats.
+  Assumes beats are already normalized."
   [beats]
   (->> beats all-beat-items (map :elements)))
 
-; (defn map-beat-elements
+(defn all-beat-element-ids
+  "Provides all of the elements across beats, as ids.
+  Assumes beats are already normalized."
+  [beats]
+  (->> beats all-beat-items (map #(get-in % [:elements :id]))))
+
+(defn all-beat-items-ids
+  "Provides all of the ids in a collection of beat items.
+  Assumes beat items are already normalized."
+  [items]
+  (->> items (cast-tree map? #(get-in % [:elements :id])) flatten))
+
 (defn provision-elements
   "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'.
   Assumes beats are already normalized."
@@ -591,7 +590,7 @@
   [beats]
   (mapcat (fn [beat]
             (let [items (index-beat-items beat)
-                  elems (all-beat-element-ids items)]
+                  elems (all-beat-items-ids items)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
@@ -611,12 +610,21 @@
           (assoc acc index (distinct elems)))) signals items)))
 
 (defn provision-signals
+  "Provisions quantized play and stop signals for every beat element in the tree.
+  Enables state-agnostic and declarative event handling of beat elements by consumers."
   [tree]
   (let [beats (normalize-beats tree)
         play-sigs (element-play-signals beats)
         stop-sigs (element-stop-signals beats)]
     {:play play-sigs
      :stop stop-sigs}))
+
+; (defn provision-beats
+;   "Provision beats normalized for playback, replacing each beat element with more succinct id references."
+;   [tree]
+;   (->> tree
+;        normalize-beats
+
 
 (defn provision-units
   [track]
@@ -670,10 +678,11 @@
           units (provision-units track)
           beats (normalize-beats track)
           signals (provision-signals beats)
-          ; elements (provision-elements beats)
+          elements (provision-elements beats)
           source {:headers headers
                   :units units
                   :signals signals
+                  :elements elements
                   :data beats}]
       #?(:clj source
          :cljs (to-json source)))))
