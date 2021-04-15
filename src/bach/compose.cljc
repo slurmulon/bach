@@ -591,7 +591,7 @@
        (sort-by :duration)))
 
 (defn element-play-signals
-  "Provides a quantized (to q-pulses) sequence where each pulse beat contains the id
+  "Provides a quantized sequence (in q-pulses) where each pulse beat contains the id
   of every element that should be played when the pulse is visited during iteration.
   Assumes beats are already normalized."
   [beats]
@@ -601,7 +601,7 @@
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
-  "Provides a quantized (to q-pulses) sequence where each pulse beat contains the id
+  "Provides a quantized sequence (to q-pulses) where each pulse beat contains the id
   of every element that should be stopped when the pulse is visited during iteration.
   Assumes beats are already normalized."
   [beats]

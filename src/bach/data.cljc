@@ -58,17 +58,12 @@
 (defn hiccup-to-vector
   "Converts an instaparse :hiccup tree into a flat vector."
   [tree]
-  (-> [tree]
-      hiccup-to-hash-map
-      flatten
-      vec))
+  (-> [tree] hiccup-to-hash-map flatten vec))
 
 (defn hiccup-to-json
   "Converts an instaparse :hiccup tree into JSON."
   [tree]
-  (-> tree
-      hiccup-to-hash-map
-      to-json))
+  (-> tree hiccup-to-hash-map to-json))
 
 (defn cast-tree
   "Walks an iterable N-ary tree (depth-first, pre-order) and applies `as` to each node where `is?` matches (`is?` returns true)"
@@ -76,14 +71,14 @@
   (clojure.walk/prewalk #(if (is? %) (as %) %) tree))
 
 (defn flatten-by
-  "Flattens and reduces collection/tree using provided function."
+  "Flattens and reduces collection using `by` function."
   [by coll]
   (if (sequential? coll)
     (reduce by (flatten coll))
     (by coll)))
 
 (defn flatten-one
-  "Flattens nested collection or tree by only one level."
+  "Flattens nested collection by only one level."
   [coll]
   (mapcat #(if (sequential? %) % [%]) coll))
 
@@ -114,13 +109,12 @@
     (if (sequential? tree) (flat tree) tree)))
 
 (defn squash-tree
-  "Same as flatten-tree, but also flattens all sets (TODO: Try to avoid doing this secondarily).
-   Sets are assumed to be homogenous (can only contain sets and other non-sequentials)."
+  "Same as flatten-tree but subsequently flattens all sets.
+   Sets are assumed to only contain sets and other non-sequentials."
   [tree]
   (->> tree
        flatten-tree
        (cast-tree set? flatten-sets)))
-; (squash-tree #{:a #{:b :c}})
 
 (defn greatest-in
   [coll]
@@ -135,9 +129,9 @@
 
 (defn linearize-indices
   "Projects the starting indices of each weighted node in coll/tree onto linear space.
-   Enables consumers to easily index associated data, statefully or statelessly, by providing a linear, ordered (depth-first projection of a weighted N-ary tree.
-   Input:  (2 3 4 7)
-   Output: (0 2 5 9)"
+  Enables consumers to easily index associated data, statefully or statelessly, by providing a linear, ordered (depth-first projection of a weighted N-ary tree.
+  Input:  (2 3 4 7)
+  Output: (0 2 5 9)"
   ([coll] (linearize-indices linearize))
   ([xf coll]
    (->> coll
@@ -150,9 +144,8 @@
 
 (defn stretch
   "Provides a 1-ary stepwise projection of a weighted N-ary coll/tree, where each node's value represents its frequency/occurance (in other words, how many elements it takes up in the projected linear sequence).
-  Example:
-   - Input:  (stretch [1 4 3])
-   - Output: (0 1 1 1 1 2 2 2)"
+  Input:  (stretch [1 4 3])
+  Output: (0 1 1 1 1 2 2 2)"
   [coll]
   (->> coll (map-indexed #(itemize %2 %1)) flatten))
 
@@ -165,7 +158,8 @@
   (->> coll linearize stretch vec))
 
 (defn transpose
-  "Takes a collection of vectors and produces an inverted linear project, where each element contains every element at the same index across each vector.
+  "Takes a collection of vectors and produces an inverted linear projection,
+  where each element contains every element at the same index across each vector.
   @see: https://stackoverflow.com/a/29240104
   Input:  [[1 2] [3 4] [5 6] [7 8 9]]
   Output: [[1 3 5 7] [2 4 6 8] [9]]"
