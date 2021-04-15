@@ -32,23 +32,19 @@
                     :ms-per-pulse-beat 0
                     :ms-per-beat-unit 0})
 
-; (def element-id #(nano-id 4))
 (def unique-id #(nano-id 4))
 
 (defn element-kind
   [elem]
-  ; TODO: if-let
   (if (map? elem)
     (-> elem :kind element-kind)
     (-> elem name clojure.string/lower-case keyword)))
 
 (defn element-id
-  ([{id :id} elem] id)
-  ([elem]
-   ; (str kind "." (micro-id))))
-   (str (-> elem element-kind name) "." (unique-id))))
-
-; TODO: Probably just use nanoid instead and remove `tag`
+  [elem]
+  (if (map? elem)
+    (:id elem)
+    (str (-> elem element-kind name) "." (unique-id))))
 
 (defn variable-scope
   "Provides a localized scope/stack for tracking variables."
@@ -439,15 +435,13 @@
 
 ; TODO: Proably move to `ast` namespace
 (defn parse-atom
-  "Creates an element from provided atom kind and arguments.
+  "Creates an element from provided atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each with a unique id."
   [kind args]
-  ; (let [element-kind (clojure.string/lower-case kind)]
-    {;:id (str element-kind ":" (element-id))
-     :id (element-id kind)
-     :kind (element-kind kind) ;element-kind
-     :value (-> args first str)
-     :props (rest args)})
+  {:id (element-id kind)
+   :kind (element-kind kind)
+   :value (-> args first str)
+   :props (rest args)})
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
@@ -483,6 +477,10 @@
 (defn as-reduced-durations
   [tree]
   (->> tree as-durations reduce-durations))
+
+(defn quantize-durations
+  [tree]
+  (->> tree (map as-reduced-durations) stretch))
 
 ; TODO: Probably rename in light of `position-beats`
 (defn normalize-durations
@@ -538,6 +536,7 @@
         indices (linearize-indices identity durations)]
     (pmap #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
+; TODO: Probably just remove
 (defn linearize-beats
   [tree]
   (-> tree linearize-collections position-beats))
@@ -573,14 +572,8 @@
   [beats]
   (->> beats all-beat-items (map :elements)))
 
-(defn all-beat-element-ids
-  "Provides all of the elements across beats, as ids.
-  Assumes beats are already normalized."
-  [beats]
-  (->> beats all-beat-items (map #(get-in % [:elements :id]))))
-
 (defn cast-beat-element-ids
-  ""
+  "Transforms normalized beat element(s) into their referential ids."
   [elem]
   (->> elem many (map :id)))
 
@@ -594,10 +587,10 @@
        (sort-by :duration)))
 
 (defn pulse-beat-signals
-  "Transforms parsed AST tree into a quantized sequence (to q-pulses) where each pulse beat contains
+  "Transforms parsed AST tree into a quantized sequence (in q-pulses) where each pulse beat contains
   the index of its associated normalized beat (i.e. intersecting with the beat's quantized duration)."
   [tree]
-  (->> tree unitize-collections (map as-reduced-durations) stretch))
+  (->> tree unitize-collections quantize-durations vec))
 
 (defn element-play-signals
   "Provides a quantized sequence (in q-pulses) where each pulse beat contains the id
@@ -634,7 +627,6 @@
     all-beat-elements
     (reduce
       (fn [acc element]
-        ; when-let
         (let [id (:id element)
               kind (:kind element)
               data (select-keys element [:value :props])]
@@ -655,7 +647,7 @@
      :stop stop-sigs}))
 
 (defn provision-beat-items
-  "Provision a single beat's items for playback.
+  "Provision a single beat's items for playback by casting their elements into ids.
   Assumes beats items are already normalized."
   [items]
   (mapv #(let [elems (-> % :elements cast-beat-element-ids vec)]
@@ -737,7 +729,6 @@
                   :beats data}]
       #?(:clj source
          :cljs (to-json source)))))
-
 
 ; TODO: Allow track to be provisioned in flat/stream mode (i.e. no measures, just evenly sized beats)
 ; TODO: Add `version` property
