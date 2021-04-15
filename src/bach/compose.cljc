@@ -18,17 +18,19 @@
 (def default-meter [4 4])
 (def default-beat-unit (/ 1 (last default-meter)))
 (def default-pulse-beat default-beat-unit)
+
 (def default-headers {:tempo default-tempo
-                      :meter default-meter
-                      :beat-unit default-beat-unit
-                      :pulse-beat default-pulse-beat
-                      :beat-units-per-measure 4
-                      :pulse-beats-per-measure 4
-                      :total-beats 0
-                      :total-beat-units 0
-                      :total-pulse-beats 0
-                      :ms-per-pulse-beat 0
-                      :ms-per-beat-unit 0})
+                      :meter default-meter})
+
+(def default-units {:beat-unit default-beat-unit
+                    :pulse-beat default-pulse-beat
+                    :beat-units-per-measure 4
+                    :pulse-beats-per-measure 4
+                    :total-beats 0
+                    :total-beat-units 0
+                    :total-pulse-beats 0
+                    :ms-per-pulse-beat 0
+                    :ms-per-beat-unit 0})
 
 (def element-id #(nano-id 4))
 
@@ -535,13 +537,19 @@
    (-> tree (unitize-collections unit meter) position-beats)))
 
 (defn all-beat-items
-  "Provides all of the items across beats as a vector.
+  "Provides all of the items in collection of beats as a vector.
   Assumes beats are already normalized."
   [beats]
   (mapcat #(-> % :items vec) beats))
 
+(defn all-beat-items-ids
+  "Provides all of the ids in a collection of beat items.
+  Assumes beat items are already normalized."
+  [items]
+  (->> items (cast-tree map? #(get-in % [:elements :id])) flatten))
+
 (defn all-beat-elements
-  "Provides all of the elements across beats.
+  "Provides all of the elements in a collection of beats.
   Assumes beats are already normalized."
   [beats]
   (->> beats all-beat-items (map :elements)))
@@ -552,11 +560,10 @@
   [beats]
   (->> beats all-beat-items (map #(get-in % [:elements :id]))))
 
-(defn all-beat-items-ids
-  "Provides all of the ids in a collection of beat items.
-  Assumes beat items are already normalized."
-  [items]
-  (->> items (cast-tree map? #(get-in % [:elements :id])) flatten))
+(defn cast-beat-element-ids
+  ""
+  [elem]
+  (->> elem many (map :id)))
 
 (defn provision-elements
   "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'.
@@ -619,11 +626,23 @@
     {:play play-sigs
      :stop stop-sigs}))
 
-; (defn provision-beats
-;   "Provision beats normalized for playback, replacing each beat element with more succinct id references."
-;   [tree]
-;   (->> tree
-;        normalize-beats
+(defn provision-beat-items
+  [items]
+  (mapv #(let [elems (-> % :elements cast-beat-element-ids vec)]
+           (assoc % :elements elems))) items)
+
+(defn provision-beat
+  [beat]
+  (let [items (provision-beat-items (:items beat))]
+    (assoc beat :items items)))
+
+(defn provision-beats
+  "Provision beats normalized for playback, replacing each beat element with more succinct id references."
+  [tree]
+  (->> tree
+    normalize-beats
+    (map provision-beat)))
+
 
 
 (defn provision-units
@@ -671,18 +690,21 @@
            :beat-unit beat-unit
            :pulse-beat pulse-beat)))
 
+; TODO! Only normalize beats referenced via play
 (defn provision
   [track]
   (when (validate track)
+    (println "\n\n-------- VALID TRACK!\n\n")
+    (clojure.pprint/pprint track)
     (let [headers (provision-headers track)
           units (provision-units track)
           beats (normalize-beats track)
-          signals (provision-signals beats)
-          elements (provision-elements beats)
+          ; signals (provision-signals beats)
+          ; elements (provision-elements beats)
           source {:headers headers
                   :units units
-                  :signals signals
-                  :elements elements
+                  ; :signals signals
+                  ; :elements elements
                   :data beats}]
       #?(:clj source
          :cljs (to-json source)))))
