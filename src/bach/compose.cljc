@@ -414,7 +414,6 @@
   [tree]
   (cast-tree map? :duration tree))
 
-; TODO: Proably move to `ast` namespace
 (defn parse-atom
   "Creates an element from provided atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each with a unique id."
@@ -541,20 +540,17 @@
 (def normalize-beats! (memoize normalize-beats))
 
 (defn all-beat-items
-  "Provides all of the items in collection of beats as a vector.
-  Assumes beats are already normalized."
+  "Provides all of the items in collection of normalized beats as a vector."
   [beats]
   (mapcat #(-> % :items vec) beats))
 
 (defn all-beat-items-ids
-  "Provides all of the ids in a collection of beat items.
-  Assumes beat items are already normalized."
+  "Provides all of the ids in a collection of normalized beat items."
   [items]
   (->> items (cast-tree map? #(get-in % [:elements :id])) flatten))
 
 (defn all-beat-elements
-  "Provides all of the elements in a collection of beats.
-  Assumes beats are already normalized."
+  "Provides all of the elements in a collection of normalized beats."
   [beats]
   (->> beats all-beat-items (map :elements)))
 
@@ -564,9 +560,8 @@
   (->> elem many (map :id)))
 
 (defn index-beat-items
-  "Adds the provided beat's index to each of its items.
-  Allows beat items to be handled independently of their parent beat.
-  Assumes beats are already normalized."
+  "Adds the provided normalized beat's index to each of its items.
+  Allows beat items to be handled independently of their parent beat."
   [beat]
   (->> beat :items
        (map #(assoc % :index (:index beat)))
@@ -579,9 +574,8 @@
   (->> tree unitize-collections quantize-durations vec))
 
 (defn element-play-signals
-  "Provides a quantized sequence (in q-pulses) where each pulse beat contains the id
-  of every element that should be played when the pulse is visited during iteration.
-  Assumes beats are already normalized."
+  "Provides a quantized sequence (in q-pulses) of normalized beats where each pulse beat contains
+  the id of every element that should be played at its index."
   [beats]
   (mapcat (fn [beat]
             (let [items (index-beat-items beat)
@@ -589,9 +583,8 @@
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
-  "Provides a quantized sequence (to q-pulses) where each pulse beat contains the id
-  of every element that should be stopped when the pulse is visited during iteration.
-  Assumes beats are already normalized."
+  "Provides a quantized sequence (in q-pulses) of normalized beats where each pulse beat contains
+  the id of every element that should be stopped at its index."
   [beats]
   (let [duration (as-reduced-durations beats)
         items (mapcat index-beat-items beats)
@@ -605,8 +598,7 @@
           (assoc acc index (distinct elems)))) signals items)))
 
 (defn provision-elements
-  "Creates a map that centralizes all of the beat elements and their values, grouped by 'kind'.
-  Assumes beats are already normalized."
+  "Groups every normalized beats' elements and their values (by 'kind') into a single map."
   [beats]
   (->>
     beats
@@ -633,23 +625,20 @@
      :stop stop-sigs}))
 
 (defn provision-beat-items
-  "Provision a single beat's items for playback by casting their elements into ids.
-  Assumes beats items are already normalized."
+  "Provision a single normalized beat's items for playback by casting their elements into ids."
   [items]
   (mapv #(let [elems (-> % :elements cast-beat-element-ids vec)]
            (assoc % :elements elems)) items))
 
 (defn provision-beat
-  "Provision a single normalized beat and its items for playback.
-  Assumes beat is already normalized."
+  "Provision a single normalized beat and its items for serialization and playback."
   [beat]
   (let [items (-> beat :items provision-beat-items)]
     (assoc beat :items items)))
 
 (defn provision-beats
-  "Provisions normalized beats for serialization and playback,
-  replacing each beat element with its identifier string.
-  Assumes beats are already normalized."
+  "Provisions normalized beats for serialization and playback, replacing each
+  beat element with its identifier string."
   [beats]
   (mapv provision-beat beats))
 
