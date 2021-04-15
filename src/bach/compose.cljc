@@ -13,31 +13,6 @@
             [nano-id.core :refer [nano-id]]
             [bach.ast :refer [parse]]
             [bach.data :refer :all]))
-            ; [bach.data :refer [hiccup-to-hash-map
-            ;                    ratio-to-vector
-            ;                    trim-matrix-row
-            ;                    inverse-ratio
-            ;                    safe-ratio
-            ;                    to-json
-            ;                    to-string
-            ;                    math-floor
-            ;                    math-ceil
-            ;                    powers-of-two
-            ;                    gcd
-            ;                    itemize
-            ;                    linearize
-            ;                    linearize-indices
-            ;                    stretch
-            ;                    quantize
-            ;                    cast-tree
-            ;                    flatten-by
-            ;                    flatten-one
-            ;                    flatten-sets
-            ;                    flatten-tree
-            ;                    squash-tree
-            ;                    greatest-in
-            ;                    transpose
-            ;                    problem]]))
 
 (def default-tempo 120)
 (def default-meter [4 4])
@@ -607,6 +582,9 @@
 ;         el
 
 (defn index-beat-items
+  "Adds beat index to each of the beat items.
+  Allows beat items to be handled independently of their parent beat.
+  Assumes beats are already normalized."
   [beat]
   (->> beat :items
        (map #(assoc % :index (:index beat)))
