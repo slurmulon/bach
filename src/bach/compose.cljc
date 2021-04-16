@@ -423,29 +423,24 @@
    :value (-> args first str)
    :props (rest args)})
 
-(defn parse-loop
-  ; [iters tree]
-  [tree]
-  (insta/transform
-    ; {:loop (fn [[iters & items :as all] _]
-    {:loop (fn [iters & [:as items]]
-             ; TODO: Reduce instead
-             ; (for [x (range iters)]
-               ; (->> tree
-             (->>
-               (range iters)
-               (mapcat 
-                 #(insta/transform
-                    {:when (fn [iter & [:as all]]
-                             (if (= iter (+ % 1)) all nil))} items))
-               flatten-one
-                (filter (complement nil?))))} tree))
+(defn parse-loop-whens
+  [iters tree]
+  (->> (range iters)
+       (mapcat
+          #(insta/transform
+            {:when (fn [iter items]
+                      (when (= iter (+ % 1)) (many items)))}
+            tree))
+        (filter (complement nil?))))
 
-
-             
 ; TODO: parse-loop
 ;  - Only expand loop if loop is not a direct descendent of Play!
 ;  - Integrate `when` operator here
+(defn parse-loop
+  [tree]
+  (insta/transform
+    {:loop (fn [iters & [:as items]]
+             (parse-loop-whens iters items))} tree))
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here

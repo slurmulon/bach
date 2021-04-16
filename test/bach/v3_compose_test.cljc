@@ -119,9 +119,9 @@
                         [:pair
                          [:number "1"]
                          [:identifier :a]]
-                          [:pair
-                           [:number "3"]
-                           [:identifier :b]]]]]
+                        [:pair
+                         [:number "3"]
+                         [:identifier :b]]]]]
                 want [{:duration 4
                        :elements [:identifier :x]}
                       [{:duration 1
@@ -132,7 +132,51 @@
                         :elements [:identifier :a]}
                        {:duration 3
                         :elements [:identifier :b]}]]]
-              (is (= want (compose/normalize-collections tree))))))))
+              (is (= want (compose/normalize-collections tree)))))
+        ; (testing "in set")
+        (testing "using whens"
+          (testing "basic"
+            (let [tree [:loop
+                        [:number "2"]
+                        [:when
+                         [:number "1"]
+                         [:pair
+                          [:number "1"]
+                          [:identifier :a]]]
+                        [:when
+                         [:number "2"]
+                         [:pair
+                          [:number "1"]
+                          [:identifier :b]]]]
+                  actual (-> tree compose/reduce-values compose/parse-loop)
+                  want [[:pair 1 [:identifier :a]]
+                        [:pair 1 [:identifier :b]]]]
+              (is (= want actual))))
+          (testing "mixed"
+            (let [tree [:loop
+                        [:number "2"]
+                        [:when
+                         [:number "1"]
+                         [:pair
+                          [:number "1"]
+                          [:identifier :a]]]
+                        [:when
+                         [:number "2"]
+                         [:pair
+                          [:number "1"]
+                          [:identifier :b]]]
+                        [:pair
+                         [:number "3"]
+                         [:identifier :c]]]
+                  actual (-> tree compose/reduce-values compose/parse-loop)
+                  want [[:pair 1 [:identifier :a]]
+                        [:pair 3 [:identifier :c]]
+                        [:pair 1 [:identifier :b]]
+                        [:pair 3 [:identifier :c]]]]
+              (println "______ WUT ______")
+              (clojure.pprint/pprint actual)
+              (is (= want actual))))
+          ))))
   (testing "durations"
     (testing "beats"
       (let [tree [:pair
@@ -166,7 +210,7 @@
                    [:identifier :c]]]
             want 4]
         (is (= want (compose/normalize-durations tree))))))
-  )
+)
   ; (testing "beats"
   ;   (testing "position"
   ;     (let [tree [:list
@@ -429,7 +473,7 @@
                      {:duration 8, :elements ["stub.8"]}],
                    :duration 8,
                    :index 10}]]
-        (clojure.pprint/pprint actual)
+        ; (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
-(clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
+; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
