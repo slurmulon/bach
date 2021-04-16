@@ -33,7 +33,7 @@
                     :ms-per-beat-unit 0})
 
 ; gen-id
-(def unique-id #(nano-id 4))
+(def unique-id #(nano-id 6))
 
 (defn element-kind
   [elem]
@@ -576,7 +576,7 @@
   "Transforms parsed AST tree into a quantized sequence (in q-pulses) where each pulse beat contains
   the index of its associated normalized beat (i.e. intersecting with the beat's quantized duration)."
   [tree]
-  (->> tree unitize-collections quantize-durations vec))
+  (-> tree unitize-collections quantize-durations vec))
 
 (defn element-play-signals
   "Provides a quantized sequence (in q-pulses) of normalized beats where each pulse beat contains
@@ -647,7 +647,7 @@
   "Provisions normalized beat(s) for serialization and playback, replacing each
   beat element with its identifier string."
   [beats]
-  (mapv provision-beat (many beats)))
+  (map provision-beat (many beats)))
 
 (defn provision-units
   "Provisions essential and common unit values of a track for serialization and playback."
