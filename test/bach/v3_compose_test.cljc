@@ -150,7 +150,7 @@
                           [:pair
                             [:number "1"]
                             [:identifier :b]]]]]
-                  actual (-> tree compose/reduce-values compose/parse-loop)
+                  actual (-> tree compose/reduce-values compose/normalize-loops)
                   ; actual (-> tree compose/reduce-values compose/normalize-collections)
                   ; want [[:pair 1 [:identifier :a]]
                         ; [:pair 1 [:identifier :b]]]]
@@ -174,7 +174,7 @@
                         [:pair
                          [:number "3"]
                          [:identifier :c]]]]
-                  actual (-> tree compose/reduce-values compose/parse-loop)
+                  actual (-> tree compose/reduce-values compose/normalize-loops)
                   ; actual (-> tree compose/reduce-values compose/normalize-collections)
                   ; want [[:pair 1 [:identifier :a]]
                   ;       [:pair 3 [:identifier :c]]
