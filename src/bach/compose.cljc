@@ -414,7 +414,7 @@
 
 ; ------ V3 --------
 
-(defn parse-atom
+(defn as-element
   "Creates an element from provided atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each with a unique id."
   [kind args]
@@ -431,7 +431,7 @@
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
 ; TODO: Rename to normalize-collections or reduce-collections
 (defn normalize-collections
-  "Normalizes all bach collections in parsed AST tree as native clojure structures.
+  "Normalizes all bach collections in parsed AST as native clojure structures.
   Enables pragmatic handling of trees and colls in subsequent functions.
   Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
   Ouput: [:a #{:b :c} #{:d [:e :f]}]"
@@ -444,7 +444,7 @@
       {:list (fn [& [:as all]] (vec all))
        :set (fn [& [:as all]] (into #{} all))
        :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten))
-       :atom (fn [[_ kind] [_ & args]] (parse-atom kind args))
+       :atom (fn [[_ kind] [_ & args]] (as-element kind args))
        ; TODO: Refactor towards this!
        ; :pair #(assoc {} :duration %1 :elements (many %2))})))
        :pair #(assoc {} :duration %1 :elements %2)})))
@@ -456,7 +456,7 @@
   (cast-tree map? :duration tree))
 
 (defn reduce-durations
-  "Transforms a tree of duration nodes and into a single total duration
+  "Transforms a tree of numeric duration nodes into a single total duration
   according to bach's nesting rules (max of sets, sum of seqentials)."
   [tree]
   (clojure.walk/postwalk
@@ -467,12 +467,12 @@
     tree))
 
 (defn as-reduced-durations
-  "Transforms a parsed AST tree into a homogenous duration tree, then reduces it."
+  "Transforms a parsed AST into a homogenous duration tree, then reduces it."
   [tree]
   (->> tree as-durations reduce-durations))
 
 (defn quantize-durations
-  "Transforms a parsed AST tree into a 1-ary sequence quantized to the tree's reduced durations.
+  "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration.
   In practice this enables uniform, linear and stateless interpolation of a N-ary tree of durations."
   [tree]
   (->> tree (pmap as-reduced-durations) stretch))
@@ -483,7 +483,7 @@
   (->> tree normalize-collections as-reduced-durations))
 
 (defn transpose-collections
-  "Aligns and transposes parallel collection elements of a parsed AST tree, enabling linear time-invariant iteration by consumers.
+  "Aligns and transposes parallel collection elements of a parsed AST, enabling linear time-invariant iteration by consumers.
    Each item of the resulting sequence is a set containing all of the elements occuring at its time/column-index, across all parallel/sibling vectors.
    This ensures that resulting set trees are order agnostic, only containing non-sequentials and other sets.
    Input: [#{[:a :b] [:c :d]} :e :f]
@@ -498,12 +498,12 @@
              (if (next aligned-items) aligned-items (first aligned-items)))))))
 
 (defn linearize-collections
-  "Linearly transposes and flattens all collections in the parsed AST tree into a 1-ary sequence."
+  "Linearly transposes and flattens all collections in the parsed AST into a 1-ary sequence."
   [tree]
   (-> tree transpose-collections squash-tree))
 
 (defn unitize-collections
-  "Linearizes and normalizes every element's :duration in parsed AST tree against the unit within a meter.
+  "Linearizes and normalizes every element's :duration in parsed AST against the unit within a meter.
   Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   ([tree]
@@ -519,6 +519,7 @@
           #(let [duration (int (normalize-duration (:duration %) unit meter))]
              (assoc % :duration duration))))))
 
+; unify-beats
 (defn position-beats
   "Linearizes N-ary beat tree into a 1-ary sequence where each element is a map
   containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
@@ -534,7 +535,7 @@
   (-> tree linearize-collections position-beats))
 
 (defn normalize-beats
-  "Normalizes beats in parsed AST tree for linear uniform iteration by decorating them
+  "Normalizes beats in parsed AST for linear uniform iteration by decorating them
   with durations and indices based on a unit (q-pulse by default) within a meter."
   ([tree]
     (let [track (reduce-track tree)
@@ -575,7 +576,7 @@
        (sort-by :duration)))
 
 (defn pulse-beat-signals
-  "Transforms parsed AST tree into a quantized sequence (in q-pulses) where each pulse beat contains
+  "Transforms a parsed AST into a quantized sequence (in q-pulses) where each pulse beat contains
   the index of its associated normalized beat (i.e. intersecting with the beat's quantized duration)."
   [tree]
   (-> tree unitize-collections quantize-durations))
@@ -621,7 +622,7 @@
             (assoc-in acc [kind uid] data)))) {})))
 
 (defn provision-signals
-  "Provisions quantized play and stop signals for every beat element in the tree.
+  "Provisions quantized :play and :stop signals for every beat element in the tree.
   Enables state-agnostic and declarative event handling of beat elements by consumers."
   [tree]
   (let [beats (normalize-beats! tree)
@@ -633,7 +634,8 @@
      :stop stop-sigs}))
 
 (defn provision-beat-items
-  "Provision a single normalized beat's items for playback by casting their elements into ids."
+  "Provision a single normalized beat's items for serialization and playback
+  by casting their elements into ids."
   [items]
   (->> items
       (map #(assoc % :elements (-> % :elements cast-beat-element-ids)))
