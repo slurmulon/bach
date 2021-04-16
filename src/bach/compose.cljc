@@ -548,7 +548,7 @@
 (def normalize-beats! (memoize normalize-beats))
 
 (defn all-beat-items
-  "Provides all of the items in collection of normalized beats as a vector."
+  "Provides all of the items in a collection of normalized beats as a vector."
   [beats]
   (mapcat #(-> % :items vec) (many beats)))
 
@@ -644,8 +644,7 @@
 (defn provision-beat
   "Provision a single normalized beat and its items for serialization and playback."
   [beat]
-  (let [items (-> beat :items provision-beat-items)]
-    (assoc beat :items items)))
+  (assoc beat :items (-> beat :items provision-beat-items)))
 
 (defn provision-beats
   "Provisions normalized beat(s) for serialization and playback, replacing each
