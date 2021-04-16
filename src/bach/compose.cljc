@@ -424,7 +424,7 @@
    :props (rest args)})
 
 (defn- normalize-loop-whens
-  "Normalizes :when trees in :loop AST tree at a given iteration index.".
+  "Normalizes :when trees in :loop AST tree at a given iteration index."
   [iter tree]
   (insta/transform
     {:when #(when (= %1 (+ iter 1)) (many %2))}
