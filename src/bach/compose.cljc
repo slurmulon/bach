@@ -423,6 +423,27 @@
    :value (-> args first str)
    :props (rest args)})
 
+(defn parse-loop
+  ; [iters tree]
+  [tree]
+  (insta/transform
+    ; {:loop (fn [[iters & items :as all] _]
+    {:loop (fn [iters & [:as items]]
+             (println "loop iters" iters items)
+             ; TODO: Reduce instead
+             (for [x (range iters)]
+               ; (->> tree
+               (->> items
+                 (insta/transform
+                   {:when (fn [iter & [:as all]]
+                            (println "WHEN!" x iter all)
+                            ; NOTE: Might need to return an empty set here or something instead
+                            (if (= iter (+ x 1)) all nil))}))))}
+    tree))
+      ; (filter (complement nil?)))))
+
+
+             
 ; TODO: parse-loop
 ;  - Only expand loop if loop is not a direct descendent of Play!
 ;  - Integrate `when` operator here
@@ -606,7 +627,7 @@
           (assoc acc index (distinct elems)))) signals items)))
 
 (defn provision-elements
-  "Groups every normalized beats' elements and their values by `kind`.
+  "Groups all normalized beats' elements and their values by `kind`.
   Allows consumers to directly resolve elements by their uid."
   [beats]
   (->>
