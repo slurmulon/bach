@@ -32,8 +32,7 @@
                     :ms-per-pulse-beat 0
                     :ms-per-beat-unit 0})
 
-; gen-id
-(def unique-id #(nano-id 6))
+(def uid #(nano-id 6))
 
 (defn element-kind
   [elem]
@@ -45,9 +44,9 @@
   [elem]
   (if (map? elem)
     (:id elem)
-    (str (-> elem element-kind name) "." (unique-id))))
+    (str (-> elem element-kind name) "." (uid))))
 
-(defn element-id-key
+(defn element-uid
   [elem]
   (-> elem element-id (clojure.string/split #"\.") last))
 
@@ -611,12 +610,12 @@
     all-beat-elements
     (reduce
       (fn [acc element]
-        (let [id (element-id-key element)
+        (let [uid (element-uid element)
               kind (element-kind element)
               data (select-keys element [:value :props])]
           (if (empty? element)
             acc
-            (assoc-in acc [kind id] data)))) {})))
+            (assoc-in acc [kind uid] data)))) {})))
 
 (defn provision-signals
   "Provisions quantized play and stop signals for every beat element in the tree.

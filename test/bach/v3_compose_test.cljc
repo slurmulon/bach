@@ -315,7 +315,7 @@
       (is (= want actual)))))
 
 (deftest signals
-  (with-redefs [compose/unique-id next-id!]
+  (with-redefs [compose/uid next-id!]
     (testing "play"
       (reset-id!)
       (let [tree (atomize-fixture fixture-a)
@@ -390,7 +390,7 @@
        (is (= want actual))))))
 
 (deftest provision
-  (with-redefs [compose/unique-id next-id!]
+  (with-redefs [compose/uid next-id!]
     (testing "elements"
       (reset-id!)
       (let [tree (atomize-fixture fixture-a)
