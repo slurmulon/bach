@@ -429,18 +429,17 @@
   (insta/transform
     ; {:loop (fn [[iters & items :as all] _]
     {:loop (fn [iters & [:as items]]
-             (println "loop iters" iters items)
              ; TODO: Reduce instead
-             (for [x (range iters)]
+             ; (for [x (range iters)]
                ; (->> tree
-               (->> items
-                 (insta/transform
-                   {:when (fn [iter & [:as all]]
-                            (println "WHEN!" x iter all)
-                            ; NOTE: Might need to return an empty set here or something instead
-                            (if (= iter (+ x 1)) all nil))}))))}
-    tree))
-      ; (filter (complement nil?)))))
+             (->>
+               (range iters)
+               (mapcat 
+                 #(insta/transform
+                    {:when (fn [iter & [:as all]]
+                             (if (= iter (+ % 1)) all nil))} items))
+               flatten-one
+                (filter (complement nil?))))} tree))
 
 
              
