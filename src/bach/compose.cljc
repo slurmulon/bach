@@ -424,12 +424,15 @@
    :props (rest args)})
 
 (defn- normalize-loop-whens
+  "Normalizes :when trees in :loop AST tree at a given iteration index.".
   [iter tree]
   (insta/transform
     {:when #(when (= %1 (+ iter 1)) (many %2))}
     tree))
 
 (defn- normalize-loop
+  "Normalizes :loop AST tree by expanding the tree by the number of
+  iterations/loops and processing any :when trees."
   [iters tree]
   (->> (range iters)
        (mapcat #(normalize-loop-whens % (rest tree)))
@@ -439,10 +442,14 @@
 ; Input: [:loop 2 [:list :a :b :c]]
 ; Ouput: [:list :a :b :c :a :b :c]
 (defn normalize-loops
+  "Normalizes loops in AST tree by expanding the loop's items into a new AST
+  collection tree. Uses the loop's keyword value for the new collection type.
+  Input: [:loop 2 [:list :a :b :c]]
+  Ouput: [:list :a :b :c :a :b :c]"
   [tree]
   (insta/transform
-    {:loop (fn [iters items]
-             (into [:list] (normalize-loop iters items)))} tree))
+    {:loop #(into [(first %2)] (normalize-loop %1 %2))}
+    tree))
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
