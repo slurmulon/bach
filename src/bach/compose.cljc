@@ -423,24 +423,39 @@
    :value (-> args first str)
    :props (rest args)})
 
+(defn parse-loop-when
+  [iter tree]
+  ; (if (and (vector? tree) (-> tree first keyword?)))
+  ; (cond
+    ; (is-hiccup? tree)
+      (let [result (insta/transform
+        {:when #(when (= %1 (+ iter 1)) (many %2))}
+        tree)]
+      result)) 
+    ; (vector? tree) (map #(parse-loop-when iter %) tree)
+
 (defn parse-loop-whens
   [iters tree]
   (->> (range iters)
-       (mapcat
-          #(insta/transform
-            {:when (fn [iter items]
-                      (when (= iter (+ % 1)) (many items)))}
-            tree))
-        (filter (complement nil?))))
+       ; ORIG
+       ; (mapcat #(parse-loop-when % tree))
+       ; WHEN we cast :loop into :list
+       (mapcat #(parse-loop-when % (rest tree)))
+       (filter (complement nil?))))
 
 ; TODO: parse-loop
 ;  - Only expand loop if loop is not a direct descendent of Play!
-;  - Integrate `when` operator here
+; Input: [:loop 2 [:list :a :b :c]]
+; Ouput: [:list :a :b :c :a :b :c]
 (defn parse-loop
   [tree]
   (insta/transform
-    {:loop (fn [iters & [:as items]]
-             (parse-loop-whens iters items))} tree))
+    ; {:loop (fn [iters & [:as items]]
+    ; {:loop (fn [iters items]
+    {:loop (fn [iters items]
+             (into [:list] (parse-loop-whens iters items)))} tree))
+             ; ORIG
+             ; (parse-loop-whens iters items))} tree))
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
@@ -455,10 +470,24 @@
     ; TODO: Probably want to use reduce-track instead, to ease handling of beat :elements later
     reduce-values
     ; NOTE/TODO: Probably just move this all to `reduce-values`, if possible
+    ; NOTE: Sort of works and not a bad idea, but causes result to be nested and just kinda wrong
+    parse-loop
     (insta/transform
-      {:list (fn [& [:as all]] (vec all))
+      {
+       ; :loop (fn [iters & [:as items]] (into [:list] (parse-loop-whens iters items)))
+       ; :loop (fn [iters items]
+       ; :loop (fn [iters & [:as items]]
+       ;         (parse-loop-whens iters items))
+               ; (apply #(parse-loop-whens iters %) items))
+       :list (fn [& [:as all]] (vec all))
        :set (fn [& [:as all]] (into #{} all))
-       :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten))
+       ; :loop parse-loop
+       ; :loop (fn [iters & [:as items]]
+       ; NEXT
+       ; :loop (fn [iters items]
+       ;         (parse-loop-whens iters items))
+       ; ORIG
+       ; :loop (fn [iters & [:as all]] (->> all (mapcat #(itemize iters %)) flatten))
        :atom (fn [[_ kind] [_ & args]] (as-element kind args))
        ; TODO: Refactor towards this!
        ; :pair #(assoc {} :duration %1 :elements (many %2))})))

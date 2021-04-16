@@ -138,23 +138,29 @@
           (testing "basic"
             (let [tree [:loop
                         [:number "2"]
-                        [:when
-                         [:number "1"]
-                         [:pair
+                          ; WORKS without :list (needs to work WITH)
+                          [:list
+                          [:when
                           [:number "1"]
-                          [:identifier :a]]]
-                        [:when
-                         [:number "2"]
-                         [:pair
-                          [:number "1"]
-                          [:identifier :b]]]]
+                          [:pair
+                            [:number "1"]
+                            [:identifier :a]]]
+                          [:when
+                          [:number "2"]
+                          [:pair
+                            [:number "1"]
+                            [:identifier :b]]]]]
                   actual (-> tree compose/reduce-values compose/parse-loop)
-                  want [[:pair 1 [:identifier :a]]
-                        [:pair 1 [:identifier :b]]]]
+                  ; actual (-> tree compose/reduce-values compose/normalize-collections)
+                  ; want [[:pair 1 [:identifier :a]]
+                        ; [:pair 1 [:identifier :b]]]]
+                  want [:list [:pair 1 [:identifier :a]]
+                              [:pair 1 [:identifier :b]]]]
               (is (= want actual))))
           (testing "mixed"
             (let [tree [:loop
                         [:number "2"]
+                        [:list
                         [:when
                          [:number "1"]
                          [:pair
@@ -167,13 +173,17 @@
                           [:identifier :b]]]
                         [:pair
                          [:number "3"]
-                         [:identifier :c]]]
+                         [:identifier :c]]]]
                   actual (-> tree compose/reduce-values compose/parse-loop)
-                  want [[:pair 1 [:identifier :a]]
-                        [:pair 3 [:identifier :c]]
-                        [:pair 1 [:identifier :b]]
-                        [:pair 3 [:identifier :c]]]]
-              (println "______ WUT ______")
+                  ; actual (-> tree compose/reduce-values compose/normalize-collections)
+                  ; want [[:pair 1 [:identifier :a]]
+                  ;       [:pair 3 [:identifier :c]]
+                  ;       [:pair 1 [:identifier :b]]
+                  ;       [:pair 3 [:identifier :c]]]]
+                  want [:list [:pair 1 [:identifier :a]]
+                              [:pair 3 [:identifier :c]]
+                              [:pair 1 [:identifier :b]]
+                              [:pair 3 [:identifier :c]]]]
               (clojure.pprint/pprint actual)
               (is (= want actual))))
           ))))
@@ -228,7 +238,6 @@
   ;           want false
   ;           ; actual (compose/position-beats tree)]
   ;           actual (compose/position-beats tree)]
-  ;       (println "!!! position" actual)
   ;       ; (is (= want actual))))))
   ;       (is (= want false))))))
 

@@ -65,6 +65,10 @@
   [tree]
   (-> tree hiccup-to-hash-map to-json))
 
+(defn is-hiccup?
+  [tree]
+  (and (vector? tree) (-> tree first keyword?)))
+
 (defn cast-tree
   "Walks an iterable N-ary tree (depth-first, pre-order) and applies `as` to each node where `is?` matches (`is?` returns true)"
   [is? as tree]
