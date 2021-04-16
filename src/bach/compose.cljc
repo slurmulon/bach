@@ -32,6 +32,7 @@
                     :ms-per-pulse-beat 0
                     :ms-per-beat-unit 0})
 
+; gen-id
 (def unique-id #(nano-id 4))
 
 (defn element-kind
@@ -45,6 +46,10 @@
   (if (map? elem)
     (:id elem)
     (str (-> elem element-kind name) "." (unique-id))))
+
+(defn element-id-key
+  [elem]
+  (-> elem element-id (clojure.string/split #"\.") last))
 
 (defn variable-scope
   "Provides a localized scope/stack for tracking variables."
@@ -423,6 +428,9 @@
    :value (-> args first str)
    :props (rest args)})
 
+; TODO: parse-loop
+;  - Integrate `when` operator here
+
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
 ; TODO: Rename to normalize-collections or reduce-collections
@@ -463,7 +471,7 @@
 
 (defn quantize-durations
   "Transforms a parsed AST tree into a 1-ary sequence quantized to the tree's reduced durations.
-  In practice this enables uniform, linear and stateless interpolation of a nested tree of durations."
+  In practice this enables uniform, linear and stateless interpolation of a N-ary tree of durations."
   [tree]
   (->> tree (pmap as-reduced-durations) stretch))
 
@@ -488,16 +496,14 @@
              (if (next aligned-items) aligned-items (first aligned-items)))))))
 
 (defn linearize-collections
-  "Linearly transposes and flattens all collections in the provided N-ary tree into a 1-ary sequence."
+  "Linearly transposes and flattens all collections in the parsed AST tree into a 1-ary sequence."
   [tree]
   (-> tree transpose-collections squash-tree))
 
-; unitize-tree
 (defn unitize-collections
   "Linearizes and normalizes every element's :duration in parsed AST tree against the unit within a meter.
    Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
    In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
-  ; TODO: Probably break out as unitize-track
   ([tree]
     (let [track (reduce-track tree)
           unit (get-pulse-beat track)
@@ -509,11 +515,10 @@
         (cast-tree
           #(and (map? %) (:duration %))
           #(let [duration (int (normalize-duration (:duration %) unit meter))]
-              (assoc % :duration duration))))))
+             (assoc % :duration duration))))))
 
-; itemize-beats
 (defn position-beats
-  "Linearizes beats in parsed AST tree into a 1-ary sequence where each element is a map
+  "Linearizes N-ary beat tree into a 1-ary sequence where each element is a map
   containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
@@ -521,14 +526,14 @@
         indices (linearize-indices identity durations)]
     (pmap #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
-; TODO: Probably just remove
+; TODO: Probably just remove and rename position-beats to this
 (defn linearize-beats
   [tree]
   (-> tree linearize-collections position-beats))
 
 (defn normalize-beats
-  "Normalizes beats for linear uniform iteration by decorating them with
-  durations and indices based on a unit (q-pulse by default) within a meter."
+  "Normalizes beats in parsed AST tree for linear uniform iteration by decorating them
+  with durations and indices based on a unit (q-pulse by default) within a meter."
   ([tree]
     (let [track (reduce-track tree)
           unit (get-pulse-beat track)
@@ -542,7 +547,7 @@
 (defn all-beat-items
   "Provides all of the items in collection of normalized beats as a vector."
   [beats]
-  (mapcat #(-> % :items vec) beats))
+  (mapcat #(-> % :items vec) (many beats)))
 
 (defn all-beat-items-ids
   "Provides all of the ids in a collection of normalized beat items."
@@ -598,15 +603,16 @@
           (assoc acc index (distinct elems)))) signals items)))
 
 (defn provision-elements
-  "Groups every normalized beats' elements and their values (by 'kind') into a single map."
+  "Groups every normalized beats' elements and their values by `kind`.
+  Allows consumers to efficiently resolve element ids using dot noation."
   [beats]
   (->>
     beats
     all-beat-elements
     (reduce
       (fn [acc element]
-        (let [id (:id element)
-              kind (:kind element)
+        (let [id (element-id-key element)
+              kind (element-kind element)
               data (select-keys element [:value :props])]
           (if (empty? element)
             acc
@@ -637,12 +643,13 @@
     (assoc beat :items items)))
 
 (defn provision-beats
-  "Provisions normalized beats for serialization and playback, replacing each
+  "Provisions normalized beat(s) for serialization and playback, replacing each
   beat element with its identifier string."
   [beats]
-  (mapv provision-beat beats))
+  (mapv provision-beat (many beats)))
 
 (defn provision-units
+  "Provisions essential and common unit values of a track for serialization and playback."
   [track]
   {:total-beats (get-total-beats track)
    :total-beat-units (get-total-beat-units track)
@@ -655,6 +662,7 @@
    :pulse-beat (get-pulse-beat track)})
 
 (defn provision-headers
+  "Provisions essential and user-provided headers of a track for serialization and playback."
   [track]
   (let [headers (get-headers track)
         meter (get-meter track)]

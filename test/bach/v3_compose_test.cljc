@@ -396,14 +396,14 @@
       (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/provision-elements)
             want {:stub
-                   {"stub.1" {:value "a", :props ()},
-                    "stub.2" {:value "b", :props ()},
-                    "stub.3" {:value "c", :props ()},
-                    "stub.6" {:value "f", :props ()},
-                    "stub.4" {:value "d", :props ()},
-                    "stub.8" {:value "h", :props ()},
-                    "stub.5" {:value "e", :props ()},
-                    "stub.7" {:value "g", :props ()}}}]
+                   {"1" {:value "a", :props ()},
+                    "2" {:value "b", :props ()},
+                    "3" {:value "c", :props ()},
+                    "6" {:value "f", :props ()},
+                    "4" {:value "d", :props ()},
+                    "8" {:value "h", :props ()},
+                    "5" {:value "e", :props ()},
+                    "7" {:value "g", :props ()}}}]
         (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
