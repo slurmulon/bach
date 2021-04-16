@@ -633,8 +633,9 @@
 (defn provision-beat-items
   "Provision a single normalized beat's items for playback by casting their elements into ids."
   [items]
-  (mapv #(let [elems (-> % :elements cast-beat-element-ids vec)]
-           (assoc % :elements elems)) items))
+  (->> items
+      (map #(assoc % :elements (-> % :elements cast-beat-element-ids)))
+      (sort-by :duration)))
 
 (defn provision-beat
   "Provision a single normalized beat and its items for serialization and playback."

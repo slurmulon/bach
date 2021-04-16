@@ -404,14 +404,32 @@
                     "8" {:value "h", :props ()},
                     "5" {:value "e", :props ()},
                     "7" {:value "g", :props ()}}}]
+        (is (= want actual))))
+   (testing "beats"
+      (reset-id!)
+      (let [tree (atomize-fixture fixture-a)
+            actual (-> tree compose/normalize-beats compose/provision-beats)
+            want [{:items
+                    [{:duration 1, :elements ["stub.1"]}],
+                   :duration 1,
+                   :index 0}
+                  {:items
+                    [{:duration 2, :elements ["stub.2"]}
+                     {:duration 3, :elements ["stub.3"]}],
+                   :duration 3,
+                   :index 1}
+                  {:items
+                    [{:duration 4, :elements ["stub.4"]}
+                     {:duration 6, :elements ["stub.6"]}],
+                   :duration 6,
+                   :index 4}
+                  {:items
+                    [{:duration 5, :elements ["stub.5"]}
+                     {:duration 7, :elements ["stub.7"]}
+                     {:duration 8, :elements ["stub.8"]}],
+                   :duration 8,
+                   :index 10}]]
         (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
-; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/validate))
 (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
-; (println (time (-> fixture-a atomize-fixture compose/provision)))
-; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision-beats))
-; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/normalize-beats compose/provision-beats))
-; (clojure.pprint/pprint (-> fixture-a compose/normalize-beats))
-; (clojure.pprint/pprint (-> fixture-a compose/linearize-collections))
-; (clojure.pprint/pprint (-> fixture-a compose/pulse-beat-signals))
