@@ -91,7 +91,7 @@
       track)))
   true)
 
-(def validate-memo (memoize validate))
+(def validate! (memoize validate))
 
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
@@ -414,10 +414,6 @@
 
 ; ------ V3 --------
 
-(defn as-durations
-  [tree]
-  (cast-tree map? :duration tree))
-
 (defn parse-atom
   "Creates an element from provided atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each with a unique id."
@@ -428,6 +424,7 @@
    :props (rest args)})
 
 ; TODO: parse-loop
+;  - Only expand loop if loop is not a direct descendent of Play!
 ;  - Integrate `when` operator here
 
 ; TODO: Detect cyclic references!
@@ -435,9 +432,9 @@
 ; TODO: Rename to normalize-collections or reduce-collections
 (defn normalize-collections
   "Normalizes all bach collections in parsed AST tree as native clojure structures.
-   Enables pragmatic handling of trees and colls in subsequent functions.
-   Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
-   Ouput: [:a #{:b :c} #{:d [:e :f]}]"
+  Enables pragmatic handling of trees and colls in subsequent functions.
+  Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
+  Ouput: [:a #{:b :c} #{:d [:e :f]}]"
   [tree]
   (->> tree
     ; TODO: Probably want to use reduce-track instead, to ease handling of beat :elements later
@@ -451,6 +448,12 @@
        ; TODO: Refactor towards this!
        ; :pair #(assoc {} :duration %1 :elements (many %2))})))
        :pair #(assoc {} :duration %1 :elements %2)})))
+
+(defn as-durations
+  "Transforms each node in a tree containing a map with a :duration into
+  its associated scalar value. Assumes :duration values are numeric."
+  [tree]
+  (cast-tree map? :duration tree))
 
 (defn reduce-durations
   "Transforms a tree of duration nodes and into a single total duration
@@ -501,8 +504,8 @@
 
 (defn unitize-collections
   "Linearizes and normalizes every element's :duration in parsed AST tree against the unit within a meter.
-   Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
-   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
+  Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
+  In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   ([tree]
     (let [track (reduce-track tree)
           unit (get-pulse-beat track)
@@ -559,7 +562,7 @@
   (->> beats all-beat-items (map :elements)))
 
 (defn cast-beat-element-ids
-  "Transforms normalized beat element(s) into their referential ids."
+  "Transforms normalized beat element(s) into their unique ids."
   [elem]
   (->> elem many (map :id)))
 
@@ -575,7 +578,7 @@
   "Transforms parsed AST tree into a quantized sequence (in q-pulses) where each pulse beat contains
   the index of its associated normalized beat (i.e. intersecting with the beat's quantized duration)."
   [tree]
-  (-> tree unitize-collections quantize-durations vec))
+  (-> tree unitize-collections quantize-durations))
 
 (defn element-play-signals
   "Provides a quantized sequence (in q-pulses) of normalized beats where each pulse beat contains
@@ -603,7 +606,7 @@
 
 (defn provision-elements
   "Groups every normalized beats' elements and their values by `kind`.
-  Allows consumers to efficiently resolve element ids using dot noation."
+  Allows consumers to directly resolve elements by their uid."
   [beats]
   (->>
     beats
