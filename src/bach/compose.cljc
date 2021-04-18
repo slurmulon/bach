@@ -424,32 +424,26 @@
    :props (rest args)})
 
 (defn- normalize-loop-whens
-  "Normalizes :when trees in :loop AST tree at a given iteration index."
+  "Normalizes :when nodes in :loop AST tree at a given iteration.
+  Nilifies :when nodes that do not occur at the target iteration."
   [iter tree]
-  (insta/transform
-    {:when #(when (= %1 (+ iter 1)) (many %2))}
-    tree))
+  (insta/transform {:when #(when (= %1 (+ iter 1)) (many %2))} tree))
 
 (defn- normalize-loop
-  "Normalizes :loop AST tree by expanding the tree by the number of
-  iterations/loops and processing any :when trees."
+  "Normalizes :loop AST tree by multiplying the tree's range by the number
+  of iterations/loops and processing :when nodes."
   [iters tree]
   (->> (range iters)
        (mapcat #(normalize-loop-whens % (rest tree)))
        (filter (complement nil?))))
 
-;  - Only expand loop if loop is not a direct descendent of Play!
-; Input: [:loop 2 [:list :a :b :c]]
-; Ouput: [:list :a :b :c :a :b :c]
 (defn normalize-loops
   "Normalizes loops in AST tree by expanding the loop's items into a new AST
   collection tree. Uses the loop's keyword value for the new collection type.
   Input: [:loop 2 [:list :a :b :c]]
   Ouput: [:list :a :b :c :a :b :c]"
   [tree]
-  (insta/transform
-    {:loop #(into [(first %2)] (normalize-loop %1 %2))}
-    tree))
+  (insta/transform {:loop #(into [(first %2)] (normalize-loop %1 %2))} tree))
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
@@ -497,7 +491,7 @@
 
 (defn quantize-durations
   "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration.
-  In practice this enables uniform, linear and stateless interpolation of a N-ary tree of durations."
+  In practice this enables uniform, linear and stateless interpolation of a N-ary duration tree."
   [tree]
   (->> tree (pmap as-reduced-durations) stretch))
 
@@ -601,7 +595,7 @@
 
 (defn pulse-beat-signals
   "Transforms a parsed AST into a quantized sequence (in q-pulses) where each pulse beat contains
-  the index of its associated normalized beat (i.e. intersecting with the beat's quantized duration)."
+  the index of its associated normalized beat (i.e. intersecting the beat's quantized duration)."
   [tree]
   (-> tree unitize-collections quantize-durations))
 
@@ -658,15 +652,15 @@
      :stop stop-sigs}))
 
 (defn provision-beat-items
-  "Provision a single normalized beat's items for serialization and playback
+  "Provisions a single normalized beat's item(s) for serialization and playback
   by casting their elements into ids."
   [items]
-  (->> items
-      (map #(assoc % :elements (-> % :elements cast-beat-element-ids)))
-      (sort-by :duration)))
+  (->> (many items)
+       (map #(assoc % :elements (-> % :elements cast-beat-element-ids)))
+       (sort-by :duration)))
 
 (defn provision-beat
-  "Provision a single normalized beat and its items for serialization and playback."
+  "Provisions a single normalized beat and its items for serialization and playback."
   [beat]
   (assoc beat :items (-> beat :items provision-beat-items)))
 
