@@ -427,14 +427,14 @@
   "Normalizes :when nodes in :loop AST tree at a given iteration.
   Nilifies :when nodes that do not occur at the target iteration."
   [iter tree]
-  (insta/transform {:when #(when (= %1 (+ iter 1)) (many %2))} tree))
+  (insta/transform {:when #(when (= iter %1) (many %2))} tree))
 
 (defn- normalize-loop
   "Normalizes :loop AST tree by multiplying the tree's range by the number
   of iterations/loops and processing :when nodes."
   [iters tree]
   (->> (range iters)
-       (mapcat #(normalize-loop-whens % (rest tree)))
+       (mapcat #(normalize-loop-whens (+ 1 %) (rest tree)))
        (filter (complement nil?))))
 
 (defn normalize-loops
