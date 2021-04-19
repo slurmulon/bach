@@ -493,7 +493,7 @@
   "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration.
   In practice this enables uniform, linear and stateless interpolation of a N-ary duration tree."
   [tree]
-  (->> tree (pmap as-reduced-durations) stretch))
+  (->> tree (map as-reduced-durations) stretch))
 
 ; TODO: Probably just remove
 (defn normalize-durations
@@ -543,9 +543,9 @@
   containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
-  (let [durations (pmap as-reduced-durations beats)
+  (let [durations (map as-reduced-durations beats)
         indices (linearize-indices identity durations)]
-    (pmap #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
+    (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
 ; TODO: Probably just remove and rename position-beats to this
 (defn linearize-beats
