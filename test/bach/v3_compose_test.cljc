@@ -87,159 +87,265 @@
                   #{[:identifier :c] [:identifier :b]}
                   #{[[:identifier :e] [:identifier :f]] [:identifier :d]}]]
         (is (= want (compose/normalize-collections tree)))))
-    (testing "loops"
-      (testing "root-level"
+    (testing "lists" nil)))
+
+; normalize-loops
+(deftest loops
+  (testing "basic"
+    (let [tree [:loop
+                  [:number "2"]
+                  [:list
+                    [:pair
+                      [:number "1"]
+                      [:identifier :a]]
+                    [:pair
+                      [:number "3"]
+                      [:identifier :b]]]]
+          want [{:duration 1
+                  :elements [:identifier :a]}
+                {:duration 3
+                  :elements [:identifier :b]}
+                {:duration 1
+                  :elements [:identifier :a]}
+                {:duration 3
+                  :elements [:identifier :b]}]]
+        (is (= want (compose/normalize-collections tree)))))
+  (testing "containing"
+    (testing "list"
+      (let [tree [:list
+                  [:pair
+                   [:number "4"]
+                   [:identifier :x]]
+                  [:loop
+                   [:number "2"]
+                   [:list
+                    [:pair
+                      [:number "1"]
+                      [:identifier :a]]
+                    [:pair
+                      [:number "3"]
+                      [:identifier :b]]]]]
+            want [{:duration 4
+                   :elements [:identifier :x]}
+                  [{:duration 1
+                    :elements [:identifier :a]}
+                   {:duration 3
+                    :elements [:identifier :b]}
+                   {:duration 1
+                    :elements [:identifier :a]}
+                   {:duration 3
+                    :elements [:identifier :b]}]]]
+          (is (= want (compose/normalize-collections tree)))))
+    (testing "parallel lists"
+      (let [tree [:set
+                  [:pair
+                   [:number "4"]
+                   [:identifier :x]]
+                  [:loop
+                   [:number "2"]
+                   [:list
+                    [:pair
+                      [:number "1"]
+                      [:identifier :a]]
+                    [:pair
+                      [:number "3"]
+                      [:identifier :b]]]]
+                  [:loop
+                   [:number "2"]
+                   [:list
+                    [:pair
+                      [:number "2"]
+                      [:identifier :c]]
+                    [:pair
+                      [:number "5"]
+                      [:identifier :d]]]]]
+            actual (compose/normalize-collections tree)
+            want #{{:duration 4, :elements [:identifier :x]}
+                   [{:duration 1, :elements [:identifier :a]}
+                    {:duration 3, :elements [:identifier :b]}
+                    {:duration 1, :elements [:identifier :a]}
+                    {:duration 3, :elements [:identifier :b]}]
+                   [{:duration 2, :elements [:identifier :c]}
+                    {:duration 5, :elements [:identifier :d]}
+                    {:duration 2, :elements [:identifier :c]}
+                    {:duration 5, :elements [:identifier :d]}]}]
+          (is (= want actual))))
+    (testing "nested loop"
+      (let [tree [:list
+                  [:pair
+                   [:number "1"]
+                   [:identifier :a]]
+                  [:loop
+                   [:number "2"]
+                   [:loop
+                    [:number "2"]
+                    [:list
+                      [:pair
+                        [:number "2"]
+                        [:identifier :b]]
+                      [:pair
+                        [:number "3"]
+                        [:identifier :c]]]]]]
+            actual (compose/normalize-collections tree)
+            want [{:duration 1, :elements [:identifier :a]}
+                  [{:duration 2, :elements [:identifier :b]}
+                    {:duration 3, :elements [:identifier :c]}
+                    {:duration 2, :elements [:identifier :b]}
+                    {:duration 3, :elements [:identifier :c]}
+                    {:duration 2, :elements [:identifier :b]}
+                    {:duration 3, :elements [:identifier :c]}
+                    {:duration 2, :elements [:identifier :b]}
+                    {:duration 3, :elements [:identifier :c]}]]]
+          (is (= want actual))))
+    ; (testing "in set"
+    (testing "whens"
+      (testing "basic"
         (let [tree [:loop
-                     [:number "2"]
-                     [:list
+                    [:number "2"]
+                      [:list
+                      [:when
+                        [:number "1"]
+                        [:pair
+                          [:number "1"]
+                          [:identifier :a]]]
+                      [:when
+                        [:number "2"]
+                        [:pair
+                          [:number "1"]
+                          [:identifier :b]]]]]
+              actual (-> tree compose/reduce-values compose/normalize-loops)
+              want [:list [:pair 1 [:identifier :a]]
+                          [:pair 1 [:identifier :b]]]]
+          (is (= want actual))))
+      (testing "mixed"
+        (let [tree [:loop
+                    [:number "2"]
+                    [:list
+                     [:when
+                      [:number "1"]
+                      [:pair
+                       [:number "1"]
+                       [:identifier :a]]]
+                     [:when
+                       [:number "2"]
                        [:pair
                          [:number "1"]
-                         [:identifier :a]]
-                       [:pair
-                         [:number "3"]
-                         [:identifier :b]]]]
-              want [{:duration 1
-                     :elements [:identifier :a]}
-                    {:duration 3
-                     :elements [:identifier :b]}
-                    {:duration 1
-                     :elements [:identifier :a]}
-                    {:duration 3
-                     :elements [:identifier :b]}]]
-            (is (= want (compose/normalize-collections tree)))))
+                         [:identifier :b]]]
+                     [:pair
+                       [:number "3"]
+                       [:identifier :c]]]]
+              actual (-> tree compose/reduce-values compose/normalize-loops)
+              want [:list [:pair 1 [:identifier :a]]
+                          [:pair 3 [:identifier :c]]
+                          [:pair 1 [:identifier :b]]
+                          [:pair 3 [:identifier :c]]]]
+          ; (clojure.pprint/pprint actual)
+          (is (= want actual))))
+      ; FIXME
+      ;  - Will be difficult to parse `when` here with current approach.
+      ;  - Consider just preventing loops from being provided to `when`
       (testing "nested"
-        (testing "in list"
-          (let [tree [:list
-                      [:pair
-                       [:number "4"]
-                       [:identifier :x]]
+        (println "\n\n=============================================\n\n")
+        (let [tree [:loop
+                    [:number "3"]
+                    [:list
+                     [:pair
+                      [:number "1"]
+                      [:identifier :x]]
+                     [:when
+                      [:number "1"]
                       [:loop
+                       ; TODO: Test loop that has whens that don't account for all loop iters
+                       ; [:number "3"]
                        [:number "2"]
                        [:list
                         [:pair
                          [:number "1"]
                          [:identifier :a]]
-                        [:pair
-                         [:number "3"]
-                         [:identifier :b]]]]]
-                want [{:duration 4
-                       :elements [:identifier :x]}
-                      [{:duration 1
-                        :elements [:identifier :a]}
-                       {:duration 3
-                        :elements [:identifier :b]}
-                       {:duration 1
-                        :elements [:identifier :a]}
-                       {:duration 3
-                        :elements [:identifier :b]}]]]
-              (is (= want (compose/normalize-collections tree)))))
-        ; (testing "in set")
-        (testing "using whens"
-          (testing "basic"
-            (let [tree [:loop
-                        [:number "2"]
-                          ; WORKS without :list (needs to work WITH)
-                          [:list
-                          [:when
-                          [:number "1"]
-                          [:pair
-                            [:number "1"]
-                            [:identifier :a]]]
-                          [:when
-                          [:number "2"]
-                          [:pair
-                            [:number "1"]
-                            [:identifier :b]]]]]
-                  actual (-> tree compose/reduce-values compose/normalize-loops)
-                  ; actual (-> tree compose/reduce-values compose/normalize-collections)
-                  ; want [[:pair 1 [:identifier :a]]
-                        ; [:pair 1 [:identifier :b]]]]
-                  want [:list [:pair 1 [:identifier :a]]
-                              [:pair 1 [:identifier :b]]]]
-              (is (= want actual))))
-          (testing "mixed"
-            (let [tree [:loop
-                        [:number "2"]
-                        [:list
-                        [:when
-                         [:number "1"]
-                         [:pair
-                          [:number "1"]
-                          [:identifier :a]]]
                         [:when
                          [:number "2"]
                          [:pair
-                          [:number "1"]
-                          [:identifier :b]]]
-                        [:pair
-                         [:number "3"]
-                         [:identifier :c]]]]
-                  actual (-> tree compose/reduce-values compose/normalize-loops)
-                  ; actual (-> tree compose/reduce-values compose/normalize-collections)
-                  ; want [[:pair 1 [:identifier :a]]
-                  ;       [:pair 3 [:identifier :c]]
-                  ;       [:pair 1 [:identifier :b]]
-                  ;       [:pair 3 [:identifier :c]]]]
-                  want [:list [:pair 1 [:identifier :a]]
-                              [:pair 3 [:identifier :c]]
-                              [:pair 1 [:identifier :b]]
-                              [:pair 3 [:identifier :c]]]]
-              (clojure.pprint/pprint actual)
-              (is (= want actual))))
-          ))))
-  (testing "durations"
-    (testing "beats"
-      (let [tree [:pair
-                  [:number "3"]
+                          [:number "2"]
+                          [:identifier :b]]]]]]
+                     [:when
+                      [:number "1"]
+                      [:pair
+                       [:number "4"]
+                       [:identifier :g]]]
+                     [:pair
+                      [:number "3"]
+                      [:identifier :h]]]]
+              want [:list
+                    [:pair 1 [:identifier :x]]
+                    [:list
+                     [:pair 1 [:identifier :a]]
+                     [:pair 1 [:identifier :a]]
+                     [:pair 2 [:identifier :b]]]
+                    [:pair 4 [:identifier :g]]
+                    [:pair 3 [:identifier :h]]
+                    [:pair 1 [:identifier :x]]
+                    [:pair 3 [:identifier :h]]
+                    [:pair 1 [:identifier :x]]
+                    [:pair 3 [:identifier :h]]]
+              actual (-> tree compose/reduce-values compose/normalize-loops)]
+          (clojure.pprint/pprint actual)
+          (is (= want actual))))
+      )))
+
+(testing "durations"
+  (testing "beats"
+    (let [tree [:pair
+                [:number "3"]
+                [:identifier :a]]
+          want 3]
+    (is (= want (compose/normalize-durations tree)))))
+  (testing "lists"
+    (let [tree [:list
+                [:pair
+                  [:number "1"]
                   [:identifier :a]]
-            want 3]
+                [:pair
+                  [:number "2"]
+                  [:identifier :b]]
+                [:pair
+                  [:number "3"]
+                  [:identifier :c]]]
+          want 6]
       (is (= want (compose/normalize-durations tree)))))
-    (testing "lists"
-      (let [tree [:list
-                  [:pair
-                   [:number "1"]
-                   [:identifier :a]]
-                  [:pair
-                   [:number "2"]
-                   [:identifier :b]]
-                  [:pair
-                   [:number "3"]
-                   [:identifier :c]]]
-            want 6]
-        (is (= want (compose/normalize-durations tree)))))
-    (testing "sets"
-      (let [tree [:set
-                  [:pair
-                   [:number "1"]
-                   [:identifier :a]]
-                  [:pair
-                   [:number "4"]
-                   [:identifier :b]]
-                  [:pair
-                   [:number "2"]
-                   [:identifier :c]]]
-            want 4]
-        (is (= want (compose/normalize-durations tree))))))
-)
-  ; (testing "beats"
-  ;   (testing "position"
-  ;     (let [tree [:list
-  ;                 [:pair
-  ;                  [:number "1"]
-  ;                  [:identifier :a]]
-  ;                 [:set
-  ;                  [:pair [:number "2"] [:identifier :b]]
-  ;                  [:pair [:number "3"] [:identifier :c]]]
-  ;                 [:set
-  ;                  [:pair [:number "4"] [:identifier :d]]
-  ;                  [:list
-  ;                   [:pair [:number "5"] [:identifier :e]]
-  ;                   [:pair [:number "6"] [:identifier :f]]]]]
-  ;           want false
-  ;           ; actual (compose/position-beats tree)]
-  ;           actual (compose/position-beats tree)]
-  ;       ; (is (= want actual))))))
-  ;       (is (= want false))))))
+  (testing "sets"
+    (let [tree [:set
+                [:pair
+                  [:number "1"]
+                  [:identifier :a]]
+                [:pair
+                  [:number "4"]
+                  [:identifier :b]]
+                [:pair
+                  [:number "2"]
+                  [:identifier :c]]]
+          want 4]
+      (is (= want (compose/normalize-durations tree))))))
+
+
+; (testing "beats"
+;   (testing "position"
+;     (let [tree [:list
+;                 [:pair
+;                  [:number "1"]
+;                  [:identifier :a]]
+;                 [:set
+;                  [:pair [:number "2"] [:identifier :b]]
+;                  [:pair [:number "3"] [:identifier :c]]]
+;                 [:set
+;                  [:pair [:number "4"] [:identifier :d]]
+;                  [:list
+;                   [:pair [:number "5"] [:identifier :e]]
+;                   [:pair [:number "6"] [:identifier :f]]]]]
+;           want false
+;           ; actual (compose/position-beats tree)]
+;           actual (compose/position-beats tree)]
+;       ; (is (= want actual))))))
+;       (is (= want false))))))
 
 (deftest transpose-tree
   (testing "collections"
@@ -486,3 +592,4 @@
         (is (= want actual))))))
 
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
+; (clojure.pprint/pprint (-> [:loop [:number "2"] [:list [:string "'a'"] [:string "'z'"]]] compose/reduce-values compose/normalize-loops))
