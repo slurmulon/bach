@@ -58,6 +58,19 @@
         [:pair [:number "4"] [:identifier :f]]
         [:pair [:number "6"] [:identifier :g]]]]])
 
+; Multiple identical elements
+(def fixture-c
+  [:list
+   [:pair
+    [:number "1"]
+    [:identifier :a]]
+   [:pair
+    [:number "2"]
+    [:identifier :a]]
+   [:pair
+    [:number "3"]
+    [:identifier :b]]])
+
 (defn atomize-fixture
   [fixture]
   (insta/transform
@@ -590,19 +603,28 @@
 (deftest provision
   (with-redefs [compose/uid next-id!]
     (testing "elements"
-      (reset-id!)
-      (let [tree (atomize-fixture fixture-a)
-            actual (-> tree compose/normalize-beats compose/provision-elements)
-            want {:stub
-                   {"1" {:value "a", :props ()},
-                    "2" {:value "b", :props ()},
-                    "3" {:value "c", :props ()},
-                    "6" {:value "f", :props ()},
-                    "4" {:value "d", :props ()},
-                    "8" {:value "h", :props ()},
-                    "5" {:value "e", :props ()},
-                    "7" {:value "g", :props ()}}}]
-        (is (= want actual))))
+      (testing "all unique"
+        (reset-id!)
+        (let [tree (atomize-fixture fixture-a)
+              actual (-> tree compose/normalize-beats compose/provision-elements)
+              want {:stub
+                    {"1" {:value "a", :props ()},
+                     "2" {:value "b", :props ()},
+                     "3" {:value "c", :props ()},
+                     "6" {:value "f", :props ()},
+                     "4" {:value "d", :props ()},
+                     "8" {:value "h", :props ()},
+                     "5" {:value "e", :props ()},
+                     "7" {:value "g", :props ()}}}]
+          (is (= want actual))))
+      (testing "some identical"
+        (reset-id!)
+        (let [tree (atomize-fixture fixture-c)
+              actual (-> tree compose/normalize-beats compose/provision-elements)
+              want {:stub
+                    {"1" {:value "a", :props ()},
+                     "2" {:value "b", :props ()}}}]
+          (is (= want actual)))))
    (testing "beats"
       (reset-id!)
       (let [tree (atomize-fixture fixture-a)
