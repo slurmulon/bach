@@ -11,6 +11,7 @@
 (ns bach.compose
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
+            [hiccup-find.core :refer [hiccup-find]]
             [clojure.core.memoize :refer [memo]]
             [bach.ast :refer [parse]]
             [bach.data :refer :all]))
@@ -93,6 +94,12 @@
   true)
 
 (def validate! (memo validate))
+
+; TODO
+; validate-play
+; validate-divisors
+; validate-tempo
+; validate-no-cycles
 
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
@@ -181,6 +188,20 @@
                     (reset! header value))))}
      track)
     @header))
+
+(defn- get-plays
+  "Finds and returns all of the Play! trees in a track."
+  [track]
+  ; (hiccup-find [:play] track))
+  (->> track (hiccup-find [:play]) (map #(last %))))
+
+(defn get-play
+  "Determines and returns the main Play! export of the track."
+  [track]
+  (-> track get-plays last))
+  ; (let [play (atom [])]
+  ;   (insta/transform {:play #(reset! play %)} track)
+  ;   @play))
 
 (defn get-tempo
   "Determines the global tempo of the track. Localized tempos are NOT supported yet."
@@ -367,51 +388,6 @@
      :unit (get-scaled-ms-per-beat track)))
   ([track]
    (get-normalized-ms-per-beat track)))
-
-(defn normalize-measures
-  "Parses the track data exported via `!Play` into a normalized matrix where each row (measure) has the same number of elements (beats).
-   Makes parsing the track much easier for the high-level interpreter / player as the matrix is trivial to iterate through.
-   Bach interpreters can simply iterate one measure and beat at a time for `ms-per-pulse-beat` milliseconds on each step.
-   This strongly favors applications that must optimize and minimize their synchronization points."
-  [track]
-  (let [beat-cursor (atom 0)
-        meter (get-meter-ratio track)
-        pulse-beat (get-pulse-beat track)
-        beats-per-measure (get-normalized-beats-per-measure track)
-        total-measures (Math/ceil (get-normalized-total-measures track))
-        total-beats (get-normalized-total-beats track)
-        unused-tail-beats (mod (max total-beats beats-per-measure) (min total-beats beats-per-measure))
-        measure-matrix (mapv #(into [] %) (make-array clojure.lang.PersistentArrayMap total-measures beats-per-measure))
-        measures (atom (trim-matrix-row measure-matrix (- (count measure-matrix) 1) unused-tail-beats))
-        reduced-track (reduce-track track)]
-    (insta/transform
-      ; We only want to reduce the notes exported via the `Play` construct, otherwise it's ambiguous what to use
-     {:play (fn [play-track]
-              (letfn [(cast-duration [duration]
-                        (int (normalize-duration duration pulse-beat meter)))
-                      (cast-elements [elements]
-                        (->> [elements] hiccup-to-hash-map flatten (map :atom) vec))
-                      (update-cursor [beats]
-                        (swap! beat-cursor + beats))
-                      (update-measures [measure-index beat-index elements]
-                        (swap! measures assoc-in [measure-index beat-index] elements))
-                      (beat-indices []
-                        (let [global-beat-index @beat-cursor
-                              local-beat-index (mod global-beat-index beats-per-measure)
-                              measure-index (int (math-floor (/ global-beat-index beats-per-measure)))]
-                          {:measure measure-index :beat local-beat-index}))]
-                (insta/transform
-                 {:pair (fn [duration elements]
-                          (let [indices (beat-indices)
-                                measure-index (:measure indices)
-                                beat-index (:beat indices)
-                                normalized-items {:duration (cast-duration duration)
-                                                  :items (cast-elements elements)}]
-                            (update-measures measure-index beat-index normalized-items)
-                            (update-cursor (:duration normalized-items))))}
-                 play-track)))}
-     reduced-track)
-    @measures))
 
 ; ------ V3 --------
 
@@ -693,37 +669,21 @@
         meter (get-meter track)]
     (assoc headers :meter meter)))
 
-(defn provision-headers-orig
-  "Combines default static meta information with dynamic meta information to provide a provisioned set of headers.
-  Several headers could easily be calculated by a client interpreter, but they are intentionally defined here to refine rhythmic semantics and simplify synchronization."
-  [track]
-  (let [headers (get-headers track)
-        meter (get-meter track)
-        total-beats (get-total-beats track)
-        total-beat-units (get-total-beat-units track)
-        total-pulse-beats (get-total-pulse-beats track)
-        beat-units-per-measure (get-beat-units-per-measure track)
-        pulse-beats-per-measure (get-pulse-beats-per-measure track)
-        ms-per-beat-unit (get-ms-per-beat track :unit)
-        ms-per-pulse-beat (get-ms-per-beat track :pulse)
-        beat-unit (get-beat-unit track)
-        pulse-beat (get-pulse-beat track)]
-    (assoc headers
-           :meter meter
-           :total-beats total-beats
-           :total-beat-units total-beat-units
-           :total-pulse-beats total-pulse-beats
-           :beat-units-per-measure beat-units-per-measure
-           :pulse-beats-per-measure pulse-beats-per-measure
-           :ms-per-beat-unit ms-per-beat-unit
-           :ms-per-pulse-beat ms-per-pulse-beat
-           :beat-unit beat-unit
-           :pulse-beat pulse-beat)))
+; (defn playable
+;   [track play-fn]
+;   (->> track
+;        validate
+;        reduce-track
+;        (insta/transform {:play play-fn})))
 
 ; TODO! Only normalize beats referenced via play
 (defn provision
   [track]
   (when (validate track)
+  ; [tree]
+  ; (playable
+  ;   tree
+  ;   (fn [track]
     (let [beats (normalize-beats! track)
           headers (provision-headers track)
           units (provision-units track)
@@ -738,19 +698,6 @@
       #?(:clj source
          :cljs (to-json source)))))
 
-; TODO: Allow track to be provisioned in flat/stream mode (i.e. no measures, just evenly sized beats)
-; TODO: Add `version` property
-(defn provision-orig
-  "Provisions a parsed track, generating and organizating all of the information necessary to easily
-   interpret a track as a single stream of normalized data (no references, all values are resolved and optimized)."
-  [track]
-  (when (validate track)
-    (let [headers (provision-headers track)
-          data (normalize-measures track)
-          source {:headers headers :data data}]
-      #?(:clj source
-         :cljs (to-json source)))))
-
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
    A 'playable' track is formatted so that it is easily iterated over by a high-level Bach engine."
@@ -759,3 +706,5 @@
     (vector? track) (provision track)
     (string? track) (-> track parse provision)
     :else (problem "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))
+
+(def compose! (memo compose))

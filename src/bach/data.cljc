@@ -77,6 +77,20 @@
   [is? as tree]
   (clojure.walk/prewalk #(if (is? %) (as %) %) tree))
 
+; (defn hiccup-every
+;   [tree tag]
+;   (->> tree
+;        (clojure.walk/prewalk
+;        ; (cast-tree vector?
+;          (fn [node]
+;            (println "wut?" node tag (vector? node) (first node))
+;            (if (and (vector? node) (= tag (first node)))
+;              (rest node)
+;              nil)))
+;        flatten
+;        collect))
+
+
 (defn flatten-by
   "Flattens and reduces collection using `by` function."
   [by coll]
