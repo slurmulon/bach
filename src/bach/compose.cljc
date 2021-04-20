@@ -446,13 +446,10 @@
   Ouput: [:a #{:b :c} #{:d [:e :f]}]"
   [tree]
   (->> tree
-    ; TODO: Probably want to use reduce-track (`digest`) instead, to ease handling of beat :elements later
-    ;reduce-values
     normalize-values
     normalize-loops
     (insta/transform
-      {
-       :list (fn [& [:as all]] (-> all collect vec))
+      {:list (fn [& [:as all]] (-> all collect vec))
        :set (fn [& [:as all]] (->> all collect (into #{})))
        :atom (fn [[_ kind] [_ & args]] (as-element! kind args))
        ; TODO: Refactor towards this!
@@ -531,7 +528,7 @@
 
 ; unify-beats
 (defn position-beats
-  "Linearizes N-ary beat tree into a 1-ary sequence where each element is a map
+  "Transforms N-ary beat tree into a 1-ary sequence where each element is a map
   containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
@@ -539,10 +536,12 @@
         indices (linearize-indices identity durations)]
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
+(def itemize-beats position-beats)
+
 ; TODO: Probably just remove and rename position-beats to this
 (defn linearize-beats
   [tree]
-  (-> tree linearize-collections position-beats))
+  (-> tree linearize-collections itemize-beats))
 
 (defn normalize-beats
   "Normalizes beats in parsed AST for linear uniform iteration by decorating them
@@ -553,7 +552,7 @@
           meter (get-meter-ratio track)]
       (normalize-beats track unit meter)))
   ([tree unit meter]
-   (-> tree (unitize-collections unit meter) position-beats)))
+   (-> tree (unitize-collections unit meter) itemize-beats)))
 
 (def normalize-beats! (memo normalize-beats))
 
