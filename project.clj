@@ -9,7 +9,8 @@
                  [org.clojure/tools.cli "1.0.194"]
                  [org.clojure/core.memoize "1.0.236"]
                  [instaparse "1.4.10"]
-                 [nano-id "1.0.0"]]
+                 [nano-id "1.0.0"]
+                 [hiccup-find "1.0.0"]]
   :main ^:skip-aot bach.cli
   :target-path "target/%s"
   :plugins [[lein-bin "0.3.5"]
