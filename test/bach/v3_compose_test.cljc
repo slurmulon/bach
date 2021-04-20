@@ -1,8 +1,8 @@
 (ns bach.v3-compose-test
   (:require #?(:clj [clojure.test :refer [deftest is testing]]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
-            ; #?(:clj [clojure.test.check.generators :as gen])
             ; https://github.com/clojure/test.check/blob/master/doc/intro.md#clojurescript
+            [clojure.core.memoize :refer [memo memo-clear!]]
             [instaparse.core :as insta]
             [bach.compose :as compose]
             [bach.data :refer [to-ratio]]))
@@ -10,9 +10,13 @@
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
-(def reset-id! #(reset! id-counter 0))
+; (def reset-id! #(reset! id-counter 0))
 (def next-id! #(swap! id-counter inc))
 (def next-ids! #(take % (repeatedly next-id!)))
+(defn reset-id!
+  []
+  (reset! id-counter 0)
+  (memo-clear! compose/as-element!))
 
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
@@ -52,7 +56,7 @@
         [:pair [:number "5"] [:identifier :e]]]
       [:list
         [:pair [:number "4"] [:identifier :f]]
-        [:pair [:number "6"] [:identifier :f]]]]])
+        [:pair [:number "6"] [:identifier :g]]]]])
 
 (defn atomize-fixture
   [fixture]
@@ -241,11 +245,7 @@
                           [:pair 3 [:identifier :c]]]]
           ; (clojure.pprint/pprint actual)
           (is (= want actual))))
-      ; FIXME
-      ;  - Will be difficult to parse `when` here with current approach.
-      ;  - Consider just preventing loops from being provided to `when`
       (testing "nested"
-        (println "\n\n=============================================\n\n")
         (let [tree [:loop
                     [:number "3"]
                     [:list
@@ -288,7 +288,45 @@
                     [:pair 1 [:identifier :x]]
                     [:pair 3 [:identifier :h]]]
               actual (-> tree compose/reduce-values compose/normalize-loops)]
-          (clojure.pprint/pprint actual)
+          (is (= want actual))))
+      (testing "distant"
+        (let [tree [:loop
+                    [:number "3"]
+                    [:list
+                     [:pair
+                      [:number "1"]
+                      [:identifier :a]]
+                     [:when
+                      [:number "2"]
+                      [:pair
+                       [:number "2"]
+                       [:identifier :c]]]
+                     [:list
+                      [:pair
+                       [:number "1"]
+                       [:identifier :b]]
+                      [:when
+                       [:number "3"]
+                       [:pair
+                        [:number "3"]
+                        [:identifier :z]]]]]]
+              want [:list
+                    [:pair 1 [:identifier :a]]
+                    [:list
+                     [:pair 1 [:identifier :b]]
+                     nil]
+                    [:pair 1 [:identifier :a]]
+                    [:pair 2 [:identifier :c]]
+                    [:list
+                     [:pair 1 [:identifier :b]]
+                     nil]
+                    [:pair 1 [:identifier :a]]
+                    [:list
+                     [:pair 1 [:identifier :b]]
+                     [:pair 3 [:identifier :z]]]]
+              actual (-> tree compose/reduce-values compose/normalize-loops)]
+          ; (clojure.pprint/pprint (compose/normalize-collections actual))
+          ; (clojure.pprint/pprint actual)
           (is (= want actual))))
       )))
 
@@ -540,6 +578,7 @@
                    nil
                    nil
                    ["stub.5"]]]
+         ; (clojure.pprint/pprint actual)
          (is (= want actual)))))
    (testing "pulse beats"
      (reset-id!)
@@ -591,5 +630,5 @@
         ; (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
-; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
+(clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
 ; (clojure.pprint/pprint (-> [:loop [:number "2"] [:list [:string "'a'"] [:string "'z'"]]] compose/reduce-values compose/normalize-loops))

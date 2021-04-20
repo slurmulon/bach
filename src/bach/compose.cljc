@@ -11,6 +11,7 @@
 (ns bach.compose
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
+            [clojure.core.memoize :refer [memo]]
             [bach.ast :refer [parse]]
             [bach.data :refer :all]))
 
@@ -91,7 +92,7 @@
       track)))
   true)
 
-(def validate! (memoize validate))
+(def validate! (memo validate))
 
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
@@ -415,13 +416,15 @@
 ; ------ V3 --------
 
 (defn as-element
-  "Creates an element from provided atom kind and collection of arguments.
-   Parsed bach 'atoms' are considered 'elements', each with a unique id."
+  "Creates an element from an :atom kind and collection of arguments.
+   Parsed bach 'atoms' are considered 'elements', each having a unique id."
   [kind args]
   {:id (element-id kind)
    :kind (element-kind kind)
    :value (-> args first str)
    :props (rest args)})
+
+(def as-element! (memo as-element))
 
 (defn- normalize-loop-whens
   "Normalizes :when nodes in :loop AST tree at a given iteration.
@@ -438,7 +441,7 @@
        (filter (complement nil?))))
 
 (defn normalize-loops
-  "Normalizes loops in AST tree by expanding the loop's items into a new AST
+  "Normalizes :loops in AST tree by expanding the loop's items into a new AST
   collection tree. Uses the loop's keyword value for the new collection type.
   Input: [:loop 2 [:list :a :b :c]]
   Ouput: [:list :a :b :c :a :b :c]"
@@ -460,9 +463,9 @@
     normalize-loops
     (insta/transform
       {
-       :list (fn [& [:as all]] (vec all))
-       :set (fn [& [:as all]] (into #{} all))
-       :atom (fn [[_ kind] [_ & args]] (as-element kind args))
+       :list (fn [& [:as all]] (-> all collect vec))
+       :set (fn [& [:as all]] (->> all collect (into #{})))
+       :atom (fn [[_ kind] [_ & args]] (as-element! kind args))
        ; TODO: Refactor towards this!
        ; :pair #(assoc {} :duration %1 :elements (many %2))})))
        :pair #(assoc {} :duration %1 :elements %2)})))
@@ -563,7 +566,7 @@
   ([tree unit meter]
    (-> tree (unitize-collections unit meter) position-beats)))
 
-(def normalize-beats! (memoize normalize-beats))
+(def normalize-beats! (memo normalize-beats))
 
 (defn all-beat-items
   "Provides all of the items in a collection of normalized beats as a vector."
@@ -625,7 +628,7 @@
 
 (defn provision-elements
   "Groups all normalized beats' elements and their values by `kind`.
-  Allows consumers to directly resolve elements by their uid."
+  Allows consumers to directly resolve elements keyed by their uid."
   [beats]
   (->>
     beats
