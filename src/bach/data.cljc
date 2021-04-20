@@ -24,7 +24,6 @@
   [size value]
   (take size (repeat value)))
 
-; cast-many
 (defn many
   "Normalizes sequences, sets, maps and scalar values into a sequence."
   [x]
@@ -33,7 +32,13 @@
     (nil? x) []
     :else (cons x [])))
 
+(defn collect
+  "Normalizes value as a sequence and filters out any nil elements."
+  [x]
+  (->> x many (filter (complement nil?))))
+
 (defn cyclic-index
+  "Modulates index against a cycle limit, ensuring index is always in range."
   [limit index]
   (mod (if (>= index 0) index (+ limit index)) limit))
 
@@ -43,8 +48,6 @@
   (insta/transform
    {:list (fn [& [:as all]] all)
     :set (fn [& [:as all]] all)
-    ; EXPERIMENT: Expanding loop at this level so that we don't have to return a new [:list ...] (or whatever) just to keep working with AST in certain `bach.compose` methods
-    :loop (fn [iters & [:as all]] (->> all (map #(itemize iters) flatten vec)))
     :atom (fn [& [:as all]] {:atom (apply merge all)})
     :arguments (fn [& [:as all]] {:arguments (vec all)})
     :header (fn [& [:as all]] {:header (apply merge all)})
