@@ -7,6 +7,7 @@
                  [org.clojure/clojurescript "1.8.34"]
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.cli "1.0.194"]
+                 [org.clojure/core.memoize "1.0.236"]
                  [instaparse "1.4.10"]
                  [nano-id "1.0.0"]]
   :main ^:skip-aot bach.cli
