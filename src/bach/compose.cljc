@@ -13,7 +13,8 @@
             [nano-id.core :refer [nano-id]]
             [hiccup-find.core :refer [hiccup-find]]
             [clojure.core.memoize :refer [memo]]
-            [bach.ast :refer [parse]]
+            ; [bach.ast :refer [parse]]
+            [bach.ast :as ast]
             [bach.data :refer :all]))
 
 (def default-tempo 120)
@@ -105,7 +106,7 @@
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
   [track]
   (variable-scope
-   (fn [variables track-variable _]
+   (fn [variables set-variable! _]
      (insta/transform
       {:assign (fn [label-token value-token]
                  (let [label (last label-token)
@@ -114,9 +115,9 @@
                    (case value-type
                      :identifier
                      (let [stack-value (get (variables) value)]
-                       (track-variable label stack-value)
+                       (set-variable! label stack-value)
                        [:assign label-token stack-value])
-                     (do (track-variable label value-token)
+                     (do (set-variable! label value-token)
                          [:assign label-token value-token]))))
        :identifier (fn [label]
                      (let [stack-value (get (variables) label)]
@@ -145,6 +146,7 @@
     ; TODO: Determine if this is necessary with our math grammar (recommended in instaparse docs)
     ; :expr identity,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
+(def parse-values reduce-values)
 
 (defn reduce-track
   "Dereferences variables and reduces the primitive values in a parsed track."
@@ -152,6 +154,13 @@
   (-> track
       deref-variables
       reduce-values))
+; (def normalize-values reduce-track)
+(def digest reduce-track)
+
+; defn consume
+(defn parse
+  [track]
+  (-> track validate digest))
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
@@ -189,16 +198,15 @@
      track)
     @header))
 
-(defn- get-plays
-  "Finds and returns all of the Play! trees in a track."
+(defn find-plays
+  "Finds and all of the Play! trees in a track."
   [track]
-  ; (hiccup-find [:play] track))
   (->> track (hiccup-find [:play]) (map #(last %))))
 
 (defn get-play
-  "Determines and returns the main Play! export of the track."
+  "Determines the main Play! export of the track."
   [track]
-  (-> track get-plays last))
+  (-> track find-plays last))
   ; (let [play (atom [])]
   ;   (insta/transform {:play #(reset! play %)} track)
   ;   @play))
@@ -435,7 +443,8 @@
   [tree]
   (->> tree
     ; TODO: Probably want to use reduce-track instead, to ease handling of beat :elements later
-    reduce-values
+    ;reduce-values
+    parse-values
     normalize-loops
     (insta/transform
       {
@@ -669,22 +678,19 @@
         meter (get-meter track)]
     (assoc headers :meter meter)))
 
-; (defn playable
-;   [track play-fn]
-;   (->> track
-;        validate
-;        reduce-track
-;        (insta/transform {:play play-fn})))
+(defn playable
+  [track ]
+  (-> track parse get-play))
 
 ; TODO! Only normalize beats referenced via play
 (defn provision
-  [track]
-  (when (validate track)
-  ; [tree]
-  ; (playable
-  ;   tree
-  ;   (fn [track]
-    (let [beats (normalize-beats! track)
+  [tree]
+  ; [track]
+  ; (when (validate track)
+  (when-let [track (playable tree)]
+    (let [;track (playable tree)
+          ;track (validate tree)
+          beats (normalize-beats! track)
           headers (provision-headers track)
           units (provision-units track)
           signals (provision-signals track)
@@ -704,7 +710,7 @@
   [track]
   (cond
     (vector? track) (provision track)
-    (string? track) (-> track parse provision)
+    (string? track) (-> track ast/parse provision)
     :else (problem "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))
 
 (def compose! (memo compose))

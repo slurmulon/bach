@@ -652,8 +652,9 @@
         ; (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
+(clojure.pprint/pprint (->> fixture-a atomize-fixture (conj [:play]) compose/get-play))
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
 ; (clojure.pprint/pprint (-> [:loop [:number "2"] [:list [:string "'a'"] [:string "'z'"]]] compose/reduce-values compose/normalize-loops))
 
-(println "@@@@@@@@@@@")
-(clojure.pprint/pprint (-> [:list [:play [:a 1]] [:play [:b 2]]] (compose/get-play)))
+; (println "@@@@@@@@@@@")
+; (clojure.pprint/pprint (-> [:list [:play [:a 1]] [:play [:b 2]]] (compose/get-play)))

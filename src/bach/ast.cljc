@@ -2,6 +2,12 @@
   (:require #?(:cljs [instaparse.core :as insta :refer-macros [defparser]]
                :clj [instaparse.core :as insta :refer [defparser]])))
 
+; TODO!:
+;  - Think about `Config!` operator, allowing users to specify run-time configuration flags per track
+;  - Allows bach engines to dynamically adapt interpretation of tracks on an individual level
+;  - Use cases:
+;    * Track is large and you don't want the quantized "signals" exported via `bach.compose/compose`
+;  
 (defparser parse
   "(* Core *)
     track = statement*
