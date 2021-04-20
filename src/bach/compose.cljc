@@ -143,6 +143,8 @@
     :div /,
     :meter (fn [n d] [n d]),
     :number to-string,
+    :int to-string,
+    :float to-string,
     :name to-string,
     ; TODO: Determine if this is necessary with our math grammar (recommended in instaparse docs)
     ; :expr identity,

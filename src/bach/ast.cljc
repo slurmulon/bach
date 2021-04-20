@@ -52,13 +52,13 @@
     keyword    = [<empty>] <'~'> | name [<empty>]
     (* play       = [<empty>] <'!Play'> [<empty>] elem *)
     play       = [<empty>] <'Play!'> [<empty>] elem
-    meter      = [<empty>] int <'|'> int [<empty>]
+    meter      = [<empty>] <int> <'|'> <int> [<empty>]
     string     = #'[\\'|\"](.*?)[\"|\\']'
     word       = #'[a-zA-Z]+'
     name       = #'[a-zA-Z_]+[a-zA-Z0-9_-]*'
-    <int>      = #'(0|([1-9][0-9]*))'
-    <float>    = #'(0|([1-9][0-9]*))(\\.[0-9]+)?'
-    number     = int | float
+    int      = #'(0|([1-9][0-9]*))'
+    float    = #'(0|([1-9][0-9]*))(\\.[0-9]+)?'
+    <number>     = int | float
     (* color      = #'#[a-fA-F0-9xX]{3,6}' *)
     <empty>    = #'(\\r\\n|\\n|\\r|\\s)*'
     (* TODO: Support comments *)

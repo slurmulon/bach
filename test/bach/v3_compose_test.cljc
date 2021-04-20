@@ -652,9 +652,47 @@
         ; (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
-(clojure.pprint/pprint (->> fixture-a atomize-fixture (conj [:play]) compose/get-play))
+; (clojure.pprint/pprint (->> fixture-a atomize-fixture (conj [:play]) compose/get-play))
+; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/compose))
+(clojure.pprint/pprint (-> fixture-a atomize-fixture compose/parse));compose/playable))
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
 ; (clojure.pprint/pprint (-> [:loop [:number "2"] [:list [:string "'a'"] [:string "'z'"]]] compose/reduce-values compose/normalize-loops))
 
 ; (println "@@@@@@@@@@@")
 ; (clojure.pprint/pprint (-> [:list [:play [:a 1]] [:play [:b 2]]] (compose/get-play)))
+
+(def fixture-bach-a
+  "
+  :a = Chord('A7')
+  :e = Chord('E6')
+  :g = Chord('Gm')
+  :f = Chord('F#')
+
+  :part-a = 3 of [
+    2 -> :a
+    2 -> :e
+    when 3 then { 1 -> :g }
+  ]
+
+  :part-b = 2 of [
+    when 1 then { 2 -> :a }
+    2 -> :f
+    2 -> :e
+  ]
+
+  Play! 2 of [:part-a :part-b]
+  ")
+
+(println "@@@@@@")
+; (clojure.pprint/pprint (compose/compose fixture-bach-a))
+; (clojure.pprint/pprint (-> fixture-bach-a compose/get-play compose/reduce-track))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/reduce-values))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest))
+(clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/provision))
+; (clojure.pprint/pprint (bach.ast/parse fixture-bach-a))
+; (clojure.pprint/pprint (bach.ast/parse "[1 -> :a, 2 -> :b]"))
+; (clojure.pprint/pprint (bach.ast/parse "[when 1, when 2]"))
+; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ], when 2 then { 2 -> :b }]"))
+; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ]]"))
+; (clojure.pprint/pprint (bach.ast/parse "[when 1 then :a]"))
