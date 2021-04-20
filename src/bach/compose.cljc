@@ -11,7 +11,7 @@
 (ns bach.compose
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
-            [hiccup-find.core :refer [hiccup-find]]
+            ; [hiccup-find.core :refer [hiccup-find]]
             [clojure.core.memoize :refer [memo]]
             ; [bach.ast :refer [parse]]
             [bach.ast :as ast]
@@ -204,7 +204,8 @@
 (defn find-plays
   "Finds and all of the Play! trees in a track."
   [track]
-  (->> track (hiccup-find [:play]) (map #(last %))))
+  (hiccup-find-trees [:play] track))
+  ; (->> track (hiccup-find [:play]) (map #(last %))))
 
 (defn get-play
   "Determines the main Play! export of the track."
@@ -429,8 +430,8 @@
        (filter (complement nil?))))
 
 (defn normalize-loops
-  "Normalizes :loops in AST tree by expanding the loop's items into a new AST
-  collection tree. Uses the loop's keyword value for the new collection type.
+  "Normalizes :loops in AST tree by expanding the loop's items into a new AST collection tree.
+  Uses the keyword of the loop's value for the new collection type.
   Input: [:loop 2 [:list :a :b :c]]
   Ouput: [:list :a :b :c :a :b :c]"
   [tree]
@@ -682,18 +683,17 @@
     (assoc headers :meter meter)))
 
 (defn playable
+  "Parses a track and returns the AST tree of the main Play! export."
   [track]
   (-> track parse get-play))
 
-; TODO! Only normalize beats referenced via play
+; TODO: Use keyword args to allow custom flexibile provisioning
+;  - Also consider proposed Config! operator here, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
 (defn provision
+  "Provisions a track for high-level interpretation and playback."
   [tree]
-  ; [track]
-  ; (when (validate track)
   (when-let [track (playable tree)]
-    (let [;track (playable tree)
-          ;track (validate tree)
-          beats (normalize-beats! track)
+    (let [beats (normalize-beats! track)
           headers (provision-headers track)
           units (provision-units track)
           signals (provision-signals track)

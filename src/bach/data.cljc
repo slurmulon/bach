@@ -1,5 +1,6 @@
 (ns bach.data
   (:require [instaparse.core :as insta]
+            [hiccup-find.core :refer [hiccup-find]]
             #?(:clj [clojure.data.json :as json]
                :cljs [cljs.reader :as reader])))
 
@@ -68,12 +69,13 @@
   [tree]
   (-> tree hiccup-to-hash-map to-json))
 
-(defn is-hiccup?
-  [tree]
-  (and (vector? tree) (-> tree first keyword?)))
+(defn hiccup-find-trees
+  "Finds all of the child trees of hiccup nodes with a matching tag."
+  [tags tree]
+  (->> tree (hiccup-find tags) (map #(last %))))
 
 (defn cast-tree
-  "Walks an iterable N-ary tree (depth-first, pre-order) and applies `as` to each node where `is?` matches (`is?` returns true)"
+  "Walks an iterable N-ary tree (depth-first, pre-order) and applies `as` to each node where `is?` returns true."
   [is? as tree]
   (clojure.walk/prewalk #(if (is? %) (as %) %) tree))
 
@@ -117,7 +119,7 @@
   etc.) and returns their contents as a single, flat, lazy sequence.
   If the argument is non-sequential (numbers, maps, strings, nil, 
   etc.), returns the original argument.
-  @credit 'Notes': https://clojuredocs.org/clojure.core/flatten"
+  @see 'Notes': https://clojuredocs.org/clojure.core/flatten"
   {:static true}
   [tree]
   (letfn [(flat [coll]
