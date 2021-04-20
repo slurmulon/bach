@@ -32,13 +32,17 @@
 
     (* WARN: Might need to tighten these up, i.e. something more specific than `entity` *)
     (*  - One reason to NOT tighten this up is to hoist all validation to bach.compose, reducing/preventing parallel logic between AST parser and compiler *)
-    set        = [<empty>] <'{'> [entity (<','|empty> entity)* [<','>]] <'}'> [<empty>]
-    list       = [<empty>] <'['> [entity (<','|empty> entity)* [<','>]] <']'> [<empty>]
-    loop       = [<empty>] int [<empty>] <'of'> set | list [<empty>]
+    <item>     = entity | when
+    set        = [<empty>] <'{'> [item (<','|empty> item)* [<','>]] <'}'> [<empty>]
+    list       = [<empty>] <'['> [item (<','|empty> item)* [<','>]] <']'> [<empty>]
+    loop       = [<empty>] int [<empty>] <'of'> [<empty>] (set | list) [<empty>]
+    when       = [<empty>] <'when'> <empty> int <empty> <'then'> <empty> (atom | identifier | set | list) [<empty>]
 
     (* TODO: Rename pair to beat *)
-    (* pair       = expr <'->'> elem [<empty>,<empty>] *)
-    pair       = expr <'->'> atom | set | identifier [<empty>,<empty>]
+    (* ORIG *)
+    pair       = expr <'->'> elem [<empty>,<empty>]
+    (* V3, FIXME *)
+    (* pair       = expr <'->'> atom | set | identifier [<empty>,<empty>] *)
     assign     = identifier <'='> elem
     header     = meta <'='> elem
     attribute  = name [<empty>] <':'> [<empty>] prim
