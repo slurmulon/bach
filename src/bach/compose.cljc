@@ -93,6 +93,7 @@
                     (problem "Tempos must be between 0 and 256 beats per minute"))))}
       track)))
   true)
+(def valid? validate)
 
 (def validate! (memo validate))
 
@@ -147,6 +148,7 @@
     ; :expr identity,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 (def parse-values reduce-values)
+(def normalize-values reduce-values)
 
 (defn reduce-track
   "Dereferences variables and reduces the primitive values in a parsed track."
@@ -160,7 +162,8 @@
 ; defn consume
 (defn parse
   [track]
-  (-> track validate digest))
+  (when (valid? track)
+    (digest track)))
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
@@ -399,6 +402,7 @@
 
 ; ------ V3 --------
 
+; craft-element
 (defn as-element
   "Creates an element from an :atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each having a unique id."
@@ -442,9 +446,9 @@
   Ouput: [:a #{:b :c} #{:d [:e :f]}]"
   [tree]
   (->> tree
-    ; TODO: Probably want to use reduce-track instead, to ease handling of beat :elements later
+    ; TODO: Probably want to use reduce-track (`digest`) instead, to ease handling of beat :elements later
     ;reduce-values
-    parse-values
+    normalize-values
     normalize-loops
     (insta/transform
       {
@@ -679,7 +683,7 @@
     (assoc headers :meter meter)))
 
 (defn playable
-  [track ]
+  [track]
   (-> track parse get-play))
 
 ; TODO! Only normalize beats referenced via play
