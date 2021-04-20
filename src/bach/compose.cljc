@@ -12,7 +12,7 @@
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
             ; [hiccup-find.core :refer [hiccup-find]]
-            [clojure.core.memoize :refer [memo]]
+            [clojure.core.memoize :refer [memo memo-clear!]]
             ; [bach.ast :refer [parse]]
             [bach.ast :as ast]
             [bach.data :refer :all]))
@@ -719,3 +719,8 @@
     :else (problem "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))
 
 (def compose! (memo compose))
+
+(defn clear!
+  "Clears the cache state of all memoized functions."
+  []
+  (map memo-clear! [validate! as-element! normalize-beats!]))

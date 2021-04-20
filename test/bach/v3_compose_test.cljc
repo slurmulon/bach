@@ -16,7 +16,7 @@
 (defn reset-id!
   []
   (reset! id-counter 0)
-  (memo-clear! compose/as-element!))
+  (compose/clear!))
 
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
@@ -669,15 +669,15 @@
   :f = Chord('F#')
 
   :part-a = 3 of [
-    2 -> :a
+    3 -> :a
     2 -> :e
     when 3 then { 1 -> :g }
   ]
 
   :part-b = 2 of [
     when 1 then { 2 -> :a }
-    2 -> :f
-    2 -> :e
+    1/2 -> :f
+    1/2 -> :e
   ]
 
   Play! 2 of [:part-a :part-b]
@@ -689,7 +689,8 @@
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/reduce-values))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest))
-(clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/provision))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/provision))
+(clojure.pprint/pprint (-> fixture-bach-a compose/compose))
 ; (clojure.pprint/pprint (bach.ast/parse fixture-bach-a))
 ; (clojure.pprint/pprint (bach.ast/parse "[1 -> :a, 2 -> :b]"))
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1, when 2]"))
