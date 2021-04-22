@@ -21,18 +21,13 @@
     (* <entity>   = [<empty>] atom | pair | coll | identifier [<empty>] *)
     (* <entity>   = [<empty>] atom | coll | identifier [<empty>] *)
     <entity>   = [<empty>] atom | coll | pair | identifier [<empty>]
+    <item>     = entity | when
     <seq>      = [<empty>] list | loop [<empty>]
     <coll>     = [<empty>] seq | set [<empty>]
     <prim>     = [<empty>] string | number | meter [<empty>]
     <init>     = <'('> arguments <')'>
     atom       = [<empty>] keyword [<empty>] init [<empty>]
 
-    (* set        = [<empty>] <'{'> [elem (<','|empty> elem)* [<','>]] <'}'> [<empty>]
-    list       = [<empty>] <'['> [elem (<','|empty> elem)* [<','>]] <']'> [<empty>] *)
-
-    (* WARN: Might need to tighten these up, i.e. something more specific than `entity` *)
-    (*  - One reason to NOT tighten this up is to hoist all validation to bach.compose, reducing/preventing parallel logic between AST parser and compiler *)
-    <item>     = entity | when
     set        = [<empty>] <'{'> [item (<','|empty> item)* [<','>]] <'}'> [<empty>]
     list       = [<empty>] <'['> [item (<','|empty> item)* [<','>]] <']'> [<empty>]
     loop       = [<empty>] int [<empty>] <'of'> [<empty>] (set | list) [<empty>]
@@ -51,7 +46,7 @@
     meta       = [<empty>] <'@'> name [<empty>]
     keyword    = [<empty>] <'~'> | name [<empty>]
     (* play       = [<empty>] <'!Play'> [<empty>] elem *)
-    play       = [<empty>] <'Play!'> [<empty>] elem
+    play       = [<empty>] #'(play|Play)!' [<empty>] elem
     meter      = [<empty>] <int> <'|'> <int> [<empty>]
     string     = #'[\\'|\"](.*?)[\"|\\']'
     word       = #'[a-zA-Z]+'
@@ -59,9 +54,8 @@
     int      = #'(0|([1-9][0-9]*))'
     float    = #'(0|([1-9][0-9]*))(\\.[0-9]+)?'
     <number>     = int | float
-    (* color      = #'#[a-fA-F0-9xX]{3,6}' *)
     <empty>    = #'(\\r\\n|\\n|\\r|\\s)*'
-    (* TODO: Support comments *)
+    <comment> = #'\\/\\/\\s.*?$'
 
     (* Math *)
     add = term <'+'> expr
