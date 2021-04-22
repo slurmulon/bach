@@ -35,10 +35,16 @@
                     :ms-per-pulse-beat 0
                     :ms-per-beat-unit 0})
 
+(def valid-divisors (take 9 powers-of-two))
+(def valid-max-tempo 256)
+(def valid-max-duration 1024)
+
 (def uid #(nano-id 6))
 
 (defn element-kind
   [elem]
+  ; (println "elem kind???")
+  ; (clojure.pprint/pprint elem)
   (if (map? elem)
     (-> elem :kind element-kind)
     (-> elem name clojure.string/lower-case keyword)))
@@ -64,21 +70,23 @@
               (swap! context assoc :vars (conj (variables) [label value])))]
       (scope variables create-variable context))))
 
-; TODO: Move to bach.ast
-(defn every-tag?
-  [valids tags]
-  (every? (zipmap valids (repeat true)) (many tags)))
+; TODO: Move to bach.ast or bach.data
+(defn- compare-tags
+  [is? in tags]
+  (is? (zipmap in (repeat true)) (many tags)))
 
-(def not-every-tag? #(not (every-tag? %1 %2)))
+; (defn every-tag?
+;   [in tags]
+;   (compare-tags every? in tags))
+;   ; (every? (zipmap coll (repeat true)) (many tags)))
 
-; (defn invalid-tags?
-;   [valids tag]
-;   (not-every? (zipmap valids (repeat true)) [tag])
+; (defn some-tag?
+;   [coll tag]
+;   (compare-tags some in tags))
+  ; (some (zipmap coll (repeat true)) (many tags)))
 
-; (defn banned-tags?
-;   [bans tag]
-;   (some (zipmap bans (repeat true)) [tag])
-
+; (def not-every-tag? #(not (every-tag? %1 %2)))
+; (def not-some-tag? #(not (some-tag? %1 %2)))
 
 ; TODO: integreate reduce-values
 ; TODO: check for :play
@@ -96,31 +104,41 @@
                       (problem (str "Variable is not declared before it's used: " value)))
                     (create-variable label value)))
        :pair (fn [duration [tag :as value]]
-               (cond
-                 (not-every-tag? [:atom :set] tag)
-                   (problem (str "Beat values can only be atoms or sets: " tag)
-                 (->> value (hiccup-find [:list :loop]) empty? not)
-                   (problem "Beats cannot contain a nested list or loop"))))
-       :div (fn [top-token bottom-token]
-              (let [top    (-> top-token    last to-string)
-                    bottom (-> bottom-token last to-string)]
-                (when (not (some #{bottom} (take 9 powers-of-two)))
-                  (problem "Note divisors must be even and no greater than 256"))))
-       :tempo (fn [& tempo-token]
-                (let [tempo (-> tempo-token last to-string)]
-                  (when (not (<= 0 tempo 256))
-                    (problem "Tempos must be between 0 and 256 beats per minute"))))}
+               ; (println "DURATIONNNNN" duration)
+               nil)
+               ; (cond
+               ;   (> duration valid-max-duration)
+               ;     (problem (str "Beat durations must be between 0 and " valid-max-duration))
+                 ; (compare-tags not-every? [:atom :set] tag)
+                 ;   (problem (str "Beat values can only be an atom or set but found: " tag))
+                 ; (->> value (hiccup-find [:list :loop]) empty? not)
+                 ;   (problem "Beats cannot contain a nested list or loop")))
+       :div (fn [[& n] [& d]]
+              (when (not (some #{d} valid-divisors))
+                (problem "All divisors must be even and no greater than " (last valid-divisors))))}
+       ; TODO: Re-implement, :tempo is no longer an AST tag
+       ; :tempo (fn [& tempo]
+       ;          (when (not (<= 0 tempo valid-max-tempo))
+       ;            (problem "Tempos must be between 0 and " valid-max-tempo " beats per minute")))}
       track)))
   true)
-(def valid? validate)
 
+(def valid? validate)
 (def validate! (memo validate))
 
 ; TODO
+; validate-ast
+; validate-headers
 ; validate-play
 ; validate-divisors
 ; validate-tempo
 ; validate-no-cycles
+
+; (defn validate-2
+;   [track]
+;   (->> [validate-ast validate-headers validate-play]
+;       (map #(% track))
+;       (every? true?)))
 
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
@@ -205,9 +223,8 @@
   (let [headers (atom default-headers)
         reduced-track (reduce-track track)]
     (insta/transform
-     {:header (fn [kind-token value]
-                (let [kind (last kind-token)
-                      header-key (-> kind name clojure.string/lower-case keyword)]
+     {:header (fn [[& kind] value]
+                (let [header-key (-> kind name clojure.string/lower-case keyword)]
                   (swap! headers assoc header-key value)))}
      reduced-track)
     @headers))
@@ -217,10 +234,9 @@
   [track label default]
   (let [header (atom default)]
     (insta/transform
-     {:header (fn [meta-key value]
-                (let [kind (last meta-key)]
-                  (when (= (str kind) (str label))
-                    (reset! header value))))}
+     {:header (fn [[& kind] value]
+                (when (= (str kind) (str label))
+                  (reset! header value)))}
      track)
     @header))
 
@@ -228,15 +244,11 @@
   "Finds and all of the Play! trees in a track."
   [track]
   (hiccup-find-trees [:play] track))
-  ; (->> track (hiccup-find [:play]) (map #(last %))))
 
 (defn get-play
   "Determines the main Play! export of the track."
   [track]
   (-> track find-plays last))
-  ; (let [play (atom [])]
-  ;   (insta/transform {:play #(reset! play %)} track)
-  ;   @play))
 
 (defn get-tempo
   "Determines the global tempo of the track. Localized tempos are NOT supported yet."
@@ -476,9 +488,10 @@
       {:list (fn [& [:as all]] (-> all collect vec))
        :set (fn [& [:as all]] (->> all collect (into #{})))
        :atom (fn [[_ kind] [_ & args]] (as-element! kind args))
-       ; TODO: Refactor towards this!
-       ; :pair #(assoc {} :duration %1 :elements (many %2))})))
-       :pair #(assoc {} :duration %1 :elements %2)})))
+       ; FIXME: Refactor towards this!
+       ;  - Currently prevents `2 -> { Chord('A')`
+       :pair #(assoc {} :duration %1 :elements (many %2))})))
+       ; :pair #(assoc {} :duration %1 :elements %2)})))
 
 (defn as-durations
   "Transforms each node in a tree containing a map with a :duration into
@@ -584,15 +597,21 @@
   [beats]
   (mapcat #(-> % :items vec) (many beats)))
 
-(defn all-beat-items-ids
-  "Provides all of the ids in a collection of normalized beat items."
-  [items]
-  (->> items (cast-tree map? #(get-in % [:elements :id])) flatten))
+; (defn all-beat-items-ids
+;   "Provides all of the ids in a collection of normalized beat items."
+;   [items]
+;   ; FIXME: Doesn't work if elements is a collection (movign towards this, to support sets in beats)
+;   (->> items (cast-tree map? #(get-in % [:elements :id])) flatten))
 
 (defn all-beat-elements
   "Provides all of the elements in a collection of normalized beats."
   [beats]
-  (->> beats all-beat-items (map :elements)))
+  ; (->> beats all-beat-items (map :elements)))
+  (->> (many beats) all-beat-items (mapcat :elements)))
+
+(defn all-beat-element-ids
+  [beats]
+  (->> (many beats) all-beat-elements (map :id)))
 
 (defn cast-beat-element-ids
   "Transforms normalized beat element(s) into their unique ids."
@@ -619,7 +638,8 @@
   [beats]
   (mapcat (fn [beat]
             (let [items (index-beat-items beat)
-                  elems (all-beat-items-ids items)]
+                  ; elems (all-beat-items-ids items)]
+                  elems (all-beat-element-ids beat)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
@@ -632,7 +652,7 @@
     (reduce
       (fn [acc item]
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
-              item-elems (many (get-in item [:elements :id]))
+              item-elems (many (->> item :elements (map :id)))
               acc-elems (many (get acc index))
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) signals items)))
@@ -641,6 +661,8 @@
   "Groups all normalized beats' elements and their values by `kind`.
   Allows consumers to directly resolve elements keyed by their uid."
   [beats]
+  (println "---------------------")
+  (clojure.pprint/pprint (all-beat-elements beats))
   (->>
     beats
     all-beat-elements
