@@ -10,13 +10,9 @@
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
-; (def reset-id! #(reset! id-counter 0))
 (def next-id! #(swap! id-counter inc))
 (def next-ids! #(take % (repeatedly next-id!)))
-(defn reset-id!
-  []
-  (reset! id-counter 0)
-  (compose/clear!))
+(def clear! #(do (reset! id-counter 0) (compose/clear!)))
 
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
@@ -527,7 +523,7 @@
 (deftest signals
   (with-redefs [compose/uid next-id!]
     (testing "play"
-      (reset-id!)
+      (clear!)
       (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/element-play-signals)
             want [["stub.1"]
@@ -551,7 +547,7 @@
         (is (= want actual))))
    (testing "stop"
      (testing "separate occurence"
-       (reset-id!)
+       (clear!)
        (let [tree (atomize-fixture fixture-a)
              actual (-> tree compose/normalize-beats compose/element-stop-signals)
              want [["stub.8"]
@@ -574,7 +570,7 @@
                    ["stub.7"]]]
          (is (= want actual))))
      (testing "simultaneous occurence"
-       (reset-id!)
+       (clear!)
        (let [tree (atomize-fixture fixture-b)
              actual (-> tree compose/normalize-beats compose/element-stop-signals)
              want [["stub.7"]
@@ -594,7 +590,7 @@
          ; (clojure.pprint/pprint actual)
          (is (= want actual)))))
    (testing "pulse beats"
-     (reset-id!)
+     (clear!)
      (let [tree (atomize-fixture fixture-a)
            actual (compose/pulse-beat-signals tree)
            want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
@@ -604,7 +600,7 @@
   (with-redefs [compose/uid next-id!]
     (testing "elements"
       (testing "all unique"
-        (reset-id!)
+        (clear!)
         (let [tree (atomize-fixture fixture-a)
               actual (-> tree compose/normalize-beats compose/provision-elements)
               want {:stub
@@ -618,7 +614,7 @@
                      "7" {:value "g", :props ()}}}]
           (is (= want actual))))
       (testing "some identical"
-        (reset-id!)
+        (clear!)
         (let [tree (atomize-fixture fixture-c)
               actual (-> tree compose/normalize-beats compose/provision-elements)
               want {:stub
@@ -626,7 +622,7 @@
                      "2" {:value "b", :props ()}}}]
           (is (= want actual)))))
    (testing "beats"
-      (reset-id!)
+      (clear!)
       (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/provision-beats)
             want [{:items

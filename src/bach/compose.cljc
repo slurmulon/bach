@@ -11,7 +11,7 @@
 (ns bach.compose
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
-            ; [hiccup-find.core :refer [hiccup-find]]
+            [hiccup-find.core :refer [hiccup-find]]
             [clojure.core.memoize :refer [memo memo-clear!]]
             ; [bach.ast :refer [parse]]
             [bach.ast :as ast]
@@ -64,6 +64,22 @@
               (swap! context assoc :vars (conj (variables) [label value])))]
       (scope variables create-variable context))))
 
+; TODO: Move to bach.ast
+(defn every-tag?
+  [valids tags]
+  (every? (zipmap valids (repeat true)) (many tags)))
+
+(def not-every-tag? #(not (every-tag? %1 %2)))
+
+; (defn invalid-tags?
+;   [valids tag]
+;   (not-every? (zipmap valids (repeat true)) [tag])
+
+; (defn banned-tags?
+;   [bans tag]
+;   (some (zipmap bans (repeat true)) [tag])
+
+
 ; TODO: integreate reduce-values
 ; TODO: check for :play
 ; TODO: validate any variables in :play
@@ -73,20 +89,23 @@
   (variable-scope
    (fn [variables create-variable _]
      (insta/transform
-      {:assign (fn [label-token value-token]
-                 (let [[& label] label-token
-                       [& value] value-token
-                       [value-type] value-token]
-                   (case value-type
-                     :identifier
-                     (when (-> (variables) (contains? value) not)
-                       (problem (str "Variable is not declared before it's used: " value ", " (variables))))
-                     (create-variable label value))))
+       {:assign (fn [[& label] [& [value-type] :as value]]
+                  (case value-type
+                    :identifier
+                    (when (-> (variables) (contains? value) not)
+                      (problem (str "Variable is not declared before it's used: " value)))
+                    (create-variable label value)))
+       :pair (fn [duration [tag :as value]]
+               (cond
+                 (not-every-tag? [:atom :set] tag)
+                   (problem (str "Beat values can only be atoms or sets: " tag)
+                 (->> value (hiccup-find [:list :loop]) empty? not)
+                   (problem "Beats cannot contain a nested list or loop"))))
        :div (fn [top-token bottom-token]
               (let [top    (-> top-token    last to-string)
                     bottom (-> bottom-token last to-string)]
-                (when (not (some #{bottom} (take 10 powers-of-two)))
-                  (problem "Note divisors must be even and no greater than 512"))))
+                (when (not (some #{bottom} (take 9 powers-of-two)))
+                  (problem "Note divisors must be even and no greater than 256"))))
        :tempo (fn [& tempo-token]
                 (let [tempo (-> tempo-token last to-string)]
                   (when (not (<= 0 tempo 256))
@@ -163,9 +182,11 @@
 
 ; defn consume
 (defn parse
-  [track]
-  (when (valid? track)
-    (digest track)))
+  [tree]
+  (let [track (digest tree)]
+    (when (valid? track) track)))
+  ; (when (valid? track)
+  ;   (digest track)))
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
@@ -529,8 +550,7 @@
           #(let [duration (int (normalize-duration (:duration %) unit meter))]
              (assoc % :duration duration))))))
 
-; unify-beats
-(defn position-beats
+(defn itemize-beats
   "Transforms N-ary beat tree into a 1-ary sequence where each element is a map
   containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
@@ -539,7 +559,7 @@
         indices (linearize-indices identity durations)]
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
-(def itemize-beats position-beats)
+(def position-beats itemize-beats)
 
 ; TODO: Probably just remove and rename position-beats to this
 (defn linearize-beats
@@ -664,18 +684,54 @@
   [beats]
   (map provision-beat (many beats)))
 
+; FIXME: Needs to be refactored in light of collection nesting, loops, whens, etc.
+; FORMAT DRAFTS:
+;   - TODO: Probably rename `unit` to `pulse` and `pulse` to `rhythm`
+;     - Alternatively, could just have `beat` and `pulse` (old `unit`)
+;     - OR just `rbeat` and `pbeat`, or just `r` and `p`
+;       - `q` might be better than `r` (since `r` more relates to things like swing, which is not necessarily the quantized beat, hence `q`).
+;       - `f` could also be better than `q`, for "foot" beat. (or even "frequency" beat)
+;       - `s` could also be better than `q`, for "signal" or "step" beat.
+;       - `w` could also be better than `q`, for "wave" beat.
+;   - @see: https://en.wikipedia.org/wiki/Rhythm#Unit_and_gesture
+; {
+;   units: {
+;     beat: {
+;       step: 1/4
+;       pulse: 1/4
+;     }
+;     bar: {
+;       step: 4
+;       pulse: 4
+;     }
+;     time: {
+;       step: 500
+;       pulse: 500
+;       bar: 2000
+;     }
+;     total: {
+;       step: 8
+;       pulse: 8
+;       bar: 2
+;       time: 4000
+;     }
+;  }
+
 (defn provision-units
   "Provisions essential and common unit values of a track for serialization and playback."
   [track]
-  {:total-beats (get-total-beats track)
-   :total-beat-units (get-total-beat-units track)
-   :total-pulse-beats (get-total-pulse-beats track)
-   :beat-units-per-measure (get-beat-units-per-measure track)
-   :pulse-beats-per-measure (get-pulse-beats-per-measure track)
-   :ms-per-beat-unit (get-ms-per-beat track :unit)
-   :ms-per-pulse-beat (get-ms-per-beat track :pulse)
-   :beat-unit (get-beat-unit track)
-   :pulse-beat (get-pulse-beat track)})
+  {;:total-beats (get-total-beats track)
+   ;:total-beat-units (get-total-beat-units track)
+   ; :total-pulse-beats (get-total-pulse-beats track)
+   :total-pulse-beats (as-reduced-durations track)
+   ;:beat-units-per-bar (get-beat-units-per-measure track)
+   ;:pulse-beats-per-bar (get-pulse-beats-per-measure track)
+   ;:ms-per-beat-unit (get-ms-per-beat track :unit)
+   ;:ms-per-pulse-beat (get-ms-per-beat track :pulse)
+   ; ms-per-bar
+   ;:beat-unit (get-beat-unit track)
+   ;:pulse-beat (get-pulse-beat track)})
+   })
 
 (defn provision-headers
   "Provisions essential and user-provided headers of a track for serialization and playback."
@@ -697,7 +753,8 @@
   (when-let [track (playable tree)]
     (let [beats (normalize-beats! track)
           headers (provision-headers track)
-          units (provision-units track)
+          ; units (provision-units track)
+          units (provision-units beats)
           signals (provision-signals track)
           elements (provision-elements beats)
           data (provision-beats beats)
@@ -705,6 +762,7 @@
                   :units units
                   :signals signals
                   :elements elements
+                  ; TODO: Maybe rename to `rhythm` (wont' be necessary if we establish `rhythm` beat as the new `pulse` beat)
                   :beats data}]
       #?(:clj source
          :cljs (to-json source)))))

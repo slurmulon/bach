@@ -43,31 +43,31 @@
   [limit index]
   (mod (if (>= index 0) index (+ limit index)) limit))
 
-(defn hiccup-to-hash-map
-  "Converts an instaparse :hiccup tree as a hash map"
-  [tree]
-  (insta/transform
-   {:list (fn [& [:as all]] all)
-    :set (fn [& [:as all]] all)
-    :atom (fn [& [:as all]] {:atom (apply merge all)})
-    :arguments (fn [& [:as all]] {:arguments (vec all)})
-    :header (fn [& [:as all]] {:header (apply merge all)})
-    :meta (fn [el] {:meta el})
-    :init (fn [el] {:init el})
-    ; TODO: Rename to `kind`
-    :keyword (fn [el] {:keyword el})
-    :play (fn [el] {:play el})}
-   tree))
+; (defn hiccup-to-hash-map
+;   "Converts an instaparse :hiccup tree as a hash map"
+;   [tree]
+;   (insta/transform
+;    {:list (fn [& [:as all]] all)
+;     :set (fn [& [:as all]] all)
+;     :atom (fn [& [:as all]] {:atom (apply merge all)})
+;     :arguments (fn [& [:as all]] {:arguments (vec all)})
+;     :header (fn [& [:as all]] {:header (apply merge all)})
+;     :meta (fn [el] {:meta el})
+;     :init (fn [el] {:init el})
+;     ; TODO: Rename to `kind`
+;     :keyword (fn [el] {:keyword el})
+;     :play (fn [el] {:play el})}
+;    tree))
 
-(defn hiccup-to-vector
-  "Converts an instaparse :hiccup tree into a flat vector."
-  [tree]
-  (-> [tree] hiccup-to-hash-map flatten vec))
+; (defn hiccup-to-vector
+;   "Converts an instaparse :hiccup tree into a flat vector."
+;   [tree]
+;   (-> [tree] hiccup-to-hash-map flatten vec))
 
-(defn hiccup-to-json
-  "Converts an instaparse :hiccup tree into JSON."
-  [tree]
-  (-> tree hiccup-to-hash-map to-json))
+; (defn hiccup-to-json
+;   "Converts an instaparse :hiccup tree into JSON."
+;   [tree]
+;   (-> tree hiccup-to-hash-map to-json))
 
 (defn hiccup-find-trees
   "Finds all of the child trees of hiccup nodes with a matching tag."
