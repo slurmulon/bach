@@ -64,9 +64,9 @@
     (letfn [(variables []
               (get @context :vars {}))
             ; TODO: might just want to move this into `dereference-variables`
-            (create-variable [label value]
+            (set-variable! [label value]
               (swap! context assoc :vars (conj (variables) [label value])))]
-      (scope variables create-variable context))))
+      (scope variables set-variable! context))))
 
 ; TODO: Move to bach.ast or bach.data
 
@@ -75,6 +75,7 @@
 (declare find-plays)
 
 (defn valid-tempo?
+  "Determines if a parsed track has a valid tempo."
   [track]
   (let [tempo (get-tempo track)]
     (if (not (<= 0 tempo valid-max-tempo))
@@ -82,6 +83,7 @@
       true)))
 
 (defn valid-meter?
+  "Determines if a parsed track has a valid meter, particularly its beat unit."
   [track]
   (let [[_ & [beat-unit]] (get-meter track)]
     (if (not (some #{beat-unit} (rest valid-divisors)))
@@ -89,26 +91,24 @@
       true)))
 
 (defn valid-play?
+  "Determines if a parsed track has a single Play! export."
   [track]
   (if (not (= 1 (count (find-plays track))))
     (problem "Exactly one Play! export must be defined")
     true))
 
-; TODO: integreate reduce-values
-; TODO: check for :play
-; TODO: validate any variables in :play
-(defn validate
-  "Determines if a parsed track is valid or not."
+(defn valid-resolves?
+  "Determines if a parsed track's resolves values are valid or not."
   [track]
   (variable-scope
-   (fn [variables create-variable _]
+   (fn [variables set-variable! _]
      (insta/transform
        {:assign (fn [[& label] [& [value-type] :as value]]
                   (case value-type
                     :identifier
                     (when (-> (variables) (contains? value) not)
                       (problem (str "Variable is not declared before it's used: " value)))
-                    (create-variable label value)))
+                    (set-variable! label value)))
        :beat (fn [duration [tag :as value]]
                (cond
                  (> duration valid-max-duration)
@@ -123,22 +123,17 @@
       track)))
   true)
 
-(def valid-resolves? validate)
-
 ; TODO
 ; validate-no-cycles
 
-(defn validate-2?
+(defn validate
   [track]
   (->> [valid-resolves? valid-tempo? valid-meter? valid-play?]
       (map #(% track))
       (every? true?)))
 
-; (def valid? validate)
-; (def validate! (memo validate))
-(def valid? validate-2?)
-(def validate! (memo validate-2?))
-
+(def valid? validate)
+(def validate! (memo validate))
 
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
@@ -194,7 +189,7 @@
   "Dereferences variables and reduces the primitive values in a parsed track."
   [track]
   (-> track
-      deref-variables
+      resolve-variables
       reduce-values))
 ; (def normalize-values reduce-track)
 (def digest reduce-track)
@@ -204,8 +199,6 @@
   [tree]
   (let [track (digest tree)]
     (when (valid? track) track)))
-  ; (when (valid? track)
-  ;   (digest track)))
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
@@ -222,13 +215,12 @@
 (defn get-headers
   "Provides the headers (aka meta info) for a parsed track"
   [track]
-  (let [headers (atom default-headers)
-        reduced-track (reduce-track track)]
+  (let [headers (atom default-headers)]
     (insta/transform
      {:header (fn [[& kind] value]
                 (let [header-key (-> kind name clojure.string/lower-case keyword)]
                   (swap! headers assoc header-key value)))}
-     reduced-track)
+     track)
     @headers))
 
 ; get-header
