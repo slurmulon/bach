@@ -13,7 +13,7 @@
     track = statement*
     statement = token (<empty> token)*
 
-    <token>    = elem | assign | header | play
+    <token>    = elem | assign | header | play | <comment>
     <expr>     = [<empty>] term | add | sub [<empty>]
     (* <elem>     = [<empty>] atom | prim | expr | beat | coll | identifier [<empty>] *)
     <elem>     = [<empty>] entity | prim | expr [<empty>]
@@ -53,7 +53,7 @@
     float    = #'(0|([1-9][0-9]*))(\\.[0-9]+)?'
     <number>     = int | float
     <empty>    = #'(\\r\\n|\\n|\\r|\\s)*'
-    <comment> = #'\\/\\/\\s.*?$'
+    <comment> = #'#{2}(.*?)(\\n|\\r)'
 
     (* Math *)
     add = term <'+'> expr
