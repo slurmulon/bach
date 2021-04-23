@@ -1,3 +1,5 @@
+; TODO: Refactor modules and functions based on protocols, so we don't rely on naming consistencies to fully express intent
+
 ; # Help
 ; https://gist.github.com/stathissideris/1397681b9c63f09c6992
 ; https://rmulhol.github.io/clojure/2015/05/12/flatten-tree-seq.html
@@ -70,6 +72,8 @@
 
 (declare get-tempo)
 (declare get-meter)
+(declare get-play)
+(declare get-iterations)
 (declare find-plays)
 
 (defn valid-tempo?
@@ -85,7 +89,7 @@
   [track]
   (let [[_ & [beat-unit]] (get-meter track)]
     (if (not (some #{beat-unit} (rest valid-divisors)))
-      (problem "Meter unit beats (i.e. pulse beats) must be even and no greater than " (last valid-divisors))
+      (problem "Meter unit beats (i.e. step beats) must be even and no greater than " (last valid-divisors))
       true)))
 
 (defn valid-play?
@@ -123,6 +127,7 @@
 
 ; TODO
 ; validate-no-cycles
+; validate-no-negative-durations
 
 (defn validate
   "Determines if a parsed track passes all validation rules."
@@ -184,12 +189,23 @@
 (def parse-values reduce-values)
 (def normalize-values reduce-values)
 
+(defn reduce-iterations
+  [track]
+  (if (-> track get-iterations number?)
+    (insta/transform
+      {:play (fn [play]
+               (let [values (rest (last play))]
+                 [:play (into [:list] values)]))}
+      track)
+    track))
+
 (defn reduce-track
   "Resolves variables and reduces primitive values in a parsed track into native Clojure structs."
   [track]
   (-> track
       resolve-variables
-      reduce-values))
+      reduce-values;))
+      reduce-iterations))
 (def digest reduce-track)
 
 ; defn consume
@@ -240,9 +256,15 @@
   (hiccup-find-trees [:play] track))
 
 (defn get-play
-  "Determines the main Play! export of the track."
+  "Determines the main Play! export of a parsed track."
   [track]
   (-> track find-plays last))
+
+(defn get-iterations
+  "Determines how many iterations (loops) a parsed track is played for.
+  Returns nil if the track loops forever (i.e. doesn't export Play! using a loop)."
+  [track]
+  (when-let [[tag iters] (get-play track)] iters))
 
 (defn get-tempo
   "Determines the global tempo of the track. Localized tempos are NOT supported yet."
@@ -277,6 +299,7 @@
 ;     (mod beat-unit beats-per-measure)))
 
 ; get-step-beat
+; TODO: Refactor to accept normalized beats instead of track
 (defn get-pulse-beat
   "Determines the greatest common beat (by duration) among every beat in a track.
   Once this beat is found, a track can be iterated through uniformly and without
@@ -288,7 +311,6 @@
   (let [lowest-duration (atom 1024)
         reduced-track (reduce-values track)]
     (insta/transform
-      ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
      {:beat (fn [duration _]
               (when (< duration @lowest-duration)
                 (reset! lowest-duration duration)))}
@@ -305,17 +327,18 @@
         (min pulse-beat-unit beat-unit)))))
 (def get-step-beat get-pulse-beat)
 
-(defn get-beats-per-measure
+; (defn get-beats-per-measure
+(defn pulse-beats-per-bar
   "Determines how many beats are in each measure, based on the time signature."
   [track]
   (first (get-meter track))) ; AKA numerator
 
 ; get-pulse-beats-per-measure
-(def get-scaled-beats-per-measure get-beats-per-measure)
-(def get-beat-units-per-measure get-beats-per-measure)
+; (def get-scaled-beats-per-measure get-beats-per-measure)
+; (def get-beat-units-per-measure get-beats-per-measure)
 
 (defn get-normalized-beats-per-measure
-  "Determines how many beats are in a measure, normalized against the pulse beat of the track."
+  "Determines how many beats are in a measure, normalized against the step beat of the track."
   [track]
   (let [pulse-beat (get-pulse-beat track)
         meter (get-meter-ratio track)]
@@ -325,83 +348,43 @@
 
 (def get-pulse-beats-per-measure get-normalized-beats-per-measure)
 
-(defn get-total-beats
-  "Determines the total number of beats in the track.
-   Beats are represented in traditional semibreves/whole notes and crotchets/quarternotes
-  regardless of meter.
-   In other words, a beat with a duration of 1 is strictly equivalent to 4 quarter notes,
-  or 1 measure, always within the context of common meter (4|4)."
-  [track]
-  (let [total-beats (atom 0)
-        reduced-track (reduce-values track)]
-    (insta/transform
-     {:beat (fn [duration _]
-              (swap! total-beats + duration))}
-     reduced-track)
-    @total-beats))
+; (defn get-total-beats
+;   "Determines the total number of beats in the track.
+;    Beats are represented in traditional semibreves/whole notes and crotchets/quarternotes
+;   regardless of meter.
+;    In other words, a beat with a duration of 1 is strictly equivalent to 4 quarter notes,
+;   or 1 measure, always within the context of common meter (4|4)."
+;   [track]
+;   (let [total-beats (atom 0)
+;         reduced-track (reduce-values track)]
+;     (insta/transform
+;      {:beat (fn [duration _]
+;               (swap! total-beats + duration))}
+;      reduced-track)
+;     @total-beats))
 
-; total-pulse-beats
-(defn get-scaled-total-beats
-  "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)."
-  [track]
-  (safe-ratio
-   (get-total-beats track)
-   (get-beat-unit track)))
+; ; total-pulse-beats
+; (defn get-scaled-total-beats
+;   "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)."
+;   [track]
+;   (safe-ratio
+;    (get-total-beats track)
+;    (get-beat-unit track)))
 
-(def get-total-beat-units get-scaled-total-beats)
+; (def get-total-beat-units get-scaled-total-beats)
 
-; total-step-beats
-(defn get-normalized-total-beats
-  "Determines the total beats in a track normalized to the pulse beat of the track."
-  [track]
-  (let [total-beats (get-total-beats track)
-        pulse-beat (get-pulse-beat track)]
-    (safe-ratio
-     (max total-beats pulse-beat)
-     (min total-beats pulse-beat))))
+; ; total-step-beats
+; (defn get-normalized-total-beats
+;   "Determines the total beats in a track normalized to the step beat of the track."
+;   [track]
+;   (let [total-beats (get-total-beats track)
+;         pulse-beat (get-pulse-beat track)]
+;     (safe-ratio
+;      (max total-beats pulse-beat)
+;      (min total-beats pulse-beat))))
+; (def get-total-step-beats get-normalized-total-beats)
 
-(def get-total-pulse-beats get-normalized-total-beats)
-
-; TODO: Consider removing. Useful for consistency and predictability but otherwise redundant.
-; total-measures
-(defn get-total-measures
-  "Determines the total number of measures defined in the track.
-   Beats and measures are equivelant here since the beats are normalized to traditional semibreves/whole notes and crotchet/quarternotes.
-  In other words, a beat with a duration of 1 is strictly equivalant to 4 quarter notes, or 1 measure in 4|4 time."
-  [track]
-  (get-total-beats track))
-
-; total-pulse-measures
-(defn get-scaled-total-measures
-  "Determines the total number of measures in a track scaled to the beat unit (e.g. 6|8 time, 12 eigth notes = 2 measures)."
-  [track]
-  (safe-ratio
-   (get-scaled-total-beats track)
-   (get-beats-per-measure track)))
-
-; total-step-measures
-(defn get-normalized-total-measures
-  "Determines the total number of measures in a track, normalized to the pulse beat."
-  [track]
-  (safe-ratio
-   (get-normalized-total-beats track)
-   (get-normalized-beats-per-measure track)))
-
-(defn get-total-duration
-  "Determines the total time duration of a track (milliseconds, seconds, minutes).
-   Uses scaled total beats (i.e. normalized to the track's beat unit) to properly adjust
-   the value based on the time signature, important for comparing against BPM in all meters."
-  [track unit]
-  ; Using scaled total beats because it's adjusted based on time signature, which is important for comparing against tempo
-  (let [total-beats (get-scaled-total-beats track)
-        tempo-bpm (get-tempo track)
-        duration-minutes (/ total-beats tempo-bpm)
-        duration-seconds (* duration-minutes 60)
-        duration-milliseconds (* duration-seconds 1000)]
-    (case unit
-      :milliseconds duration-milliseconds
-      :seconds duration-seconds
-      :minutes duration-minutes)))
+; (def get-total-pulse-beats get-normalized-total-beats)
 
 ; TODO: Write tests
 ; get-pulse-beat-ms
@@ -420,9 +403,9 @@
 
 ; get-step-beat-ms
 (defn get-normalized-ms-per-beat
-  "Determines the number of milliseconds each beat should be played for (normalized to the pulse beat).
+  "Determines the number of milliseconds each beat should be played for (normalized to the step beat).
    Primarily exists to make parsing simple and optimized in the high-level interpreter / player.
-   Referred to as 'normalized' because, as of now, all beat durations (via `compose`) are normalized to the pulse beat.
+   Referred to as 'normalized' because, as of now, all beat durations (via `compose`) are normalized to the step beat.
    References:
      http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
      https://music.stackexchange.com/a/24141"
@@ -556,7 +539,7 @@
 
 (defn unitize-collections
   "Linearizes and normalizes every element's :duration in parsed AST against the unit within a meter.
-  Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
+  Establishes 'step beats' (or q-steps) as the canonical unit of iteration and indexing.
   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   ([tree]
     (let [track (digest tree)
@@ -573,7 +556,7 @@
 
 (defn itemize-beats
   "Transforms N-ary beat tree into a 1-ary sequence where each element is a map
-  containing the beat's item(s) (as a set), duration (in q-pulses) and index (in q-pulses).
+  containing the beat's item(s) (as a set), duration (in q-steps) and index (in q-steps).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
   (let [durations (map as-reduced-durations beats)
@@ -589,7 +572,8 @@
 
 (defn normalize-beats
   "Normalizes beats in parsed AST for linear uniform iteration by decorating them
-  with durations and indices based on a unit (q-pulse by default) within a meter."
+  with durations and indices based on a unit (q-pulse by default) within a meter.
+  Note that the resulting format, designed for sequencing in consumers, is no longer hiccup."
   ([tree]
     (let [track (reduce-track tree)
           unit (get-pulse-beat track)
@@ -628,15 +612,14 @@
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
 
-; step-beat-signals
-(defn pulse-beat-signals
-  "Transforms a parsed AST into a quantized sequence (in q-pulses) where each pulse beat contains
+(defn step-beat-signals
+  "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
   the index of its associated normalized beat (i.e. intersecting the beat's quantized duration)."
   [tree]
   (-> tree unitize-collections quantize-durations))
 
 (defn element-play-signals
-  "Provides a quantized sequence (in q-pulses) of normalized beats where each pulse beat contains
+  "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be played at its index."
   [beats]
   (mapcat (fn [beat]
@@ -645,7 +628,7 @@
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
-  "Provides a quantized sequence (in q-pulses) of normalized beats where each pulse beat contains
+  "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be stopped at its index."
   [beats]
   (let [duration (as-reduced-durations beats)
@@ -658,6 +641,18 @@
               acc-elems (many (get acc index))
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) signals items)))
+
+(defn provision-signals
+  "Provisions quantized :play and :stop signals for every beat element in the tree.
+  Enables state-agnostic and declarative event handling of beat elements by consumers."
+  [tree]
+  (let [beats (normalize-beats! tree)
+        beat-sigs (step-beat-signals tree)
+        play-sigs (element-play-signals beats)
+        stop-sigs (element-stop-signals beats)]
+    {:beat beat-sigs
+     :play play-sigs
+     :stop stop-sigs}))
 
 (defn provision-elements
   "Groups all normalized beats' elements and their values by `kind`.
@@ -675,19 +670,7 @@
             acc
             (assoc-in acc [kind uid] data)))) {})))
 
-(defn provision-signals
-  "Provisions quantized :play and :stop signals for every beat element in the tree.
-  Enables state-agnostic and declarative event handling of beat elements by consumers."
-  [tree]
-  (let [beats (normalize-beats! tree)
-        beat-sigs (pulse-beat-signals tree)
-        play-sigs (element-play-signals beats)
-        stop-sigs (element-stop-signals beats)]
-    {:beat beat-sigs
-     :play play-sigs
-     :stop stop-sigs}))
-
-(defn provision-beat-items
+(defn- provision-beat-items
   "Provisions a single normalized beat's item(s) for serialization and playback
   by casting their elements into ids."
   [items]
@@ -695,7 +678,7 @@
        (map #(assoc % :elements (-> % :elements cast-beat-element-ids)))
        (sort-by :duration)))
 
-(defn provision-beat
+(defn- provision-beat
   "Provisions a single normalized beat and its items for serialization and playback."
   [beat]
   (assoc beat :items (-> beat :items provision-beat-items)))
@@ -706,39 +689,6 @@
   [beats]
   (map provision-beat (many beats)))
 
-; FIXME: Needs to be refactored in light of collection nesting, loops, whens, etc.
-; FORMAT DRAFTS:
-;   - TODO: Probably rename `unit` to `pulse` and `pulse` to `rhythm`
-;     - Alternatively, could just have `beat` and `pulse` (old `unit`)
-;     - OR just `rbeat` and `pbeat`, or just `r` and `p`
-;       - `q` might be better than `r` (since `r` more relates to things like swing, which is not necessarily the quantized beat, hence `q`).
-;       - `f` could also be better than `q`, for "foot" beat. (or even "frequency" beat)
-;       - `s` could also be better than `q`, for "signal" or "step" beat.
-;       - `w` could also be better than `q`, for "wave" beat.
-;   - @see: https://en.wikipedia.org/wiki/Rhythm#Unit_and_gesture
-; {
-;   units: {
-;     beat: {
-;       step: 1/4
-;       pulse: 1/4
-;     }
-;     bar: {
-;       step: 4
-;       pulse: 4
-;     }
-;     time: {
-;       step: 500
-;       pulse: 500
-;       bar: 2000
-;     }
-;     total: {
-;       step: 8
-;       pulse: 8
-;       bar: 2
-;       time: 4000
-;     }
-;  }
-
 ; WARN: Migrate to `get-pulse-beat` once ready!
 (defn provision-units
   "Provisions essential and common unit values of a track for serialization and playback."
@@ -746,7 +696,7 @@
   (let [beat-units {:step (get-step-beat track)
                     :pulse (get-beat-unit track)}
         bar-units  {:step (get-pulse-beats-per-measure track)
-                    :pulse (get-beat-units-per-measure track)}
+                    :pulse (pulse-beats-per-bar track)}
         time-units {:step (get-ms-per-beat track :pulse)
                     :pulse (get-ms-per-beat track :unit)}]
    {:beat beat-units
@@ -754,8 +704,15 @@
     :time (assoc time-units :bar
                  (* (time-units :step) (bar-units :step)))}))
 
-; (defn provision-metrics
-;   min, max, total, etc.
+(defn provision-metrics
+  "Provisions basic metric values of step beats in a track that are useful for playback."
+  ([track]
+   (provision-metrics track (normalize-beats! track)))
+  ([track beats]
+   (let [durations (-> beats as-durations flatten)]
+     {:min (apply min durations)
+      :max (apply max durations)
+      :total (as-reduced-durations beats)})))
 
 (defn provision-headers
   "Provisions essential and user-provided headers of a track for serialization and playback."
@@ -778,13 +735,15 @@
     (let [beats (normalize-beats! track)
           headers (provision-headers track)
           units (provision-units track)
-          signals (provision-signals track)
+          metrics (provision-metrics track beats)
           elements (provision-elements beats)
+          signals (provision-signals track)
           data (provision-beats beats)
           source {:headers headers
                   :units units
-                  :signals signals
+                  :metrics metrics
                   :elements elements
+                  :signals signals
                   ; TODO: Maybe rename to `rhythm` (wont' be necessary if we establish `rhythm` beat as the new `pulse` beat)
                   :beats data}]
       #?(:clj source
