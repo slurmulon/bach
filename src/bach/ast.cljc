@@ -15,9 +15,9 @@
 
     <token>    = elem | assign | header | play
     <expr>     = [<empty>] term | add | sub [<empty>]
-    (* <elem>     = [<empty>] atom | prim | expr | pair | coll | identifier [<empty>] *)
+    (* <elem>     = [<empty>] atom | prim | expr | beat | coll | identifier [<empty>] *)
     <elem>     = [<empty>] entity | prim | expr [<empty>]
-    <entity>   = [<empty>] atom | coll | pair | identifier [<empty>]
+    <entity>   = [<empty>] atom | coll | beat | identifier [<empty>]
     <item>     = entity | when
     <seq>      = [<empty>] list | loop [<empty>]
     <coll>     = [<empty>] seq | set [<empty>]
@@ -34,7 +34,7 @@
     (* ORIG *)
     (* pair       = expr <'->'> elem [<empty>,<empty>] *)
     (* V3, FIXME *)
-    pair       = expr <'->'> atom | set | identifier [<empty>,<empty>]
+    beat = expr <'->'> (atom | set | identifier) [<empty>,<empty>]
     assign     = identifier <'='> elem
     header     = meta <'='> elem
     attribute  = name [<empty>] <':'> [<empty>] prim
@@ -43,7 +43,7 @@
     meta       = [<empty>] <'@'> name [<empty>]
     (* TODO: Rename to kind *)
     keyword    = [<empty>] <'~'> | name [<empty>]
-    play       = [<empty>] #'[pP]lay!' [<empty>] elem
+    play       = [<empty>] <#'[pP]lay!'> [<empty>] elem
     meter      = [<empty>] <int> <'|'> <int> [<empty>]
     (* duration   = [<empty>] (expr <'.'> #'(b|m)') | *)
     string     = #'[\\'|\"](.*?)[\"|\\']'

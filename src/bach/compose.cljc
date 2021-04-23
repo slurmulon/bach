@@ -43,8 +43,6 @@
 
 (defn element-kind
   [elem]
-  ; (println "elem kind???")
-  ; (clojure.pprint/pprint elem)
   (if (map? elem)
     (-> elem :kind element-kind)
     (-> elem name clojure.string/lower-case keyword)))
@@ -215,6 +213,7 @@
       (/ duration unit)
       (* duration (max inverse-unit inverse-meter)))))
 
+; find-headers
 (defn get-headers
   "Provides the headers (aka meta info) for a parsed track"
   [track]
@@ -227,6 +226,7 @@
      reduced-track)
     @headers))
 
+; get-header
 (defn find-header
   "Generically finds a header entry / meta tag in a parsed track by its label"
   [track label default]
@@ -251,7 +251,9 @@
 (defn get-tempo
   "Determines the global tempo of the track. Localized tempos are NOT supported yet."
   [track]
-  (find-header track "Tempo" default-tempo))
+  ; (find-header track "Tempo" default-tempo))
+  (find-header track #(re-find #"(Tempo)a" %) default-tempo))
+
 
 (defn get-meter
   "Determines the global meter, or time signature, of the track. Localized meters are NOT supported yet."
@@ -266,21 +268,25 @@
   (let [[beats-per-measure & [beat-unit]] (get-meter track)]
     (/ beats-per-measure beat-unit)))
 
+; get-pulse-beat
 (defn get-beat-unit
   "Determines the reference unit to use for beats, based on time signature."
   [track]
   (/ 1 (last (get-meter track)))) ; AKA 1/denominator
 
-(defn get-beat-unit-ratio
-  "Determines the ratio between the beat unit and the number of beats per measure."
-  [track]
-  (let [[beats-per-measure & [beat-unit]] (get-meter track)]
-    (mod beat-unit beats-per-measure)))
+; get-pulse-beat-ratio
+; (defn get-beat-unit-ratio
+;   "Determines the ratio between the beat unit and the number of beats per measure."
+;   [track]
+;   (let [[beats-per-measure & [beat-unit]] (get-meter track)]
+;     (mod beat-unit beats-per-measure)))
 
+; get-step-beat
 (defn get-pulse-beat
   "Determines the greatest common beat (by duration) among every beat in a track.
-   Once this beat is found, a track can be iterated through evenly (and without variance) via an arbitrary interval, timer, etc.
-   This differs from the frame spotting approach which queries the current measure/beat on each frame tick."
+  Once this beat is found, a track can be iterated through uniformly and without
+  variance via linear interpolation, monotonic timers, intervals, etc.
+  This normalized beat serves as the fundamental unit of iteration for bach engines."
   [track]
   ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
   ; @see: https://cljs.github.io/api/syntax/Inf
@@ -308,6 +314,7 @@
   [track]
   (first (get-meter track))) ; AKA numerator
 
+; get-pulse-beats-per-measure
 (def get-scaled-beats-per-measure get-beats-per-measure)
 (def get-beat-units-per-measure get-beats-per-measure)
 
@@ -324,8 +331,10 @@
 
 (defn get-total-beats
   "Determines the total number of beats in the track.
-   Beats are represented in traditional semibreves/whole notes and crotchets/quarternotes.
-   In other words, a beat with a duration of 1 is strictly equivalent to 4 quarter notes, or 1 measure in 4|4 time."
+   Beats are represented in traditional semibreves/whole notes and crotchets/quarternotes
+  regardless of meter.
+   In other words, a beat with a duration of 1 is strictly equivalent to 4 quarter notes,
+  or 1 measure, always within the context of common meter (4|4)."
   [track]
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
@@ -335,6 +344,7 @@
      reduced-track)
     @total-beats))
 
+; total-pulse-beats
 (defn get-scaled-total-beats
   "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)."
   [track]
@@ -344,6 +354,7 @@
 
 (def get-total-beat-units get-scaled-total-beats)
 
+; total-step-beats
 (defn get-normalized-total-beats
   "Determines the total beats in a track normalized to the pulse beat of the track."
   [track]
@@ -356,6 +367,7 @@
 (def get-total-pulse-beats get-normalized-total-beats)
 
 ; TODO: Consider removing. Useful for consistency and predictability but otherwise redundant.
+; total-measures
 (defn get-total-measures
   "Determines the total number of measures defined in the track.
    Beats and measures are equivelant here since the beats are normalized to traditional semibreves/whole notes and crotchet/quarternotes.
@@ -363,6 +375,7 @@
   [track]
   (get-total-beats track))
 
+; total-pulse-measures
 (defn get-scaled-total-measures
   "Determines the total number of measures in a track scaled to the beat unit (e.g. 6|8 time, 12 eigth notes = 2 measures)."
   [track]
@@ -370,6 +383,7 @@
    (get-scaled-total-beats track)
    (get-beats-per-measure track)))
 
+; total-step-measures
 (defn get-normalized-total-measures
   "Determines the total number of measures in a track, normalized to the pulse beat."
   [track]
@@ -394,6 +408,7 @@
       :minutes duration-minutes)))
 
 ; TODO: Write tests
+; get-pulse-beat-ms
 (defn get-scaled-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (scaled to the beat unit)."
   [track]
@@ -407,6 +422,7 @@
 
 (def get-ms-per-beat-unit get-scaled-ms-per-beat)
 
+; get-step-beat-ms
 (defn get-normalized-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to the pulse beat).
    Primarily exists to make parsing simple and optimized in the high-level interpreter / player.
@@ -425,6 +441,7 @@
 
 (def get-ms-per-pulse-beat get-normalized-ms-per-beat)
 
+; get-ms-per-pulse-beat
 (defn get-ms-per-beat
   "Dynamically determines the ms-per-beat based on the kind of the beat, either :pulse (default) or :unit."
   ([track kind]
