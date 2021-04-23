@@ -68,8 +68,6 @@
               (swap! context assoc :vars (conj (variables) [label value])))]
       (scope variables set-variable! context))))
 
-; TODO: Move to bach.ast or bach.data
-
 (declare get-tempo)
 (declare get-meter)
 (declare find-plays)
@@ -127,6 +125,7 @@
 ; validate-no-cycles
 
 (defn validate
+  "Determines if a parsed track passes all validation rules."
   [track]
   (->> [valid-resolves? valid-tempo? valid-meter? valid-play?]
       (map #(% track))
@@ -167,7 +166,7 @@
 (def resolve-variables deref-variables)
 
 (defn reduce-values
-  "Reduces any primitive values in a parsed track."
+  "Reduces all primitive values in a parsed track."
   [track]
   (insta/transform
    {:add +,
@@ -186,12 +185,11 @@
 (def normalize-values reduce-values)
 
 (defn reduce-track
-  "Dereferences variables and reduces the primitive values in a parsed track."
+  "Resolves variables and reduces primitive values in a parsed track into native Clojure structs."
   [track]
   (-> track
       resolve-variables
       reduce-values))
-; (def normalize-values reduce-track)
 (def digest reduce-track)
 
 ; defn consume
@@ -210,6 +208,7 @@
     (if within-measure?
       (/ duration unit)
       (* duration (max inverse-unit inverse-meter)))))
+(def unitize-duration normalize-duration)
 
 ; find-headers
 (defn get-headers
@@ -264,6 +263,7 @@
     (/ beats-per-measure beat-unit)))
 
 ; get-pulse-beat
+; get-meter-beat
 (defn get-beat-unit
   "Determines the reference unit to use for beats, based on time signature."
   [track]
@@ -303,6 +303,7 @@
       (if pulse-beat-aligns?
         (min pulse-beat full-measure)
         (min pulse-beat-unit beat-unit)))))
+(def get-step-beat get-pulse-beat)
 
 (defn get-beats-per-measure
   "Determines how many beats are in each measure, based on the time signature."
@@ -558,7 +559,7 @@
   Establishes 'pulse beats' (or q-pulses) as the canonical unit of iteration and indexing.
   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   ([tree]
-    (let [track (reduce-track tree)
+    (let [track (digest tree)
           unit (get-pulse-beat track)
           meter (get-meter-ratio track)]
       (unitize-collections track unit meter)))
@@ -567,7 +568,7 @@
         linearize-collections
         (cast-tree
           #(and (map? %) (:duration %))
-          #(let [duration (int (normalize-duration (:duration %) unit meter))]
+          #(let [duration (int (unitize-duration (:duration %) unit meter))]
              (assoc % :duration duration))))))
 
 (defn itemize-beats
@@ -738,21 +739,23 @@
 ;     }
 ;  }
 
+; WARN: Migrate to `get-pulse-beat` once ready!
 (defn provision-units
   "Provisions essential and common unit values of a track for serialization and playback."
   [track]
-  {;:total-beats (get-total-beats track)
-   ;:total-beat-units (get-total-beat-units track)
-   ; :total-pulse-beats (get-total-pulse-beats track)
-   :total-pulse-beats (as-reduced-durations track)
-   ;:beat-units-per-bar (get-beat-units-per-measure track)
-   ;:pulse-beats-per-bar (get-pulse-beats-per-measure track)
-   ;:ms-per-beat-unit (get-ms-per-beat track :unit)
-   ;:ms-per-pulse-beat (get-ms-per-beat track :pulse)
-   ; ms-per-bar
-   ;:beat-unit (get-beat-unit track)
-   ;:pulse-beat (get-pulse-beat track)})
-   })
+  (let [beat-units {:step (get-step-beat track)
+                    :pulse (get-beat-unit track)}
+        bar-units  {:step (get-pulse-beats-per-measure track)
+                    :pulse (get-beat-units-per-measure track)}
+        time-units {:step (get-ms-per-beat track :pulse)
+                    :pulse (get-ms-per-beat track :unit)}]
+   {:beat beat-units
+    :bar  bar-units
+    :time (assoc time-units :bar
+                 (* (time-units :step) (bar-units :step)))}))
+
+; (defn provision-metrics
+;   min, max, total, etc.
 
 (defn provision-headers
   "Provisions essential and user-provided headers of a track for serialization and playback."
@@ -774,8 +777,7 @@
   (when-let [track (playable tree)]
     (let [beats (normalize-beats! track)
           headers (provision-headers track)
-          ; units (provision-units track)
-          units (provision-units beats)
+          units (provision-units track)
           signals (provision-signals track)
           elements (provision-elements beats)
           data (provision-beats beats)
