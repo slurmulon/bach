@@ -190,6 +190,8 @@
 (def normalize-values reduce-values)
 
 (defn reduce-iterations
+  "Reduces global loops (i.e. terations) of a parsed track's Play! into a list.
+  Prevents redundant beats from being generated, hoisting 'iterations' to consumers."
   [track]
   (if (-> track get-iterations number?)
     (insta/transform
@@ -204,7 +206,7 @@
   [track]
   (-> track
       resolve-variables
-      reduce-values;))
+      reduce-values
       reduce-iterations))
 (def digest reduce-track)
 
@@ -264,7 +266,8 @@
   "Determines how many iterations (loops) a parsed track is played for.
   Returns nil if the track loops forever (i.e. doesn't export Play! using a loop)."
   [track]
-  (when-let [[tag iters] (get-play track)] iters))
+  (when-let [[tag iters] (get-play track)]
+    (if (= tag :loop) iters nil)))
 
 (defn get-tempo
   "Determines the global tempo of the track. Localized tempos are NOT supported yet."
@@ -347,44 +350,6 @@
      (min pulse-beat meter))))
 
 (def get-pulse-beats-per-measure get-normalized-beats-per-measure)
-
-; (defn get-total-beats
-;   "Determines the total number of beats in the track.
-;    Beats are represented in traditional semibreves/whole notes and crotchets/quarternotes
-;   regardless of meter.
-;    In other words, a beat with a duration of 1 is strictly equivalent to 4 quarter notes,
-;   or 1 measure, always within the context of common meter (4|4)."
-;   [track]
-;   (let [total-beats (atom 0)
-;         reduced-track (reduce-values track)]
-;     (insta/transform
-;      {:beat (fn [duration _]
-;               (swap! total-beats + duration))}
-;      reduced-track)
-;     @total-beats))
-
-; ; total-pulse-beats
-; (defn get-scaled-total-beats
-;   "Determines the total number of beats in the track scaled to the beat unit (4/4 time, 4 beats = four quarter notes)."
-;   [track]
-;   (safe-ratio
-;    (get-total-beats track)
-;    (get-beat-unit track)))
-
-; (def get-total-beat-units get-scaled-total-beats)
-
-; ; total-step-beats
-; (defn get-normalized-total-beats
-;   "Determines the total beats in a track normalized to the step beat of the track."
-;   [track]
-;   (let [total-beats (get-total-beats track)
-;         pulse-beat (get-pulse-beat track)]
-;     (safe-ratio
-;      (max total-beats pulse-beat)
-;      (min total-beats pulse-beat))))
-; (def get-total-step-beats get-normalized-total-beats)
-
-; (def get-total-pulse-beats get-normalized-total-beats)
 
 ; TODO: Write tests
 ; get-pulse-beat-ms
@@ -733,18 +698,19 @@
   [tree]
   (when-let [track (playable tree)]
     (let [beats (normalize-beats! track)
+          iterations (-> tree reduce-values get-iterations)
           headers (provision-headers track)
           units (provision-units track)
           metrics (provision-metrics track beats)
           elements (provision-elements beats)
           signals (provision-signals track)
           data (provision-beats beats)
-          source {:headers headers
+          source {:iterations iterations
+                  :headers headers
                   :units units
                   :metrics metrics
                   :elements elements
                   :signals signals
-                  ; TODO: Maybe rename to `rhythm` (wont' be necessary if we establish `rhythm` beat as the new `pulse` beat)
                   :beats data}]
       #?(:clj source
          :cljs (to-json source)))))
