@@ -104,15 +104,13 @@
                       (problem (str "Variable is not declared before it's used: " value)))
                     (create-variable label value)))
        :pair (fn [duration [tag :as value]]
-               ; (println "DURATIONNNNN" duration)
-               nil)
-               ; (cond
-               ;   (> duration valid-max-duration)
-               ;     (problem (str "Beat durations must be between 0 and " valid-max-duration))
-                 ; (compare-tags not-every? [:atom :set] tag)
-                 ;   (problem (str "Beat values can only be an atom or set but found: " tag))
-                 ; (->> value (hiccup-find [:list :loop]) empty? not)
-                 ;   (problem "Beats cannot contain a nested list or loop")))
+               (cond
+                 (> duration valid-max-duration)
+                   (problem (str "Beat durations must be between 0 and " valid-max-duration))
+                 (compare-tags not-every? [:atom :set] tag)
+                   (problem (str "Beat values can only be an atom or set but found: " tag))
+                 (->> value (hiccup-find [:list :loop]) empty? not)
+                   (problem "Beats cannot contain a nested list or loop")))
        :div (fn [[& n] [& d]]
               (when (not (some #{d} valid-divisors))
                 (problem "All divisors must be even and no greater than " (last valid-divisors))))}
@@ -597,21 +595,15 @@
   [beats]
   (mapcat #(-> % :items vec) (many beats)))
 
-; (defn all-beat-items-ids
-;   "Provides all of the ids in a collection of normalized beat items."
-;   [items]
-;   ; FIXME: Doesn't work if elements is a collection (movign towards this, to support sets in beats)
-;   (->> items (cast-tree map? #(get-in % [:elements :id])) flatten))
-
 (defn all-beat-elements
   "Provides all of the elements in a collection of normalized beats."
   [beats]
-  ; (->> beats all-beat-items (map :elements)))
-  (->> (many beats) all-beat-items (mapcat :elements)))
+  (->> beats many all-beat-items (mapcat :elements)))
 
 (defn all-beat-element-ids
+  "Provides all of the beat element item ids in a collection of normalized beats."
   [beats]
-  (->> (many beats) all-beat-elements (map :id)))
+  (->> beats many all-beat-elements (map :id)))
 
 (defn cast-beat-element-ids
   "Transforms normalized beat element(s) into their unique ids."
@@ -638,7 +630,6 @@
   [beats]
   (mapcat (fn [beat]
             (let [items (index-beat-items beat)
-                  ; elems (all-beat-items-ids items)]
                   elems (all-beat-element-ids beat)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
@@ -661,8 +652,6 @@
   "Groups all normalized beats' elements and their values by `kind`.
   Allows consumers to directly resolve elements keyed by their uid."
   [beats]
-  (println "---------------------")
-  (clojure.pprint/pprint (all-beat-elements beats))
   (->>
     beats
     all-beat-elements
