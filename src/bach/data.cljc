@@ -38,6 +38,12 @@
   [x]
   (->> x many (filter (complement nil?))))
 
+(defn compare-items
+  "Zipmaps source sequence of values (in) against comparison (values),
+  specifying which values of (in) are equal to those in (values)."
+  [is? in values]
+  (is? (zipmap in (repeat true)) (many values)))
+
 (defn cyclic-index
   "Modulates index against a cycle limit, ensuring index is always in range."
   [limit index]

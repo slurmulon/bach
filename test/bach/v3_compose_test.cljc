@@ -686,14 +686,15 @@
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/reduce-values))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest))
-(clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/provision))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/provision))
 ; (clojure.pprint/pprint (-> fixture-bach-a
 ;                            bach.ast/parse
 ;                            compose/reduce-track
 ;                            compose/get-play
 ;                            compose/normalize-beats))
                            ; compose/normalize-collections)); compose/itemize-beats))
-; (clojure.pprint/pprint (-> fixture-bach-a compose/compose))
+(clojure.pprint/pprint (-> fixture-bach-a compose/compose))
+(clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/validate-2?))
 
 ; (clojure.pprint/pprint (bach.ast/parse fixture-bach-a))
 ; (clojure.pprint/pprint (bach.ast/parse "[1 -> :a, 2 -> :b]"))

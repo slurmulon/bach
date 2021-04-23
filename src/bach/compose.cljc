@@ -69,22 +69,30 @@
       (scope variables create-variable context))))
 
 ; TODO: Move to bach.ast or bach.data
-(defn- compare-tags
-  [is? in tags]
-  (is? (zipmap in (repeat true)) (many tags)))
 
-; (defn every-tag?
-;   [in tags]
-;   (compare-tags every? in tags))
-;   ; (every? (zipmap coll (repeat true)) (many tags)))
+(declare get-tempo)
+(declare get-meter)
+(declare find-plays)
 
-; (defn some-tag?
-;   [coll tag]
-;   (compare-tags some in tags))
-  ; (some (zipmap coll (repeat true)) (many tags)))
+(defn valid-tempo?
+  [track]
+  (let [tempo (get-tempo track)]
+    (if (not (<= 0 tempo valid-max-tempo))
+      (problem "Tempos must be between 0 and " valid-max-tempo " beats per minute")
+      true)))
 
-; (def not-every-tag? #(not (every-tag? %1 %2)))
-; (def not-some-tag? #(not (some-tag? %1 %2)))
+(defn valid-meter?
+  [track]
+  (let [[_ & [beat-unit]] (get-meter track)]
+    (if (not (some #{beat-unit} (rest valid-divisors)))
+      (problem "Meter unit beats (i.e. pulse beats) must be even and no greater than " (last valid-divisors))
+      true)))
+
+(defn valid-play?
+  [track]
+  (if (not (= 1 (count (find-plays track))))
+    (problem "Exactly one Play! export must be defined")
+    true))
 
 ; TODO: integreate reduce-values
 ; TODO: check for :play
@@ -105,36 +113,32 @@
                (cond
                  (> duration valid-max-duration)
                    (problem (str "Beat durations must be between 0 and " valid-max-duration))
-                 (compare-tags not-every? [:atom :set] tag)
+                 (compare-items not-every? [:atom :set] tag)
                    (problem (str "Beat values can only be an atom or set but found: " tag))
                  (->> value (hiccup-find [:list :loop]) empty? not)
                    (problem "Beats cannot contain a nested list or loop")))
        :div (fn [[& n] [& d]]
               (when (not (some #{d} valid-divisors))
                 (problem "All divisors must be even and no greater than " (last valid-divisors))))}
-       ; TODO: Re-implement, :tempo is no longer an AST tag
-       ; :tempo (fn [& tempo]
-       ;          (when (not (<= 0 tempo valid-max-tempo))
-       ;            (problem "Tempos must be between 0 and " valid-max-tempo " beats per minute")))}
       track)))
   true)
 
-(def valid? validate)
-(def validate! (memo validate))
+(def valid-resolves? validate)
 
 ; TODO
-; validate-ast
-; validate-headers
-; validate-play
-; validate-divisors
-; validate-tempo
 ; validate-no-cycles
 
-; (defn validate-2
-;   [track]
-;   (->> [validate-ast validate-headers validate-play]
-;       (map #(% track))
-;       (every? true?)))
+(defn validate-2?
+  [track]
+  (->> [valid-resolves? valid-tempo? valid-meter? valid-play?]
+      (map #(% track))
+      (every? true?)))
+
+; (def valid? validate)
+; (def validate! (memo validate))
+(def valid? validate-2?)
+(def validate! (memo validate-2?))
+
 
 (defn deref-variables
   "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
@@ -165,6 +169,7 @@
                      [:play stack-value])
                    [:play value-token])))}
       track))))
+(def resolve-variables deref-variables)
 
 (defn reduce-values
   "Reduces any primitive values in a parsed track."
