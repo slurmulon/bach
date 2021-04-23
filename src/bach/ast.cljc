@@ -17,9 +17,6 @@
     <expr>     = [<empty>] term | add | sub [<empty>]
     (* <elem>     = [<empty>] atom | prim | expr | pair | coll | identifier [<empty>] *)
     <elem>     = [<empty>] entity | prim | expr [<empty>]
-    (* TODO: Use in elem *)
-    (* <entity>   = [<empty>] atom | pair | coll | identifier [<empty>] *)
-    (* <entity>   = [<empty>] atom | coll | identifier [<empty>] *)
     <entity>   = [<empty>] atom | coll | pair | identifier [<empty>]
     <item>     = entity | when
     <seq>      = [<empty>] list | loop [<empty>]
@@ -35,19 +32,20 @@
 
     (* TODO: Rename pair to beat *)
     (* ORIG *)
-    pair       = expr <'->'> elem [<empty>,<empty>]
+    (* pair       = expr <'->'> elem [<empty>,<empty>] *)
     (* V3, FIXME *)
-    (* pair       = expr <'->'> atom | set | identifier [<empty>,<empty>] *)
+    pair       = expr <'->'> atom | set | identifier [<empty>,<empty>]
     assign     = identifier <'='> elem
     header     = meta <'='> elem
     attribute  = name [<empty>] <':'> [<empty>] prim
     identifier = [<empty>] <':'> name [<empty>]
     arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
     meta       = [<empty>] <'@'> name [<empty>]
+    (* TODO: Rename to kind *)
     keyword    = [<empty>] <'~'> | name [<empty>]
-    (* play       = [<empty>] <'!Play'> [<empty>] elem *)
-    play       = [<empty>] #'(play|Play)!' [<empty>] elem
+    play       = [<empty>] #'[pP]lay!' [<empty>] elem
     meter      = [<empty>] <int> <'|'> <int> [<empty>]
+    (* duration   = [<empty>] (expr <'.'> #'(b|m)') | *)
     string     = #'[\\'|\"](.*?)[\"|\\']'
     word       = #'[a-zA-Z]+'
     name       = #'[a-zA-Z_]+[a-zA-Z0-9_-]*'

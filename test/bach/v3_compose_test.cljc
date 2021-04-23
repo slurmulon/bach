@@ -19,59 +19,59 @@
 ;  - Simultaneous play signals, separate stop signals
 (def fixture-a
   [:list
-    [:pair
+    [:beat
       [:number "1"]
       [:identifier :a]]
     [:set
-      [:pair [:number "2"] [:identifier :b]]
-      [:pair [:number "3"] [:identifier :c]]]
+      [:beat [:number "2"] [:identifier :b]]
+      [:beat [:number "3"] [:identifier :c]]]
     [:set
       [:list
-        [:pair [:number "4"] [:identifier :d]]
-        [:pair [:number "5"] [:identifier :e]]]
+        [:beat [:number "4"] [:identifier :d]]
+        [:beat [:number "5"] [:identifier :e]]]
       [:list
-        [:pair [:number "6"] [:identifier :f]]
+        [:beat [:number "6"] [:identifier :f]]
         [:set
-          [:pair [:number "7"] [:identifier :g]]
-          [:pair [:number "8"] [:identifier :h]]]]]])
+          [:beat [:number "7"] [:identifier :g]]
+          [:beat [:number "8"] [:identifier :h]]]]]])
 
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
 ;  - Simultaneous play signals, simultaneous stop signals
 (def fixture-b
   [:list
-    [:pair
+    [:beat
       [:number "1"]
       [:identifier :a]]
     [:set
-      [:pair [:number "2"] [:identifier :b]]
-      [:pair [:number "3"] [:identifier :c]]]
+      [:beat [:number "2"] [:identifier :b]]
+      [:beat [:number "3"] [:identifier :c]]]
     [:set
       [:list
-        [:pair [:number "4"] [:identifier :d]]
-        [:pair [:number "5"] [:identifier :e]]]
+        [:beat [:number "4"] [:identifier :d]]
+        [:beat [:number "5"] [:identifier :e]]]
       [:list
-        [:pair [:number "4"] [:identifier :f]]
-        [:pair [:number "6"] [:identifier :g]]]]])
+        [:beat [:number "4"] [:identifier :f]]
+        [:beat [:number "6"] [:identifier :g]]]]])
 
 ; Multiple identical elements
 (def fixture-c
   [:list
-   [:pair
+   [:beat
     [:number "1"]
     [:identifier :a]]
-   [:pair
+   [:beat
     [:number "2"]
     [:identifier :a]]
-   [:pair
+   [:beat
     [:number "3"]
     [:identifier :b]]])
 
 (defn atomize-fixture
   [fixture]
   (insta/transform
-    {:pair (fn [duration beat]
-             [:pair
+    {:beat (fn [duration beat]
+             [:beat
                duration
                [:atom
                  [:keyword [:name "stub"]]
@@ -84,7 +84,7 @@
   (testing "collections"
     (testing "sets"
       (let [tree [:list
-                  [:pair
+                  [:beat
                    [:number "1"]
                    [:identifier :a]]
                   [:set
@@ -108,10 +108,10 @@
     (let [tree [:loop
                   [:number "2"]
                   [:list
-                    [:pair
+                    [:beat
                       [:number "1"]
                       [:identifier :a]]
-                    [:pair
+                    [:beat
                       [:number "3"]
                       [:identifier :b]]]]
           want [{:duration 1
@@ -126,16 +126,16 @@
   (testing "containing"
     (testing "list"
       (let [tree [:list
-                  [:pair
+                  [:beat
                    [:number "4"]
                    [:identifier :x]]
                   [:loop
                    [:number "2"]
                    [:list
-                    [:pair
+                    [:beat
                       [:number "1"]
                       [:identifier :a]]
-                    [:pair
+                    [:beat
                       [:number "3"]
                       [:identifier :b]]]]]
             want [{:duration 4
@@ -151,25 +151,25 @@
           (is (= want (compose/normalize-collections tree)))))
     (testing "parallel lists"
       (let [tree [:set
-                  [:pair
+                  [:beat
                    [:number "4"]
                    [:identifier :x]]
                   [:loop
                    [:number "2"]
                    [:list
-                    [:pair
+                    [:beat
                       [:number "1"]
                       [:identifier :a]]
-                    [:pair
+                    [:beat
                       [:number "3"]
                       [:identifier :b]]]]
                   [:loop
                    [:number "2"]
                    [:list
-                    [:pair
+                    [:beat
                       [:number "2"]
                       [:identifier :c]]
-                    [:pair
+                    [:beat
                       [:number "5"]
                       [:identifier :d]]]]]
             actual (compose/normalize-collections tree)
@@ -185,7 +185,7 @@
           (is (= want actual))))
     (testing "nested loop"
       (let [tree [:list
-                  [:pair
+                  [:beat
                    [:number "1"]
                    [:identifier :a]]
                   [:loop
@@ -193,10 +193,10 @@
                    [:loop
                     [:number "2"]
                     [:list
-                      [:pair
+                      [:beat
                         [:number "2"]
                         [:identifier :b]]
-                      [:pair
+                      [:beat
                         [:number "3"]
                         [:identifier :c]]]]]]
             actual (compose/normalize-collections tree)
@@ -218,17 +218,17 @@
                       [:list
                       [:when
                         [:number "1"]
-                        [:pair
+                        [:beat
                           [:number "1"]
                           [:identifier :a]]]
                       [:when
                         [:number "2"]
-                        [:pair
+                        [:beat
                           [:number "1"]
                           [:identifier :b]]]]]
               actual (-> tree compose/reduce-values compose/normalize-loops)
-              want [:list [:pair 1 [:identifier :a]]
-                          [:pair 1 [:identifier :b]]]]
+              want [:list [:beat 1 [:identifier :a]]
+                          [:beat 1 [:identifier :b]]]]
           (is (= want actual))))
       (testing "mixed"
         (let [tree [:loop
@@ -236,29 +236,29 @@
                     [:list
                      [:when
                       [:number "1"]
-                      [:pair
+                      [:beat
                        [:number "1"]
                        [:identifier :a]]]
                      [:when
                        [:number "2"]
-                       [:pair
+                       [:beat
                          [:number "1"]
                          [:identifier :b]]]
-                     [:pair
+                     [:beat
                        [:number "3"]
                        [:identifier :c]]]]
               actual (-> tree compose/reduce-values compose/normalize-loops)
-              want [:list [:pair 1 [:identifier :a]]
-                          [:pair 3 [:identifier :c]]
-                          [:pair 1 [:identifier :b]]
-                          [:pair 3 [:identifier :c]]]]
+              want [:list [:beat 1 [:identifier :a]]
+                          [:beat 3 [:identifier :c]]
+                          [:beat 1 [:identifier :b]]
+                          [:beat 3 [:identifier :c]]]]
           ; (clojure.pprint/pprint actual)
           (is (= want actual))))
       (testing "nested"
         (let [tree [:loop
                     [:number "3"]
                     [:list
-                     [:pair
+                     [:beat
                       [:number "1"]
                       [:identifier :x]]
                      [:when
@@ -268,71 +268,71 @@
                        ; [:number "3"]
                        [:number "2"]
                        [:list
-                        [:pair
+                        [:beat
                          [:number "1"]
                          [:identifier :a]]
                         [:when
                          [:number "2"]
-                         [:pair
+                         [:beat
                           [:number "2"]
                           [:identifier :b]]]]]]
                      [:when
                       [:number "1"]
-                      [:pair
+                      [:beat
                        [:number "4"]
                        [:identifier :g]]]
-                     [:pair
+                     [:beat
                       [:number "3"]
                       [:identifier :h]]]]
               want [:list
-                    [:pair 1 [:identifier :x]]
+                    [:beat 1 [:identifier :x]]
                     [:list
-                     [:pair 1 [:identifier :a]]
-                     [:pair 1 [:identifier :a]]
-                     [:pair 2 [:identifier :b]]]
-                    [:pair 4 [:identifier :g]]
-                    [:pair 3 [:identifier :h]]
-                    [:pair 1 [:identifier :x]]
-                    [:pair 3 [:identifier :h]]
-                    [:pair 1 [:identifier :x]]
-                    [:pair 3 [:identifier :h]]]
+                     [:beat 1 [:identifier :a]]
+                     [:beat 1 [:identifier :a]]
+                     [:beat 2 [:identifier :b]]]
+                    [:beat 4 [:identifier :g]]
+                    [:beat 3 [:identifier :h]]
+                    [:beat 1 [:identifier :x]]
+                    [:beat 3 [:identifier :h]]
+                    [:beat 1 [:identifier :x]]
+                    [:beat 3 [:identifier :h]]]
               actual (-> tree compose/reduce-values compose/normalize-loops)]
           (is (= want actual))))
       (testing "distant"
         (let [tree [:loop
                     [:number "3"]
                     [:list
-                     [:pair
+                     [:beat
                       [:number "1"]
                       [:identifier :a]]
                      [:when
                       [:number "2"]
-                      [:pair
+                      [:beat
                        [:number "2"]
                        [:identifier :c]]]
                      [:list
-                      [:pair
+                      [:beat
                        [:number "1"]
                        [:identifier :b]]
                       [:when
                        [:number "3"]
-                       [:pair
+                       [:beat
                         [:number "3"]
                         [:identifier :z]]]]]]
               want [:list
-                    [:pair 1 [:identifier :a]]
+                    [:beat 1 [:identifier :a]]
                     [:list
-                     [:pair 1 [:identifier :b]]
+                     [:beat 1 [:identifier :b]]
                      nil]
-                    [:pair 1 [:identifier :a]]
-                    [:pair 2 [:identifier :c]]
+                    [:beat 1 [:identifier :a]]
+                    [:beat 2 [:identifier :c]]
                     [:list
-                     [:pair 1 [:identifier :b]]
+                     [:beat 1 [:identifier :b]]
                      nil]
-                    [:pair 1 [:identifier :a]]
+                    [:beat 1 [:identifier :a]]
                     [:list
-                     [:pair 1 [:identifier :b]]
-                     [:pair 3 [:identifier :z]]]]
+                     [:beat 1 [:identifier :b]]
+                     [:beat 3 [:identifier :z]]]]
               actual (-> tree compose/reduce-values compose/normalize-loops)]
           ; (clojure.pprint/pprint (compose/normalize-collections actual))
           ; (clojure.pprint/pprint actual)
@@ -341,33 +341,33 @@
 
 (testing "durations"
   (testing "beats"
-    (let [tree [:pair
+    (let [tree [:beat
                 [:number "3"]
                 [:identifier :a]]
           want 3]
     (is (= want (compose/normalize-durations tree)))))
   (testing "lists"
     (let [tree [:list
-                [:pair
+                [:beat
                   [:number "1"]
                   [:identifier :a]]
-                [:pair
+                [:beat
                   [:number "2"]
                   [:identifier :b]]
-                [:pair
+                [:beat
                   [:number "3"]
                   [:identifier :c]]]
           want 6]
       (is (= want (compose/normalize-durations tree)))))
   (testing "sets"
     (let [tree [:set
-                [:pair
+                [:beat
                   [:number "1"]
                   [:identifier :a]]
-                [:pair
+                [:beat
                   [:number "4"]
                   [:identifier :b]]
-                [:pair
+                [:beat
                   [:number "2"]
                   [:identifier :c]]]
           want 4]
@@ -377,17 +377,17 @@
 ; (testing "beats"
 ;   (testing "position"
 ;     (let [tree [:list
-;                 [:pair
+;                 [:beat
 ;                  [:number "1"]
 ;                  [:identifier :a]]
 ;                 [:set
-;                  [:pair [:number "2"] [:identifier :b]]
-;                  [:pair [:number "3"] [:identifier :c]]]
+;                  [:beat [:number "2"] [:identifier :b]]
+;                  [:beat [:number "3"] [:identifier :c]]]
 ;                 [:set
-;                  [:pair [:number "4"] [:identifier :d]]
+;                  [:beat [:number "4"] [:identifier :d]]
 ;                  [:list
-;                   [:pair [:number "5"] [:identifier :e]]
-;                   [:pair [:number "6"] [:identifier :f]]]]]
+;                   [:beat [:number "5"] [:identifier :e]]
+;                   [:beat [:number "6"] [:identifier :f]]]]]
 ;           want false
 ;           ; actual (compose/position-beats tree)]
 ;           actual (compose/position-beats tree)]
@@ -398,31 +398,31 @@
   (testing "collections"
     ; (testing "list nested in sets"
     ; (let [tree [:list
-    ;               [:pair
+    ;               [:beat
     ;                [:number "1"]
     ;                [:identifier :a]]
     ;               [:set
-    ;                [:pair [:number "2"] [:identifier :b]]
-    ;                [:pair [:number "3"] [:identifier :c]]]
+    ;                [:beat [:number "2"] [:identifier :b]]
+    ;                [:beat [:number "3"] [:identifier :c]]]
     ;               [:set
-    ;                [:pair [:number "4"] [:identifier :d]]
+    ;                [:beat [:number "4"] [:identifier :d]]
     ;                [:list
-    ;                 [:pair [:number "5"] [:identifier :e]]
-    ;                 [:pair [:number "6"] [:identifier :f]]]]]
+    ;                 [:beat [:number "5"] [:identifier :e]]
+    ;                 [:beat [:number "6"] [:identifier :f]]]]]
     (let [tree [:list
-                [:pair
+                [:beat
                  [:number "1"]
                  [:identifier :a]]
                 [:set
-                 [:pair [:number "2"] [:identifier :b]]
-                 [:pair [:number "3"] [:identifier :c]]]
+                 [:beat [:number "2"] [:identifier :b]]
+                 [:beat [:number "3"] [:identifier :c]]]
                 [:set
                  [:list
-                  [:pair [:number "4"] [:identifier :d]]
-                  [:pair [:number "5"] [:identifier :e]]]
+                  [:beat [:number "4"] [:identifier :d]]
+                  [:beat [:number "5"] [:identifier :e]]]
                  [:list
-                  [:pair [:number "6"] [:identifier :f]]
-                  [:pair [:number "7"] [:identifier :g]]]]]
+                  [:beat [:number "6"] [:identifier :f]]
+                  [:beat [:number "7"] [:identifier :g]]]]]
           want [{:duration 1 :elements [:identifier :a]}
                 #{{:duration 2 :elements [:identifier :b]}
                   {:duration 3 :elements [:identifier :c]}}
@@ -437,19 +437,19 @@
   (testing "collections"
     (testing "set -> list"
       (let [tree [:list
-                  [:pair
+                  [:beat
                    [:number "1"]
                    [:identifier :a]]
                   [:set
-                   [:pair [:number "2"] [:identifier :b]]
-                   [:pair [:number "3"] [:identifier :c]]]
+                   [:beat [:number "2"] [:identifier :b]]
+                   [:beat [:number "3"] [:identifier :c]]]
                   [:set
                    [:list
-                    [:pair [:number "4"] [:identifier :d]]
-                    [:pair [:number "5"] [:identifier :e]]]
+                    [:beat [:number "4"] [:identifier :d]]
+                    [:beat [:number "5"] [:identifier :e]]]
                    [:list
-                    [:pair [:number "6"] [:identifier :f]]
-                    [:pair [:number "7"] [:identifier :g]]]]]
+                    [:beat [:number "6"] [:identifier :f]]
+                    [:beat [:number "7"] [:identifier :g]]]]]
             want [{:duration 1 :elements [:identifier :a]}
                   #{{:duration 2 :elements [:identifier :b]}
                     {:duration 3 :elements [:identifier :c]}}
@@ -659,24 +659,27 @@
 
 (def fixture-bach-a
   "
-  :a = Chord('A7')
-  :e = Chord('E6')
-  :g = Chord('Gm')
-  :f = Chord('F#')
+  :a = chord('A7')
+  :e = chord('E6')
+  :g = chord('Gm')
+  :f = chord('F#')
 
   :part-a = 3 of [
-    3 -> { :a }
+    3 -> { :a, scale('A dorian') }
     2 -> :e
     when 3 then { 1 -> :g }
   ]
 
+  // comment
+  // hiii
+
   :part-b = 2 of [
-    when 1 then { 2 -> :a }
+    when 1 then { 2 -> :a, 1 -> chord('Z') }
     1 -> :f
     1 -> :e
   ]
 
-  Play! 1 of [:part-a :part-b]
+  play! 1 of [:part-a :part-b]
   ")
 
 (println "@@@@@@")

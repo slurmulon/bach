@@ -103,7 +103,7 @@
                     (when (-> (variables) (contains? value) not)
                       (problem (str "Variable is not declared before it's used: " value)))
                     (create-variable label value)))
-       :pair (fn [duration [tag :as value]]
+       :beat (fn [duration [tag :as value]]
                (cond
                  (> duration valid-max-duration)
                    (problem (str "Beat durations must be between 0 and " valid-max-duration))
@@ -288,7 +288,7 @@
         reduced-track (reduce-values track)]
     (insta/transform
       ; NOTE: might need to "evaluate" duration (e.g. if it's like `1+1/2`)
-     {:pair (fn [duration _]
+     {:beat (fn [duration _]
               (when (< duration @lowest-duration)
                 (reset! lowest-duration duration)))}
      reduced-track)
@@ -330,7 +330,7 @@
   (let [total-beats (atom 0)
         reduced-track (reduce-values track)]
     (insta/transform
-     {:pair (fn [duration _]
+     {:beat (fn [duration _]
               (swap! total-beats + duration))}
      reduced-track)
     @total-beats))
@@ -486,10 +486,7 @@
       {:list (fn [& [:as all]] (-> all collect vec))
        :set (fn [& [:as all]] (->> all collect (into #{})))
        :atom (fn [[_ kind] [_ & args]] (as-element! kind args))
-       ; FIXME: Refactor towards this!
-       ;  - Currently prevents `2 -> { Chord('A')`
-       :pair #(assoc {} :duration %1 :elements (many %2))})))
-       ; :pair #(assoc {} :duration %1 :elements %2)})))
+       :beat #(assoc {} :duration %1 :elements (many %2))})))
 
 (defn as-durations
   "Transforms each node in a tree containing a map with a :duration into
