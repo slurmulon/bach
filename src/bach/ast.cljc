@@ -43,7 +43,7 @@
     meta       = [<empty>] <'@'> name [<empty>]
     (* TODO: Rename to kind *)
     keyword    = [<empty>] <'~'> | name [<empty>]
-    play       = [<empty>] <#'[pP]lay!'> [<empty>] elem
+    play       = [<empty>] <#'(?i)play!'> [<empty>] elem
     meter      = [<empty>] <int> <'|'> <int> [<empty>]
     (* duration   = [<empty>] (expr <'.'> #'(b|m)') | *)
     string     = #'[\\'|\"](.*?)[\"|\\']'

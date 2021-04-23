@@ -251,15 +251,13 @@
 (defn get-tempo
   "Determines the global tempo of the track. Localized tempos are NOT supported yet."
   [track]
-  ; (find-header track "Tempo" default-tempo))
-  (find-header track #(re-find #"(Tempo)a" %) default-tempo))
-
+  (find-header track #(re-find #"(?i)tempo" %) default-tempo))
 
 (defn get-meter
   "Determines the global meter, or time signature, of the track. Localized meters are NOT supported yet."
   [track]
   (let [reduced-track (reduce-values track)]
-    (find-header reduced-track "Meter" default-meter)))
+    (find-header track #(re-find #"(?i)meter" %) default-meter)))
 
 (defn get-meter-ratio
   "Determines the global meter ratio of the track.
@@ -632,6 +630,7 @@
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
 
+; step-beat-signals
 (defn pulse-beat-signals
   "Transforms a parsed AST into a quantized sequence (in q-pulses) where each pulse beat contains
   the index of its associated normalized beat (i.e. intersecting the beat's quantized duration)."
