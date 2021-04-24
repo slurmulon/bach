@@ -24,7 +24,6 @@
   (let [headers (atom default-headers)]
     (insta/transform
      {:header (fn [[& [_ kind]] value]
-                (println "get headers!" kind value)
                 (let [header-key (-> kind name clojure.string/lower-case keyword)]
                   (swap! headers assoc header-key value)))}
      (resolve-values track))
@@ -112,7 +111,7 @@
   (first (get-meter track)))
 
 (defn get-step-beats-per-bar
-  "Determines how many beats are in a bar/measure, normalized against the step beat of the track."
+  "Determines how many beats are in a bar/measure, normalized to the step beat of the track."
   [track]
   (let [step-beat (get-step-beat track)
         meter (get-meter-ratio track)]
@@ -162,9 +161,9 @@
 (defn valid-meter?
   "Determines if a parsed track has a valid meter, particularly its pulse beat."
   [track]
-  (let [[_ & [beat-unit]] (get-meter track)]
-    (if (not (some #{beat-unit} (rest valid-divisors)))
-      (problem "Meter unit beats (i.e. step beats) must be even and no greater than " (last valid-divisors))
+  (let [[_ & [unit-beat]] (get-meter track)]
+    (if (not (some #{unit-beat} (rest valid-divisors)))
+      (problem "Meter unit beats (i.e. pulse beats) must be even and no greater than " (last valid-divisors))
       true)))
 
 (defn valid-play?
@@ -192,8 +191,8 @@
                    (problem (str "Beat durations must be between 0 and " valid-max-duration))
                  (compare-items not-every? [:atom :set] tag)
                    (problem (str "Beat values can only be an atom or set but found: " tag))))
-       :div (fn [_ [& d]]
-              (when (not (some #{d} valid-divisors))
+       :div (fn [_ [& div]]
+              (when (not (some #{div} valid-divisors))
                 (problem "All divisors must be even and no greater than " (last valid-divisors))))}
       track)))
   true)
@@ -265,9 +264,8 @@
   [track]
   (if (-> track get-iterations number?)
     (insta/transform
-      {:play (fn [play]
-               (let [values (rest (last play))]
-                 [:play (into [:list] values)]))}
+      {:play #(let [values (rest (last %))]
+                [:play (into [:list] values)])}
       track)
     track))
 
