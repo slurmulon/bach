@@ -13,7 +13,7 @@
                  [:assign
                   [:identifier
                    [:name "Test"]]
-                  [:number "1"]]]]]
+                  [:int "1"]]]]]
       (is (= want (parse ":Test = 1")))))
   (testing "name bindings"
     (testing "must be at least one characer"
@@ -28,7 +28,7 @@
                          [:assign
                           [:identifier
                            [:name var-name]]
-                          [:number "1"]]]]
+                          [:int "1"]]]]
                   data (->> var-name #(#?(:clj format :cljs gstring/format) ":%s = 4" %))]
               (is (= want (parse data)))))))
       (testing "disallowed"
@@ -40,160 +40,140 @@
   (testing "integer"
     (let [want [:track
                 [:statement
-                 [:number "1"]]]]
+                 [:int "1"]]]]
       (is (= want (parse "1")))))
   (testing "float"
     (let [want [:track
                 [:statement
-                 [:number "2.5"]]]]
+                 [:float "2.5"]]]]
       (is (= want (parse "2.5"))))))
 
 (deftest terms
   (testing "addition"
     (let [want [:track
                 [:statement
-                 [:add [:number "1"] [:number "2"]]]]]
+                 [:add [:int "1"] [:int "2"]]]]]
       (is (= want (parse "1 + 2")))))
   (testing "division"
     (let [want [:track
                 [:statement
-                 [:div [:number "1"] [:number "2"]]]]]
+                 [:div [:int "1"] [:int "2"]]]]]
       (is (= want (parse "1 / 2")))))
   (testing "complex operations"
     (testing "whole number plus rational number"
       (let [want [:track
                   [:statement
                    [:add
-                    [:number "1"]
-                    [:div [:number "2"] [:number "3"]]]]]]
+                    [:int "1"]
+                    [:div [:int "2"] [:int "3"]]]]]]
         (is (= want (parse "1 + 2/3")))))
     (testing "rational number plus rational number"
       (let [want [:track
                   [:statement
                    [:add
-                    [:div [:number "1"] [:number "4"]]
-                    [:div [:number "1"] [:number "8"]]]]]]
+                    [:div [:int "1"] [:int "4"]]
+                    [:div [:int "1"] [:int "8"]]]]]]
         (is (= want (parse "1/4 + 1/8"))))))
   (testing "parenthesized operations"
     (testing "multiplication and addition"
       (let [want [:track
                   [:statement
                    [:mul
-                    [:number "2"]
-                    [:add [:number "1"] [:number "3"]]]]]]
+                    [:int "2"]
+                    [:add [:int "1"] [:int "3"]]]]]]
         (is (= want (parse "2 * (1 + 3)")))))
     (testing "multiplication and division"
       (let [want [:track
                   [:statement
                    [:mul
-                    [:number "2"]
-                    [:div [:number "6"] [:number "8"]]]]]]
+                    [:int "2"]
+                    [:div [:int "6"] [:int "8"]]]]]]
         (is (= want (parse "2 * (6 / 8)")))))))
 
-(deftest colors
-  (testing "hex"
-    (testing "3 digits"
-      (let [want [:track
-                  [:statement
-                   [:color "#000"]]]]
-        (is (= want (parse "#000")))))
-    (testing "6 digits"
-      (let [want [:track
-                  [:statement
-                   [:color "#FF0000"]]]]
-        (is (= want (parse "#FF0000")))))))
-
-(deftest meta-data
+(deftest headers
   (testing "tempo"
     (let [want [:track
                 [:statement
                  [:header
                   [:meta [:name "Tempo"]]
-                  [:number "90"]]]]]
+                  [:int "90"]]]]]
       (is (= want (parse "@Tempo = 90")))))
-  (testing "title"
-    (let [want [:track
-                [:statement
-                 [:header
-                  [:meta [:name "Title"]]
-                  [:string "'Test Track'"]]]]]
-      (is (= want (parse "@Title = 'Test Track'")))))
   (testing "meter"
     (let [want [:track
                 [:statement
                  [:header
                   [:meta [:name "Meter"]]
-                  [:meter [:number "6"] [:number "8"]]]]]]
+                  [:meter [:int "6"] [:int "8"]]]]]]
       (is (= want (parse "@Meter = 6|8")))))
-  (testing "tags"
+ (testing "custom"
     (let [want [:track
                 [:statement
                  [:header
-                  [:meta [:name "Tags"]]
-                  [:list [:string "'rock'"] [:string "'funk'"]]]]]]
-      (is (= want (parse "@Tags = ['rock', 'funk']"))))))
+                  [:meta [:name "Title"]]
+                  [:string "'Test Track'"]]]]]
+      (is (= want (parse "@Title = 'Test Track'"))))))
 
-(deftest pairs
+(deftest beats
   (testing "valid"
     (testing "basic"
       (let [want [:track
                   [:statement
-                   [:pair [:number "1"] [:list]]]]]
-        (is (= want (parse "1 -> []")))))
+                   [:beat [:int "1"] [:set]]]]]
+        (is (= want (parse "1 -> {}")))))
     (testing "expression"
       (testing "basic"
         (let [want [:track
                     [:statement
-                     [:pair
+                     [:beat
                       [:mul
-                       [:number "4"]
-                       [:div [:number "6"] [:number "8"]]]
-                      [:list]]]]]
-          (is (= want (parse "4 * 6/8 -> []")))))
+                       [:int "4"]
+                       [:div [:int "6"] [:int "8"]]]
+                      [:set]]]]]
+          (is (= want (parse "4 * 6/8 -> {}")))))
       (testing "nested"
         (let [want [:track
                     [:statement
                      [:list
-                      [:pair
+                      [:beat
                        [:mul
-                        [:number "4"]
-                        [:div [:number "6"] [:number "8"]]]
-                       [:list]]]]]]
-          (is (= want (parse "[4 * 6/8 -> []]")))))
+                        [:int "4"]
+                        [:div [:int "6"] [:int "8"]]]
+                       [:set]]]]]]
+          (is (= want (parse "[4 * 6/8 -> {}]")))))
       (testing "optional parens"
         (let [want [:track
                     [:statement
                      [:list
-                      [:pair
+                      [:beat
                        [:mul
-                        [:number "4"]
-                        [:div [:number "6"] [:number "8"]]]
-                       [:list]]]]]]
-          (is (= want (parse "[(4 * 6/8) -> []]")))))
+                        [:int "4"]
+                        [:div [:int "6"] [:int "8"]]]
+                       [:set]]]]]]
+          (is (= want (parse "[(4 * 6/8) -> {}]")))))
       (testing "line breaks"
         (let [want [:track
                     [:statement
                      [:list
-                      [:pair
+                      [:beat
                        [:mul
-                        [:number "4"]
-                        [:div [:number "6"] [:number "8"]]]
-                       [:list]]]]]]
-          (is (= want (parse "[\n4 * 6/8 -> []\n]")))))
+                        [:int "4"]
+                        [:div [:int "6"] [:int "8"]]]
+                       [:set]]]]]]
+          (is (= want (parse "[\n4 * 6/8 -> {}\n]")))))
       (testing "arbitrary whitespace"
         (let [want [:track
                     [:statement
                      [:list
-                      [:pair
+                      [:beat
                        [:mul
-                        [:number "4"]
-                        [:div [:number "6"] [:number "8"]]]
-                       [:list]]]]]]
-          (is (= want (parse "[\n  4 * 6/8 -> []\n]")))))))
-  ; TODO: sequential pairs
+                        [:int "4"]
+                        [:div [:int "6"] [:int "8"]]]
+                       [:set]]]]]]
+          (is (= want (parse "[\n  4 * 6/8 -> {}\n]")))))))
+  ; TODO: sequential beats
   (testing "invalid"
     (testing "identifier as key"
-      (is (= true (insta/failure? (parse "abc -> []")))))
+      (is (= true (insta/failure? (parse "abc -> {}")))))
     (testing "missing value"
       (is (= true (insta/failure? (parse "abc ->")))))))
 
@@ -204,33 +184,34 @@
   (testing "multiple elements"
     (let [want [:track
                 [:statement
-                 [:list [:number "1"] [:number "2"]]]]]
-      (is (= want (parse "[1, 2]")))))
-  (testing "can contain pairs"
+                 [:list
+                  [:identifier [:name "a"]]
+                  [:identifier [:name "b"]]]]]]
+      (is (= want (parse "[:a, :b]")))))
+  (testing "can contain beats"
     (let [want [:track
                 [:statement
                  [:list
-                  [:pair
-                   [:number "1"]
+                  [:beat
+                   [:int "1"]
                    [:identifier [:name "Foo"]]]
-                  [:pair
-                   [:number "2"]
+                  [:beat
+                   [:int "2"]
                    [:identifier [:name "Bar"]]]]]]]
       (is (= want (parse "[1 -> :Foo, 2 -> :Bar]")))))
-  ; TODO: Enforce opposite of this - nesting should not be allowed in lists, for simplicity
-  ; (testing "can be nested"
-  ;   (let [want [:track
-  ;               [:statement
-  ;                [:list [:list]]]]]
-  ;     (is (= want (parse "[[]]")))))
+  (testing "can be nested"
+    (let [want [:track
+                [:statement
+                 [:list [:list]]]]]
+      (is (= want (parse "[[]]")))))
   (testing "can contain nested tuples"
     (let [want [:track
                 [:statement
                  [:list
-                  [:pair
-                   [:number "1"]
-                   [:list]]]]]]
-      (is (= want (parse "[1 -> []]"))))))
+                  [:beat
+                   [:int "1"]
+                   [:set]]]]]]
+      (is (= want (parse "[1 -> {}]"))))))
 
 (deftest atoms ; AKA instantiated keywords
   (testing "note"
@@ -255,9 +236,9 @@
                   [:arguments
                    [:string "'C2 Minor'"]
                    [:div
-                    [:number "1"]
-                    [:number "4"]]
+                    [:int "1"]
+                    [:int "4"]]
                    [:attribute
                     [:name "color"]
-                    [:color "#FF0000"]]]]]]]
-      (is (= want (parse "Scale('C2 Minor', 1/4, color: #FF0000)"))))))
+                    [:string "'#FF0000'"]]]]]]]
+      (is (= want (parse "Scale('C2 Minor', 1/4, color: '#FF0000')"))))))
