@@ -336,14 +336,11 @@
   [track]
   (first (get-meter track))) ; AKA numerator
 
-; get-pulse-beats-per-measure
-; (def get-scaled-beats-per-measure get-beats-per-measure)
-; (def get-beat-units-per-measure get-beats-per-measure)
-
+; get-step-beats-per-measure
 (defn get-normalized-beats-per-measure
   "Determines how many beats are in a measure, normalized against the step beat of the track."
   [track]
-  (let [pulse-beat (get-pulse-beat track)
+  (let [pulse-beat (get-step-beat track)
         meter (get-meter-ratio track)]
     (safe-ratio
      (max pulse-beat meter)
@@ -352,8 +349,8 @@
 (def get-pulse-beats-per-measure get-normalized-beats-per-measure)
 
 ; TODO: Write tests
-; get-pulse-beat-ms
-(defn get-scaled-ms-per-beat
+(defn get-pulse-beat-time
+; (defn get-scaled-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (scaled to the beat unit)."
   [track]
   (let [reduced-track (reduce-track track)
@@ -364,10 +361,10 @@
         ms-per-beat (* seconds-per-beat 1000)]
     (float ms-per-beat)))
 
-(def get-ms-per-beat-unit get-scaled-ms-per-beat)
+; (def get-ms-per-beat-unit get-scaled-ms-per-beat)
 
-; get-step-beat-ms
-(defn get-normalized-ms-per-beat
+(defn get-step-beat-time
+; (defn get-normalized-ms-per-beat
   "Determines the number of milliseconds each beat should be played for (normalized to the step beat).
    Primarily exists to make parsing simple and optimized in the high-level interpreter / player.
    Referred to as 'normalized' because, as of now, all beat durations (via `compose`) are normalized to the step beat.
@@ -375,25 +372,24 @@
      http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
      https://music.stackexchange.com/a/24141"
   [track]
-  (let [reduced-track (reduce-track track)
-        ms-per-beat-unit (get-scaled-ms-per-beat reduced-track)
-        beat-unit (get-beat-unit reduced-track)
-        pulse-beat (get-pulse-beat reduced-track)
-        pulse-to-unit-beat-ratio (/ pulse-beat beat-unit)
-        ms-per-pulse-beat (* ms-per-beat-unit pulse-to-unit-beat-ratio)]
-    (float ms-per-pulse-beat)))
+  (let [pulse-beat-time (get-pulse-beat-time track)
+        pulse-beat (get-beat-unit track)
+        step-beat (get-step-beat track)
+        step-pulse-beat-ratio (/ step-beat pulse-beat)
+        step-beat-time (* pulse-beat-time step-pulse-beat-ratio)]
+    (float step-beat-time)))
 
-(def get-ms-per-pulse-beat get-normalized-ms-per-beat)
+; (def get-ms-per-pulse-beat get-normalized-ms-per-beat)
 
-; get-ms-per-pulse-beat
-(defn get-ms-per-beat
-  "Dynamically determines the ms-per-beat based on the kind of the beat, either :pulse (default) or :unit."
+(defn get-beat-time
+  "Dynamically determines the ms-per-beat based on the kind of the beat,
+  either :step (default) or :pulse."
   ([track kind]
    (case kind
-     :pulse (get-normalized-ms-per-beat track)
-     :unit (get-scaled-ms-per-beat track)))
+     :step (get-step-beat-time track)
+     :pulse (get-pulse-beat-time track)))
   ([track]
-   (get-normalized-ms-per-beat track)))
+   (get-step-beat-time track)))
 
 ; ------ V3 --------
 
@@ -472,7 +468,7 @@
   (->> tree as-durations reduce-durations))
 
 (defn quantize-durations
-  "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration.
+  "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration (i.e. step beat).
   In practice this enables uniform, linear and stateless interpolation of a N-ary duration tree."
   [tree]
   (->> tree (map as-reduced-durations) stretch))
@@ -662,8 +658,8 @@
                     :pulse (get-beat-unit track)}
         bar-units  {:step (get-pulse-beats-per-measure track)
                     :pulse (pulse-beats-per-bar track)}
-        time-units {:step (get-ms-per-beat track :pulse)
-                    :pulse (get-ms-per-beat track :unit)}]
+        time-units {:step (get-beat-time track :step)
+                    :pulse (get-beat-time track :pulse)}]
    {:beat beat-units
     :bar  bar-units
     :time (assoc time-units :bar

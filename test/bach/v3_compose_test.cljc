@@ -589,10 +589,10 @@
                    ["stub.5"]]]
          ; (clojure.pprint/pprint actual)
          (is (= want actual)))))
-   (testing "pulse beats"
+   (testing "step beats"
      (clear!)
      (let [tree (atomize-fixture fixture-a)
-           actual (compose/pulse-beat-signals tree)
+           actual (compose/step-beat-signals tree)
            want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
        (is (= want actual))))))
 
@@ -677,7 +677,9 @@
     1 -> :e
   ]
 
-  play! 1 of [:part-a :part-b]
+  ## Look a comment
+
+  play! 2 of [:part-a :part-b]
   ")
 
 (println "@@@@@@")
@@ -694,7 +696,10 @@
 ;                            compose/normalize-beats))
                            ; compose/normalize-collections)); compose/itemize-beats))
 (clojure.pprint/pprint (-> fixture-bach-a compose/compose))
-(clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/validate-2?))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/validate))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/parse compose/get-iterations))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/reduce-iterations))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/reduce-iterations))
 
 ; (clojure.pprint/pprint (bach.ast/parse fixture-bach-a))
 ; (clojure.pprint/pprint (bach.ast/parse "[1 -> :a, 2 -> :b]"))
