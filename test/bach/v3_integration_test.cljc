@@ -13,7 +13,9 @@
 (def clear! #(do (reset! id-counter 0) (compose/clear!)))
 
 (def fixture-bach-a
-  ":a = chord('A7')
+  "@Tempo = 150
+
+  :a = chord('A7')
   :e = chord('E6')
   :g = chord('Gm')
   :f = chord('F#')
@@ -44,11 +46,11 @@
       (clear!)
       (let [actual (compose/compose fixture-bach-a)
             want {:iterations 2,
-                  :headers {:tempo 120, :meter [4 4]},
+                  :headers {:tempo 150, :meter [4 4]},
                   :units
                   {:beat {:step 1, :pulse 1/4},
                    :bar {:step 1, :pulse 4},
-                   :time {:step 2000.0, :pulse 500.0, :bar 2000.0}},
+                   :time {:step 1600.0, :pulse 400.0, :bar 1600.0}},
                   :metrics {:min 1, :max 3, :total 22},
                   :elements
                   {:scale {"2" {:value "A dorian", :props []}},

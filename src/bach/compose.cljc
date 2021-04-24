@@ -248,7 +248,7 @@
     (reduce
       (fn [acc item]
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
-              item-elems (many (->> item :elements (map :id)))
+              item-elems (many (element-as-ids (:elements item)))
               acc-elems (many (get acc index))
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) signals items)))
@@ -271,7 +271,6 @@
   [beats]
   (->>
     beats
-    ; all-beat-elements
     beat-as-elements
     (reduce
       (fn [acc element]
@@ -337,12 +336,13 @@
 ;  - Also consider proposed Config! operator here, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
 (defn provision
   "Provisions a track for high-level interpretation and playback."
-  [tree]
-  (when-let [track (playable tree)]
-    (let [beats (normalize-beats! track)
-          iterations (-> tree reduce-values get-iterations)
-          headers (provision-headers track)
-          units (provision-units track)
+  [data]
+  (when-let [track (playable data)]
+    (let [tree (resolve-values data)
+          beats (normalize-beats! track)
+          iterations (get-iterations tree)
+          headers (provision-headers tree)
+          units (provision-units tree)
           metrics (provision-metrics track beats)
           elements (provision-elements beats)
           signals (provision-signals track)

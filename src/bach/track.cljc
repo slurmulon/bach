@@ -10,10 +10,6 @@
 
 (def default-tempo 120)
 (def default-meter [4 4])
-; REMOVE
-(def default-beat-unit (/ 1 (last default-meter)))
-; REMOVE
-(def default-pulse-beat default-beat-unit)
 (def default-headers {:tempo default-tempo :meter default-meter})
 
 (def valid-divisors (take 9 powers-of-two))
@@ -27,22 +23,23 @@
   [track]
   (let [headers (atom default-headers)]
     (insta/transform
-     {:header (fn [[& kind] value]
+     {:header (fn [[& [_ kind]] value]
+                (println "get headers!" kind value)
                 (let [header-key (-> kind name clojure.string/lower-case keyword)]
                   (swap! headers assoc header-key value)))}
      (resolve-values track))
     @headers))
 
 (defn get-header
-  "Generically finds a header entry / meta tag in a parsed track by its label"
-  ([track label] (get-header track label nil))
-  ([track label default]
+  "Generically finds a header entry in a parsed track by regex pattern."
+  ([track pattern] (get-header track pattern nil))
+  ([track pattern default]
    (let [header (atom default)]
      (insta/transform
-       {:header (fn [[& kind] value]
-                  (when (= (str kind) (str label))
+       {:header (fn [[& [_ kind]] value]
+                  (when (re-matches pattern (name kind))
                     (reset! header value)))}
-     track)
+     (resolve-values track))
     @header)))
 
 (defn get-plays
@@ -65,12 +62,12 @@
 (defn get-tempo
   "Determines the global tempo of the track. Localized tempos are NOT supported yet."
   [track]
-  (get-header track #(re-find #"(?i)tempo" %) default-tempo))
+  (get-header track #"(?i)tempo" default-tempo))
 
 (defn get-meter
   "Determines the global meter, or time signature, of the track. Localized meters are NOT supported yet."
   [track]
-  (get-header track #(re-find #"(?i)meter" %) default-meter))
+  (get-header track #"(?i)meter" default-meter))
 
 (defn get-meter-ratio
   "Determines the global meter ratio of the track.
@@ -85,7 +82,6 @@
   [track]
   (/ 1 (last (get-meter track)))) ; AKA 1/denominator
 
-; TODO: Refactor to accept normalized beats instead of track
 (defn get-step-beat
   "Determines the greatest common beat (by duration) among every beat in a track.
   Once this beat is found, a track can be iterated through uniformly and without
@@ -195,10 +191,8 @@
                  (> duration valid-max-duration)
                    (problem (str "Beat durations must be between 0 and " valid-max-duration))
                  (compare-items not-every? [:atom :set] tag)
-                   (problem (str "Beat values can only be an atom or set but found: " tag))
-                 (->> value (hiccup-find [:list :loop]) empty? not)
-                   (problem "Beats cannot contain a nested list or loop")))
-       :div (fn [[& n] [& d]]
+                   (problem (str "Beat values can only be an atom or set but found: " tag))))
+       :div (fn [_ [& d]]
               (when (not (some #{d} valid-divisors))
                 (problem "All divisors must be even and no greater than " (last valid-divisors))))}
       track)))
@@ -262,8 +256,6 @@
     :int to-string,
     :float to-string,
     :name to-string,
-    ; TODO: Determine if this is necessary with our math grammar (recommended in instaparse docs)
-    ; :expr identity,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 (def resolve-values reduce-values)
 
