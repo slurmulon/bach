@@ -87,7 +87,7 @@
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
 ; TODO: Rename to normalize-collections or reduce-collections
 (defn normalize-collections
-  "Normalizes all bach collections in parsed AST as native clojure structures.
+  "Normalizes all bach collections in parsed AST as native Clojure structures.
   Enables pragmatic handling of trees and colls in subsequent functions.
   Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
   Ouput: [:a #{:b :c} #{:d [:e :f]}]"
@@ -127,7 +127,7 @@
   "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration (i.e. step beat).
   In practice this enables uniform, linear and stateless interpolation of a N-ary duration tree."
   [tree]
-  (->> tree (map as-reduced-durations) stretch))
+  (->> tree (map as-reduced-durations) quantize))
 
 ; TODO: Probably just remove
 (defn normalize-durations
@@ -152,7 +152,7 @@
 (defn linearize-collections
   "Linearly transposes and flattens all collections in the parsed AST into a 1-ary sequence."
   [tree]
-  (-> tree transpose-collections squash-tree))
+  (-> tree transpose-collections squash))
 
 (defn unitize-collections
   "Linearizes and normalizes every element's :duration in parsed AST against the unit within a meter.
@@ -177,7 +177,7 @@
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
   (let [durations (map as-reduced-durations beats)
-        indices (linearize-indices identity durations)]
+        indices (linearize-indices durations)]
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
 (def position-beats itemize-beats)
