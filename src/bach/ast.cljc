@@ -15,7 +15,6 @@
 
     <token>    = elem | assign | header | play | <comment>
     <expr>     = [<empty>] term | add | sub [<empty>]
-    (* <elem>     = [<empty>] atom | prim | expr | beat | coll | identifier [<empty>] *)
     <elem>     = [<empty>] entity | prim | expr [<empty>]
     <entity>   = [<empty>] atom | coll | beat | identifier [<empty>]
     <item>     = entity | when
@@ -30,13 +29,9 @@
     loop       = [<empty>] int [<empty>] <'of'> [<empty>] (set | list) [<empty>]
     when       = [<empty>] <'when'> <empty> int <empty> (atom | identifier | set | list) [<empty>]
 
-    (* TODO: Rename pair to beat *)
-    (* ORIG *)
-    (* pair       = expr <'->'> elem [<empty>,<empty>] *)
-    (* V3, FIXME *)
-    beat = expr <'->'> (atom | set | identifier) [<empty>,<empty>]
+    beat       = expr <'->'> (atom | set | identifier) [<empty>,<empty>]
     assign     = identifier <'='> elem
-    header     = meta <'='> elem
+    header     = meta <'='> (prim | expr)
     attribute  = name [<empty>] <':'> [<empty>] prim
     identifier = [<empty>] <':'> name [<empty>]
     arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
@@ -44,16 +39,16 @@
     (* TODO: Rename to kind *)
     keyword    = [<empty>] <'~'> | name [<empty>]
     play       = [<empty>] <#'(?i)play!'> [<empty>] elem
-    meter      = [<empty>] <int> <'|'> <int> [<empty>]
+    meter      = [<empty>] int <'|'> int [<empty>]
     (* duration   = [<empty>] (expr <'.'> #'(b|m)') | *)
     string     = #'[\\'|\"](.*?)[\"|\\']'
     word       = #'[a-zA-Z]+'
     name       = #'[a-zA-Z_]+[a-zA-Z0-9_-]*'
-    int      = #'(0|([1-9][0-9]*))'
-    float    = #'(0|([1-9][0-9]*))(\\.[0-9]+)?'
-    <number>     = int | float
+    int        = #'(0|([1-9][0-9]*))'
+    float      = #'(0|([1-9][0-9]*))(\\.[0-9]+)+'
+    <number>   = int | float
     <empty>    = #'(\\r\\n|\\n|\\r|\\s)*'
-    <comment> = #'#{2}(.*?)(\\n|\\r)'
+    <comment>  = #'#{2}(.*?)(\\n|\\r)'
 
     (* Math *)
     add = term <'+'> expr
