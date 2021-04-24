@@ -39,7 +39,6 @@
   [elem]
   (-> elem element-id (clojure.string/split #"\.") last))
 
-; craft-element
 (defn as-element
   "Creates a beat element from an :atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each having a unique id."
@@ -51,25 +50,25 @@
 
 (def as-element! (memo as-element))
 
-(defn all-beat-items
-  "Provides all of the items in a collection of normalized beats as a vector."
+(defn element-as-ids
+  "Transforms normalized beat element(s) into their unique ids."
+  [elems]
+  (->> elems many (map :id)))
+
+(defn beat-as-items
+  "Provides all of the items in normalized beat(s) as a vector."
   [beats]
   (mapcat #(-> % :items vec) (many beats)))
 
-(defn all-beat-elements
-  "Provides all of the elements in a collection of normalized beats."
+(defn beat-as-elements
+  "Provides all of the elements in normalized beat(s)."
   [beats]
-  (->> beats many all-beat-items (mapcat :elements)))
+  (->> beats many beat-as-items (mapcat :elements)))
 
-(defn all-beat-element-ids
-  "Provides all of the beat element item ids in a collection of normalized beats."
+(defn beat-as-element-ids
+  "Provides all of the beat element item ids in normalized beat(s)."
   [beats]
-  (->> beats many all-beat-elements (map :id)))
-
-(defn cast-beat-element-ids
-  "Transforms normalized beat element(s) into their unique ids."
-  [elem]
-  (->> elem many (map :id)))
+  (->> beats many beat-as-elements (map :id)))
 
 (defn index-beat-items
   "Adds the provided normalized beat's index to each of its items.
@@ -79,6 +78,33 @@
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
 
+(defn as-durations
+  "Transforms each node in a tree containing a map with a :duration into
+  its associated scalar value. Assumes :duration values are numeric."
+  [tree]
+  (cast-tree map? :duration tree))
+
+(defn reduce-durations
+  "Transforms a tree of numeric duration nodes into a single total duration
+  according to bach's nesting rules (max of sets, sum of seqentials)."
+  [tree]
+  (clojure.walk/postwalk
+    #(cond
+       (set? %) (flatten-by max (seq %))
+       (sequential? %) (flatten-by + %)
+       :else %)
+    tree))
+
+(defn as-reduced-durations
+  "Transforms a parsed AST into a homogenous duration tree, then reduces it."
+  [tree]
+  (->> tree as-durations reduce-durations))
+
+(defn quantize-durations
+  "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration (i.e. step beat).
+  In practice this enables uniform, linear and stateless interpolation of a N-ary duration tree."
+  [tree]
+  (->> tree (map as-reduced-durations) quantize))
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided unit beat (i.e. the duration of a single normalized beat, in whole notes).
@@ -132,39 +158,6 @@
        :atom (fn [[_ kind] [_ & args]] (as-element! kind args))
        :beat #(assoc {} :duration %1 :elements (many %2))})))
 
-(defn as-durations
-  "Transforms each node in a tree containing a map with a :duration into
-  its associated scalar value. Assumes :duration values are numeric."
-  [tree]
-  (cast-tree map? :duration tree))
-
-(defn reduce-durations
-  "Transforms a tree of numeric duration nodes into a single total duration
-  according to bach's nesting rules (max of sets, sum of seqentials)."
-  [tree]
-  (clojure.walk/postwalk
-    #(cond
-       (set? %) (flatten-by max (seq %))
-       (sequential? %) (flatten-by + %)
-       :else %)
-    tree))
-
-(defn as-reduced-durations
-  "Transforms a parsed AST into a homogenous duration tree, then reduces it."
-  [tree]
-  (->> tree as-durations reduce-durations))
-
-(defn quantize-durations
-  "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration (i.e. step beat).
-  In practice this enables uniform, linear and stateless interpolation of a N-ary duration tree."
-  [tree]
-  (->> tree (map as-reduced-durations) quantize))
-
-; TODO: Probably just remove
-(defn normalize-durations
-  [tree]
-  (->> tree normalize-collections as-reduced-durations))
-
 (defn transpose-collections
   "Aligns and transposes parallel collection elements of a parsed AST, enabling linear time-invariant iteration by consumers.
    Each item of the resulting sequence is a set containing all of the elements occuring at its time/column-index, across all parallel/sibling vectors.
@@ -211,9 +204,6 @@
         indices (linearize-indices durations)]
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
-; REMOVE
-(def position-beats itemize-beats)
-
 ; TODO: Probably just remove and rename position-beats to this
 (defn linearize-beats
   [tree]
@@ -245,7 +235,7 @@
   [beats]
   (mapcat (fn [beat]
             (let [items (index-beat-items beat)
-                  elems (all-beat-element-ids beat)]
+                  elems (beat-as-element-ids beat)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 (defn element-stop-signals
@@ -281,7 +271,8 @@
   [beats]
   (->>
     beats
-    all-beat-elements
+    ; all-beat-elements
+    beat-as-elements
     (reduce
       (fn [acc element]
         (let [uid (element-uid element)
@@ -296,7 +287,7 @@
   by casting their elements into ids."
   [items]
   (->> (many items)
-       (map #(assoc % :elements (-> % :elements cast-beat-element-ids)))
+       (map #(assoc % :elements (-> % :elements element-as-ids)))
        (sort-by :duration)))
 
 (defn- provision-beat

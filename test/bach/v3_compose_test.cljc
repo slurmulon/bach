@@ -339,39 +339,39 @@
           (is (= want actual))))
       )))
 
-(testing "durations"
-  (testing "beats"
-    (let [tree [:beat
-                [:number "3"]
-                [:identifier :a]]
-          want 3]
-    (is (= want (compose/normalize-durations tree)))))
-  (testing "lists"
-    (let [tree [:list
-                [:beat
-                  [:number "1"]
-                  [:identifier :a]]
-                [:beat
-                  [:number "2"]
-                  [:identifier :b]]
-                [:beat
-                  [:number "3"]
-                  [:identifier :c]]]
-          want 6]
-      (is (= want (compose/normalize-durations tree)))))
-  (testing "sets"
-    (let [tree [:set
-                [:beat
-                  [:number "1"]
-                  [:identifier :a]]
-                [:beat
-                  [:number "4"]
-                  [:identifier :b]]
-                [:beat
-                  [:number "2"]
-                  [:identifier :c]]]
-          want 4]
-      (is (= want (compose/normalize-durations tree))))))
+; (testing "durations"
+;   (testing "beats"
+;     (let [tree [:beat
+;                 [:number "3"]
+;                 [:identifier :a]]
+;           want 3]
+;     (is (= want (compose/normalize-durations tree)))))
+;   (testing "lists"
+;     (let [tree [:list
+;                 [:beat
+;                   [:number "1"]
+;                   [:identifier :a]]
+;                 [:beat
+;                   [:number "2"]
+;                   [:identifier :b]]
+;                 [:beat
+;                   [:number "3"]
+;                   [:identifier :c]]]
+;           want 6]
+;       (is (= want (compose/normalize-durations tree)))))
+;   (testing "sets"
+;     (let [tree [:set
+;                 [:beat
+;                   [:number "1"]
+;                   [:identifier :a]]
+;                 [:beat
+;                   [:number "4"]
+;                   [:identifier :b]]
+;                 [:beat
+;                   [:number "2"]
+;                   [:identifier :c]]]
+;           want 4]
+;       (is (= want (compose/normalize-durations tree))))))
 
 
 ; (testing "beats"
@@ -389,8 +389,8 @@
 ;                   [:beat [:number "5"] [:identifier :e]]
 ;                   [:beat [:number "6"] [:identifier :f]]]]]
 ;           want false
-;           ; actual (compose/position-beats tree)]
-;           actual (compose/position-beats tree)]
+;           ; actual (compose/itemize-beats tree)]
+;           actual (compose/itemize-beats tree)]
 ;       ; (is (= want actual))))))
 ;       (is (= want false))))))
 
