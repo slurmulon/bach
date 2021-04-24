@@ -28,7 +28,7 @@
     set        = [<empty>] <'{'> [item (<','|empty> item)* [<','>]] <'}'> [<empty>]
     list       = [<empty>] <'['> [item (<','|empty> item)* [<','>]] <']'> [<empty>]
     loop       = [<empty>] int [<empty>] <'of'> [<empty>] (set | list) [<empty>]
-    when       = [<empty>] <'when'> <empty> int <empty> <'then'> <empty> (atom | identifier | set | list) [<empty>]
+    when       = [<empty>] <'when'> <empty> int <empty> (atom | identifier | set | list) [<empty>]
 
     (* TODO: Rename pair to beat *)
     (* ORIG *)
