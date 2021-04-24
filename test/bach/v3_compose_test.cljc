@@ -5,6 +5,7 @@
             [clojure.core.memoize :refer [memo memo-clear!]]
             [instaparse.core :as insta]
             [bach.compose :as compose]
+            [bach.track :as track]
             [bach.data :refer [to-ratio]]))
 
 ; For more idiomatic solution
@@ -226,7 +227,7 @@
                         [:beat
                           [:number "1"]
                           [:identifier :b]]]]]
-              actual (-> tree compose/reduce-values compose/normalize-loops)
+              actual (-> tree track/reduce-values compose/normalize-loops)
               want [:list [:beat 1 [:identifier :a]]
                           [:beat 1 [:identifier :b]]]]
           (is (= want actual))))
@@ -247,7 +248,7 @@
                      [:beat
                        [:number "3"]
                        [:identifier :c]]]]
-              actual (-> tree compose/reduce-values compose/normalize-loops)
+              actual (-> tree track/reduce-values compose/normalize-loops)
               want [:list [:beat 1 [:identifier :a]]
                           [:beat 3 [:identifier :c]]
                           [:beat 1 [:identifier :b]]
@@ -296,7 +297,7 @@
                     [:beat 3 [:identifier :h]]
                     [:beat 1 [:identifier :x]]
                     [:beat 3 [:identifier :h]]]
-              actual (-> tree compose/reduce-values compose/normalize-loops)]
+              actual (-> tree track/reduce-values compose/normalize-loops)]
           (is (= want actual))))
       (testing "distant"
         (let [tree [:loop
@@ -333,7 +334,7 @@
                     [:list
                      [:beat 1 [:identifier :b]]
                      [:beat 3 [:identifier :z]]]]
-              actual (-> tree compose/reduce-values compose/normalize-loops)]
+              actual (-> tree track/reduce-values compose/normalize-loops)]
           ; (clojure.pprint/pprint (compose/normalize-collections actual))
           ; (clojure.pprint/pprint actual)
           (is (= want actual))))
@@ -653,7 +654,7 @@
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/compose))
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/parse))
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
-; (clojure.pprint/pprint (-> [:loop [:number "2"] [:list [:string "'a'"] [:string "'z'"]]] compose/reduce-values compose/normalize-loops))
+; (clojure.pprint/pprint (-> [:loop [:number "2"] [:list [:string "'a'"] [:string "'z'"]]] track/reduce-values compose/normalize-loops))
 
 ; (println "@@@@@@@@@@@")
 ; (clojure.pprint/pprint (-> [:list [:play [:a 1]] [:play [:b 2]]] (compose/get-play)))
@@ -689,7 +690,7 @@
 ; (clojure.pprint/pprint (compose/compose fixture-bach-a))
 ; (clojure.pprint/pprint (-> fixture-bach-a compose/get-play compose/reduce-track))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/reduce-values))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse track/reduce-values))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/provision))
 ; (clojure.pprint/pprint (-> fixture-bach-a
