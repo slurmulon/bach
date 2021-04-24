@@ -93,7 +93,7 @@
   Ouput: [:a #{:b :c} #{:d [:e :f]}]"
   [tree]
   (->> tree
-    normalize-values
+    resolve-values
     normalize-loops
     (insta/transform
       {:list (fn [& [:as all]] (-> all collect vec))
