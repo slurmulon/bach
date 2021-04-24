@@ -5,8 +5,7 @@
             [clojure.core.memoize :refer [memo memo-clear!]]
             [instaparse.core :as insta]
             [bach.compose :as compose]
-            [bach.track :as track]
-            [bach.data :refer [to-ratio]]))
+            [bach.track :as track]))
 
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c

@@ -16,6 +16,7 @@
             [hiccup-find.core :refer [hiccup-find]]
             [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
+            [bach.math :refer [inverse-ratio]]
             [bach.track :refer :all]
             [bach.data :refer :all]))
 
@@ -180,6 +181,7 @@
         indices (linearize-indices durations)]
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
 
+; REMOVE
 (def position-beats itemize-beats)
 
 ; TODO: Probably just remove and rename position-beats to this

@@ -4,6 +4,7 @@
             [hiccup-find.core :refer [hiccup-find]]
             [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
+            [bach.math :refer [gcd powers-of-two safe-ratio]]
             [bach.data :refer :all]))
 
 (def default-tempo 120)

@@ -6,19 +6,19 @@
 
 (def to-string #?(:clj clojure.edn/read-string :cljs reader/read-string))
 (def to-json #?(:clj json/write-str :cljs clj->js))
-(def to-ratio #?(:clj rationalize :cljs float))
+; (def to-ratio #?(:clj rationalize :cljs float))
 
-(def math-floor #?(:clj #(Math/floor %) :cljs js/Math.floor))
-(def math-ceil #?(:clj #(Math/ceil %) :cljs js/Math.ceil))
+; (def math-floor #?(:clj #(Math/floor %) :cljs js/Math.floor))
+; (def math-ceil #?(:clj #(Math/ceil %) :cljs js/Math.ceil))
 
-(def powers-of-two (iterate (partial * 2) 1))
+; (def powers-of-two (iterate (partial * 2) 1))
 
-(defn gcd
-  "Determines the greatest common denominator between two numeric values."
-  [a b]
-  (if (zero? b)
-    a
-    (recur b (mod a b))))
+; (defn gcd
+;   "Determines the greatest common denominator between two numeric values."
+;   [a b]
+;   (if (zero? b)
+;     a
+;     (recur b (mod a b))))
 
 ; TODO: @see core/fractions (not necessary but probably more pragmatic)
 (defn itemize
@@ -145,52 +145,44 @@
                         cursor (+ base weight)]
                     (conj acc cursor))) [0]))))
 
-(defn ratio-to-vector
-  "Converts a ratio to a vector."
-  [ratio]
-  #?(:clj
-    (cond
-      (ratio? ratio) [(numerator ratio) (denominator ratio)]
-      (vector? ratio) ratio
-      :else (throw (Exception. "Input must be a ratio or a vector")))
-    :cljs
-    (cond
-      (not (js/isNaN ratio)) [(* ratio 10) 10]
-      (vector? ratio) ratio
-      :else (throw (js/Error. "Input must be a number or a vector")))))
+; (defn ratio-to-vector
+;   "Converts a ratio to a vector."
+;   [ratio]
+;   #?(:clj
+;     (cond
+;       (ratio? ratio) [(numerator ratio) (denominator ratio)]
+;       (vector? ratio) ratio
+;       :else (throw (Exception. "Input must be a ratio or a vector")))
+;     :cljs
+;     (cond
+;       (not (js/isNaN ratio)) [(* ratio 10) 10]
+;       (vector? ratio) ratio
+;       :else (throw (js/Error. "Input must be a number or a vector")))))
 
-(defn inverse-ratio
-  "Calculates the inverse of a ratio."
-  [ratio]
-  (if (integer? ratio)
-    (/ 1 ratio)
-    (let [[ratio-numerator & [ratio-denominator]] (ratio-to-vector ratio)]
-      (/ ratio-denominator ratio-numerator))))
+; (defn inverse-ratio
+;   "Calculates the inverse of a ratio."
+;   [ratio]
+;   (if (integer? ratio)
+;     (/ 1 ratio)
+;     (let [[ratio-numerator & [ratio-denominator]] (ratio-to-vector ratio)]
+;       (/ ratio-denominator ratio-numerator))))
 
-(defn safe-ratio
-  "Divides two numeric values in a safe way that defaults to 0 during exceptions.
-   Ideal when y might be 0 and you want to avoid explicitly handling this case."
-  [x y]
-  #?(:clj
-     (try (/ x y)
-          (catch ArithmeticException _
-            0))
-     :cljs
-     (try (let [ratio (/ x y)]
-            (case ratio
-              (js/Infinity 0)
-              (js/NaN 0)
-              ratio))
-          (catch js/Error _
-            0))))
-
-(defn trim-matrix-row
-  "Trims tail columns from a specified row in a matrix (i.e nested array of depth 2)."
-  [matrix row cols]
-  (if (> cols 0)
-    (let [clip #(->> % (drop-last cols) (into []))]
-      (update matrix row clip))
-    matrix))
+; (defn safe-ratio
+;   "Divides two numeric values in a safe way that defaults to 0 during exceptions.
+;    Ideal when y might be 0 and you want to avoid explicitly handling this case."
+;   [x y]
+;   #?(:clj
+;      (try (/ x y)
+;           (catch ArithmeticException _
+;             0))
+;      :cljs
+;      (try (let [ratio (/ x y)]
+;             (case ratio
+;               (js/Infinity 0)
+;               (js/NaN 0)
+;               ratio))
+;           (catch js/Error _
+;             0))))
 
 (defn problem
   "Throws a generic exception in a way that works in both Clojure and ClojureScript"
