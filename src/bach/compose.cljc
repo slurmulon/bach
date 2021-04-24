@@ -85,7 +85,7 @@
       true)))
 
 (defn valid-meter?
-  "Determines if a parsed track has a valid meter, particularly its beat unit."
+  "Determines if a parsed track has a valid meter, particularly its pulse beat."
   [track]
   (let [[_ & [beat-unit]] (get-meter track)]
     (if (not (some #{beat-unit} (rest valid-divisors)))
@@ -217,7 +217,7 @@
     (when (valid? track) track)))
 
 (defn normalize-duration
-  "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided beat unit (i.e. the duration of a single normalized beat, in whole notes).
+  "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided pulse beat (i.e. the duration of a single normalized beat, in whole notes).
   In general, this determines 'How many `unit`s` does the provided `duration` equate to in this `meter`?'."
   [duration unit meter]
   (let [inverse-unit (inverse-ratio #?(:clj (rationalize unit) :cljs unit))
@@ -287,23 +287,14 @@
   (let [[beats-per-measure & [beat-unit]] (get-meter track)]
     (/ beats-per-measure beat-unit)))
 
-; get-pulse-beat
-; get-meter-beat
-(defn get-beat-unit
-  "Determines the reference unit to use for beats, based on time signature."
+(defn get-pulse-beat
+  "Determines the reference unit to use for beats, based on time signature.
+  In music theory this is also known as the 'pulse beat' of the meter."
   [track]
   (/ 1 (last (get-meter track)))) ; AKA 1/denominator
 
-; get-pulse-beat-ratio
-; (defn get-beat-unit-ratio
-;   "Determines the ratio between the beat unit and the number of beats per measure."
-;   [track]
-;   (let [[beats-per-measure & [beat-unit]] (get-meter track)]
-;     (mod beat-unit beats-per-measure)))
-
-; get-step-beat
 ; TODO: Refactor to accept normalized beats instead of track
-(defn get-pulse-beat
+(defn get-step-beat
   "Determines the greatest common beat (by duration) among every beat in a track.
   Once this beat is found, a track can be iterated through uniformly and without
   variance via linear interpolation, monotonic timers, intervals, etc.
@@ -318,78 +309,52 @@
               (when (< duration @lowest-duration)
                 (reset! lowest-duration duration)))}
      reduced-track)
-    (let [beat-unit (get-beat-unit reduced-track)
+    (let [pulse-beat (get-pulse-beat reduced-track)
           meter (get-meter-ratio reduced-track)
-          full-measure meter
-          pulse-beat @lowest-duration
-          pulse-beat-unit (gcd pulse-beat meter)
-          pulse-beat-aligns? (= 0 (mod (max pulse-beat meter)
-                                       (min pulse-beat meter)))]
-      (if pulse-beat-aligns?
-        (min pulse-beat full-measure)
-        (min pulse-beat-unit beat-unit)))))
-(def get-step-beat get-pulse-beat)
+          step-beat @lowest-duration
+          step-beat-unit (gcd step-beat meter)
+          step-beat-aligns? (= 0 (mod (max step-beat meter)
+                                      (min step-beat meter)))]
+      (if step-beat-aligns?
+        (min step-beat meter)
+        (min step-beat-unit pulse-beat)))))
 
-; (defn get-beats-per-measure
-(defn pulse-beats-per-bar
-  "Determines how many beats are in each measure, based on the time signature."
+(defn get-pulse-beats-per-bar
+  "Determines how many beats are in a bar/measure, based on the time signature."
   [track]
-  (first (get-meter track))) ; AKA numerator
+  (first (get-meter track)))
 
-; get-step-beats-per-measure
-(defn get-normalized-beats-per-measure
-  "Determines how many beats are in a measure, normalized against the step beat of the track."
+(defn get-step-beats-per-bar
+  "Determines how many beats are in a bar/measure, normalized against the step beat of the track."
   [track]
-  (let [pulse-beat (get-step-beat track)
+  (let [step-beat (get-step-beat track)
         meter (get-meter-ratio track)]
     (safe-ratio
-     (max pulse-beat meter)
-     (min pulse-beat meter))))
+     (max step-beat meter)
+     (min step-beat meter))))
 
-(def get-pulse-beats-per-measure get-normalized-beats-per-measure)
+; (def get-pulse-beats-per-measure get-normalized-beats-per-measure)
 
 ; TODO: Write tests
 (defn get-pulse-beat-time
-; (defn get-scaled-ms-per-beat
-  "Determines the number of milliseconds each beat should be played for (scaled to the beat unit)."
+  "Determines the number of milliseconds equal to a one pulse-beat duration."
   [track]
   (let [reduced-track (reduce-track track)
         tempo (get-tempo reduced-track)
-        beat-unit (get-beat-unit reduced-track)
         beats-per-second (/ tempo 60)
         seconds-per-beat (/ 1 beats-per-second)
         ms-per-beat (* seconds-per-beat 1000)]
     (float ms-per-beat)))
 
-; (def get-ms-per-beat-unit get-scaled-ms-per-beat)
-
 (defn get-step-beat-time
-; (defn get-normalized-ms-per-beat
-  "Determines the number of milliseconds each beat should be played for (normalized to the step beat).
-   Primarily exists to make parsing simple and optimized in the high-level interpreter / player.
-   Referred to as 'normalized' because, as of now, all beat durations (via `compose`) are normalized to the step beat.
-   References:
-     http://moz.ac.at/sem/lehre/lib/cdp/cdpr5/html/timechart.htm
-     https://music.stackexchange.com/a/24141"
+  "Determines the number of milliseconds equal to one step-beat duration."
   [track]
   (let [pulse-beat-time (get-pulse-beat-time track)
-        pulse-beat (get-beat-unit track)
+        pulse-beat (get-pulse-beat track)
         step-beat (get-step-beat track)
         step-pulse-beat-ratio (/ step-beat pulse-beat)
         step-beat-time (* pulse-beat-time step-pulse-beat-ratio)]
     (float step-beat-time)))
-
-; (def get-ms-per-pulse-beat get-normalized-ms-per-beat)
-
-(defn get-beat-time
-  "Dynamically determines the ms-per-beat based on the kind of the beat,
-  either :step (default) or :pulse."
-  ([track kind]
-   (case kind
-     :step (get-step-beat-time track)
-     :pulse (get-pulse-beat-time track)))
-  ([track]
-   (get-step-beat-time track)))
 
 ; ------ V3 --------
 
@@ -504,7 +469,7 @@
   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   ([tree]
     (let [track (digest tree)
-          unit (get-pulse-beat track)
+          unit (get-step-beat track)
           meter (get-meter-ratio track)]
       (unitize-collections track unit meter)))
   ([tree unit meter]
@@ -537,7 +502,7 @@
   Note that the resulting format, designed for sequencing in consumers, is no longer hiccup."
   ([tree]
     (let [track (reduce-track tree)
-          unit (get-pulse-beat track)
+          unit (get-step-beat track)
           meter (get-meter-ratio track)]
       (normalize-beats track unit meter)))
   ([tree unit meter]
@@ -655,11 +620,11 @@
   "Provisions essential and common unit values of a track for serialization and playback."
   [track]
   (let [beat-units {:step (get-step-beat track)
-                    :pulse (get-beat-unit track)}
-        bar-units  {:step (get-pulse-beats-per-measure track)
-                    :pulse (pulse-beats-per-bar track)}
-        time-units {:step (get-beat-time track :step)
-                    :pulse (get-beat-time track :pulse)}]
+                    :pulse (get-pulse-beat track)}
+        bar-units  {:step (get-step-beats-per-bar track)
+                    :pulse (get-pulse-beats-per-bar track)}
+        time-units {:step (get-step-beat-time track)
+                    :pulse (get-pulse-beat-time track)}]
    {:beat beat-units
     :bar  bar-units
     :time (assoc time-units :bar
