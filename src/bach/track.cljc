@@ -5,6 +5,7 @@
             [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
             [bach.math :refer [gcd powers-of-two safe-ratio]]
+            [bach.tree :refer [hiccup-query]]
             [bach.data :refer :all]))
 
 (def default-tempo 120)
@@ -13,10 +14,7 @@
 (def default-beat-unit (/ 1 (last default-meter)))
 ; REMOVE
 (def default-pulse-beat default-beat-unit)
-
-; REMOVE
-(def default-headers {:tempo default-tempo
-                      :meter default-meter})
+(def default-headers {:tempo default-tempo :meter default-meter})
 
 (def valid-divisors (take 9 powers-of-two))
 (def valid-max-tempo 256)
@@ -24,7 +22,6 @@
 
 (declare resolve-values)
 
-; find-headers
 (defn get-headers
   "Provides the headers (aka meta info) for a parsed track"
   [track]
@@ -36,27 +33,27 @@
      (resolve-values track))
     @headers))
 
-; get-header
-(defn find-header
+(defn get-header
   "Generically finds a header entry / meta tag in a parsed track by its label"
-  [track label default]
-  (let [header (atom default)]
-    (insta/transform
-     {:header (fn [[& kind] value]
-                (when (= (str kind) (str label))
-                  (reset! header value)))}
+  ([track label] (get-header track label nil))
+  ([track label default]
+   (let [header (atom default)]
+     (insta/transform
+       {:header (fn [[& kind] value]
+                  (when (= (str kind) (str label))
+                    (reset! header value)))}
      track)
-    @header))
+    @header)))
 
-(defn find-plays
+(defn get-plays
   "Finds and all of the Play! trees in a track."
   [track]
-  (hiccup-find-trees [:play] track))
+  (hiccup-query [:play] track))
 
 (defn get-play
   "Determines the main Play! export of a parsed track."
   [track]
-  (-> track find-plays last))
+  (-> track get-plays last))
 
 (defn get-iterations
   "Determines how many iterations (loops) a parsed track is played for.
@@ -68,12 +65,12 @@
 (defn get-tempo
   "Determines the global tempo of the track. Localized tempos are NOT supported yet."
   [track]
-  (find-header track #(re-find #"(?i)tempo" %) default-tempo))
+  (get-header track #(re-find #"(?i)tempo" %) default-tempo))
 
 (defn get-meter
   "Determines the global meter, or time signature, of the track. Localized meters are NOT supported yet."
   [track]
-  (find-header track #(re-find #"(?i)meter" %) default-meter))
+  (get-header track #(re-find #"(?i)meter" %) default-meter))
 
 (defn get-meter-ratio
   "Determines the global meter ratio of the track.
@@ -127,8 +124,6 @@
      (max step-beat meter)
      (min step-beat meter))))
 
-; (def get-pulse-beats-per-measure get-normalized-beats-per-measure)
-
 ; TODO: Write tests
 (defn get-pulse-beat-time
   "Determines the number of milliseconds equal to a one pulse-beat duration."
@@ -179,7 +174,7 @@
 (defn valid-play?
   "Determines if a parsed track has a single Play! export."
   [track]
-  (if (not (= 1 (count (find-plays track))))
+  (if (not (= 1 (count (get-plays track))))
     (problem "Exactly one Play! export must be defined")
     true))
 
@@ -223,8 +218,9 @@
 (def valid? validate)
 (def validate! (memo validate))
 
-(defn deref-variables
-  "Dereferences any variables found in the parsed track. Does NOT support hoisting (yet)."
+(defn resolve-variables
+  "Dereferences and resolves any variables found in the parsed track.
+  Does NOT support hoisting (yet)."
   [track]
   (variable-scope
    (fn [variables set-variable! _]
@@ -252,7 +248,6 @@
                      [:play stack-value])
                    [:play value-token])))}
       track))))
-(def resolve-variables deref-variables)
 
 (defn reduce-values
   "Reifies all primitive values in a parsed track into native Clojure types."
@@ -284,18 +279,22 @@
       track)
     track))
 
-(defn reduce-track
+(defn digest
   "Resolves variables and reduces primitive values in a parsed track into native Clojure structs."
   [track]
   (-> track
       resolve-variables
       resolve-values
       reduce-iterations))
-(def digest reduce-track)
 
 (defn parse
-  "Consumes a hiccup AST or a UTF-8 string of bach data and produces a validated track tree.
+  "Consumes a hiccup tree and produces a validated track tree (throws if an exception).
   Resulting track tree is NOT valid hiccup, and is designed for internal use in bach.compose."
   [tree]
   (let [track (digest tree)]
     (when (valid? track) track)))
+
+(defn playable
+  "Parses a track (hiccup tree) and returns the tree of the main Play! export."
+  [track]
+  (-> track parse get-play))

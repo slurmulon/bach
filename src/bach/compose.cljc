@@ -18,6 +18,7 @@
             [bach.ast :as ast]
             [bach.math :refer [inverse-ratio]]
             [bach.track :refer :all]
+            [bach.tree :refer :all]
             [bach.data :refer :all]))
 
 (def uid #(nano-id 6))
@@ -40,7 +41,7 @@
 
 ; craft-element
 (defn as-element
-  "Creates an element from an :atom kind and collection of arguments.
+  "Creates a beat element from an :atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each having a unique id."
   [kind args]
   {:id (element-id kind)
@@ -49,6 +50,35 @@
    :props (rest args)})
 
 (def as-element! (memo as-element))
+
+(defn all-beat-items
+  "Provides all of the items in a collection of normalized beats as a vector."
+  [beats]
+  (mapcat #(-> % :items vec) (many beats)))
+
+(defn all-beat-elements
+  "Provides all of the elements in a collection of normalized beats."
+  [beats]
+  (->> beats many all-beat-items (mapcat :elements)))
+
+(defn all-beat-element-ids
+  "Provides all of the beat element item ids in a collection of normalized beats."
+  [beats]
+  (->> beats many all-beat-elements (map :id)))
+
+(defn cast-beat-element-ids
+  "Transforms normalized beat element(s) into their unique ids."
+  [elem]
+  (->> elem many (map :id)))
+
+(defn index-beat-items
+  "Adds the provided normalized beat's index to each of its items.
+  Allows beat items to be handled independently of their parent beat."
+  [beat]
+  (->> beat :items
+       (map #(assoc % :index (:index beat)))
+       (sort-by :duration)))
+
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided unit beat (i.e. the duration of a single normalized beat, in whole notes).
@@ -194,7 +224,7 @@
   with durations and indices based on a unit (q-pulse by default) within a meter.
   Note that the resulting format, designed for sequencing in consumers, is no longer hiccup."
   ([tree]
-    (let [track (reduce-track tree)
+    (let [track (digest tree)
           unit (get-step-beat track)
           meter (get-meter-ratio track)]
       (normalize-beats track unit meter)))
@@ -202,34 +232,6 @@
    (-> tree (unitize-collections unit meter) itemize-beats)))
 
 (def normalize-beats! (memo normalize-beats))
-
-(defn all-beat-items
-  "Provides all of the items in a collection of normalized beats as a vector."
-  [beats]
-  (mapcat #(-> % :items vec) (many beats)))
-
-(defn all-beat-elements
-  "Provides all of the elements in a collection of normalized beats."
-  [beats]
-  (->> beats many all-beat-items (mapcat :elements)))
-
-(defn all-beat-element-ids
-  "Provides all of the beat element item ids in a collection of normalized beats."
-  [beats]
-  (->> beats many all-beat-elements (map :id)))
-
-(defn cast-beat-element-ids
-  "Transforms normalized beat element(s) into their unique ids."
-  [elem]
-  (->> elem many (map :id)))
-
-(defn index-beat-items
-  "Adds the provided normalized beat's index to each of its items.
-  Allows beat items to be handled independently of their parent beat."
-  [beat]
-  (->> beat :items
-       (map #(assoc % :index (:index beat)))
-       (sort-by :duration)))
 
 (defn step-beat-signals
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
@@ -339,11 +341,6 @@
   (let [headers (get-headers track)
         meter (get-meter track)]
     (assoc headers :meter meter)))
-
-(defn playable
-  "Parses a track and returns the AST tree of the main Play! export."
-  [track]
-  (-> track parse get-play))
 
 ; TODO: Use keyword args to allow custom flexibile provisioning
 ;  - Also consider proposed Config! operator here, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
