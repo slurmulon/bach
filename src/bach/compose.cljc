@@ -78,11 +78,10 @@
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
 
-; as-unit-context
-; as-duration-context
-; normalize-context
-; (defn provision-context
 (defn unit-context
+  "Provides a standardized structure containing essential duration unit values.
+  Primarily exists for allowing certain functions working with durations to
+  access and optionally override these values without requiring a non-play tree."
   [tree]
   (let [tempo (get-tempo tree)
         meter (get-meter-ratio tree)
@@ -90,10 +89,6 @@
     {:tempo tempo
      :meter meter
      :unit unit}))
-
-; (def as-unit-context provision-context)
-; (def as-units provision-context)
-
 
 (defn as-durations
   "Transforms each node in a tree containing a map with a :duration into
@@ -126,21 +121,17 @@
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided unit beat (i.e. the duration of a single normalized beat, in whole notes).
   In general, this determines 'How many `unit`s` does the provided `duration` equate to in this `meter`?'."
-  ([duration context]
-   (normalize-duration duration (:unit context) (:meter context)))
-  ; [duration units]
+  ([duration units]
+   (normalize-duration duration (:unit units) (:meter units)))
   ([duration unit meter]
   ; [duration {:unit unit, :meter meter}]
   (let [inverse-unit (inverse-ratio #?(:clj (rationalize unit) :cljs unit))
         inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
-        ]
-        ; within-bar?
-        ; within-measure? (<= duration meter)]
-    ; TODO: Probably remove surroundign if condition, shouldn't be necessary
-    ; (if within-measure?
+        within-bar? (<= duration meter)]
+    ; TODO: Probably remove if condition, shouldn't be necessary
+    (if within-bar?
       (/ duration unit)
-      ; (* duration (max inverse-unit inverse-meter)))))
-      )))
+      (* duration (max inverse-unit inverse-meter))))))
 
 (def unitize-duration normalize-duration)
 
@@ -213,13 +204,10 @@
          units (unit-context track)]
      (unitize-collections track units)))
   ([tree units]
-  ; ([tree unit meter]
     (->> tree
         linearize-collections
         (cast-tree
           #(and (map? %) (:duration %))
-          ; (unitize-duration (:duration %) context)
-          ; #(let [duration (int (unitize-duration (:duration %) unit meter))]
           #(let [duration (int (unitize-duration (:duration %) units))]
              (assoc % :duration duration))))))
 
@@ -228,7 +216,6 @@
   containing the beat's item(s) (as a set), duration (in q-steps) and index (in q-steps).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
-  ; (println "\n\nwuuuuut itemize beats" beats);(map as-reduced-durations beats))
   (let [durations (map as-reduced-durations beats)
         indices (linearize-indices durations)]
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
