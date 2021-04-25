@@ -95,16 +95,15 @@
 
 (defn get-step-beat
   "Determines the greatest common beat (by duration) among every beat in a track.
-  Once this beat is found, a track can be iterated through uniformly and without
-  variance via linear interpolation, monotonic timers, intervals, etc.
-  This normalized beat serves as the fundamental unit of iteration for bach engines."
+  This normalized value serves as the fundamental unit of iteration for bach engines.
+  Allows a track to be iterated through uniformly via linear interpolation,
+  monotonic timers, intervals, etc."
   [tree]
   (let [track (resolve-values tree)
         meter (get-meter-ratio track)
         durations (get-durations track)]
     (reduce #(gcd %1 %2) meter durations)))
 
-  ;   (/ beats-per-measure beat-unit)))
 (defn get-pulse-beats-per-bar
   "Determines how many beats are in a bar/measure, based on the time signature."
   [track]

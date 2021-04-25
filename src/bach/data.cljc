@@ -22,9 +22,15 @@
 
 (defn compare-items
   "Zipmaps source sequence of values (in) against comparison (values),
-  specifying which values of (in) are equal to those in (values)."
+  specifying which elements of (in) are equal to those in (values)."
   [is? in values]
   (is? (zipmap in (repeat true)) (many values)))
+
+(defn assoc-if
+  ([coll kvs]
+   (reduce #(assoc-if %1 (first %2) (last %2)) coll kvs))
+  ([coll k v]
+   (conj coll (when v [k v]))))
 
 (defn cyclic-index
   "Modulates index against a cycle limit, ensuring index is always in range."
