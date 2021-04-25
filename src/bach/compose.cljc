@@ -124,7 +124,6 @@
   ([duration units]
    (normalize-duration duration (:unit units) (:meter units)))
   ([duration unit meter]
-  ; [duration {:unit unit, :meter meter}]
   (let [inverse-unit (inverse-ratio #?(:clj (rationalize unit) :cljs unit))
         inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
         within-bar? (<= duration meter)]
@@ -230,9 +229,8 @@
   with durations and indices based on a :unit (q-step by default) within a :meter.
   Note that the resulting format, designed for sequencing in consumers, is no longer hiccup."
   ([tree]
-    (let [track (digest tree)
-          units (unit-context track)]
-      (normalize-beats track units)))
+    (let [units (unit-context tree)]
+      (normalize-beats tree units)))
   ([tree units]
    (-> tree (unitize-collections units) itemize-beats)))
 
@@ -242,8 +240,7 @@
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
   the index of its associated normalized beat (i.e. intersecting the beat's quantized duration)."
   ([tree]
-    (let [units (unit-context tree)]
-      (step-beat-signals tree units)))
+    (step-beat-signals tree (unit-context tree)))
   ([tree units]
    (-> tree (unitize-collections units) quantize-durations)))
 
@@ -274,10 +271,10 @@
 (defn provision-signals
   "Provisions quantized :play and :stop signals for every beat element in the tree.
   Enables state-agnostic and declarative event handling of beat elements by consumers."
-  ; FIXME normalize-beats is working with the play tree, which has no header info!
-  ([tree context] (provision-signals tree (normalize-beats! tree context) context))
-  ([tree beats context]
-   (let [beat-sigs (step-beat-signals tree context)
+  ([tree] (provision-signals tree (unit-context tree)))
+  ([tree units]
+   (let [beats (normalize-beats! tree units)
+         beat-sigs (step-beat-signals tree units)
          play-sigs (element-play-signals beats)
          stop-sigs (element-stop-signals beats)]
      {:beat beat-sigs
@@ -356,33 +353,19 @@
 (defn provision
   "Provisions a track for high-level interpretation and playback."
   [data]
-  ; (when-let [track (playable data)]
-    (println "@@@@@@@@@@@@@@@@@@@@@@@@")
-    ; (clojure.pprint/pprint (-> data resolve-values provision-context))
-    (let [track (playable data)
-          tree (resolve-values data)
-          context (unit-context tree)
-          iterations (get-iterations tree)
-          headers (provision-headers tree)
-          units (provision-units tree)
-          ; meter (-> headers :meter meter-as-ratio)
-          ; step (get-in units [:beat :step])
-          ; beats (normalize-beats! track step meter)
-          beats (normalize-beats! track context)
-          metrics (provision-metrics beats)
-          elements (provision-elements beats)
-          signals (provision-signals track beats context)
-          data (provision-beats beats)
-          source {:iterations iterations
-                  :headers headers
-                  :units units
-                  :metrics metrics
-                  :elements elements
-                  :signals signals
-                  :beats data}]
-      #?(:clj source
-         :cljs (to-json source))))
-;)
+  (let [track (playable data)
+        tree (resolve-values data)
+        units (unit-context tree)
+        beats (normalize-beats! track units)
+        source {:iterations (get-iterations tree)
+                :headers (provision-headers tree)
+                :units (provision-units tree)
+                :metrics (provision-metrics beats)
+                :elements (provision-elements beats)
+                :signals (provision-signals track units)
+                :beats (provision-beats beats)}]
+    #?(:clj source
+        :cljs (to-json source))))
 
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
