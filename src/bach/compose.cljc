@@ -78,6 +78,23 @@
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
 
+; as-unit-context
+; as-duration-context
+; normalize-context
+; (defn provision-context
+(defn unit-context
+  [tree]
+  (let [tempo (get-tempo tree)
+        meter (get-meter-ratio tree)
+        unit (get-step-beat tree)]
+    {:tempo tempo
+     :meter meter
+     :unit unit}))
+
+; (def as-unit-context provision-context)
+; (def as-units provision-context)
+
+
 (defn as-durations
   "Transforms each node in a tree containing a map with a :duration into
   its associated scalar value. Assumes :duration values are numeric."
@@ -109,13 +126,22 @@
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided unit beat (i.e. the duration of a single normalized beat, in whole notes).
   In general, this determines 'How many `unit`s` does the provided `duration` equate to in this `meter`?'."
-  [duration unit meter]
+  ([duration context]
+   (normalize-duration duration (:unit context) (:meter context)))
+  ; [duration units]
+  ([duration unit meter]
+  ; [duration {:unit unit, :meter meter}]
   (let [inverse-unit (inverse-ratio #?(:clj (rationalize unit) :cljs unit))
         inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
-        within-measure? (<= duration meter)]
-    (if within-measure?
+        ]
+        ; within-bar?
+        ; within-measure? (<= duration meter)]
+    ; TODO: Probably remove surroundign if condition, shouldn't be necessary
+    ; (if within-measure?
       (/ duration unit)
-      (* duration (max inverse-unit inverse-meter)))))
+      ; (* duration (max inverse-unit inverse-meter)))))
+      )))
+
 (def unitize-duration normalize-duration)
 
 (defn- normalize-loop-whens
@@ -183,16 +209,18 @@
   Establishes 'step beats' (or q-steps) as the canonical unit of iteration and indexing.
   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   ([tree]
-    (let [track (digest tree)
-          unit (get-step-beat track)
-          meter (get-meter-ratio track)]
-      (unitize-collections track unit meter)))
-  ([tree unit meter]
+   (let [track (digest tree)
+         units (unit-context track)]
+     (unitize-collections track units)))
+  ([tree units]
+  ; ([tree unit meter]
     (->> tree
         linearize-collections
         (cast-tree
           #(and (map? %) (:duration %))
-          #(let [duration (int (unitize-duration (:duration %) unit meter))]
+          ; (unitize-duration (:duration %) context)
+          ; #(let [duration (int (unitize-duration (:duration %) unit meter))]
+          #(let [duration (int (unitize-duration (:duration %) units))]
              (assoc % :duration duration))))))
 
 (defn itemize-beats
@@ -200,6 +228,7 @@
   containing the beat's item(s) (as a set), duration (in q-steps) and index (in q-steps).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
+  ; (println "\n\nwuuuuut itemize beats" beats);(map as-reduced-durations beats))
   (let [durations (map as-reduced-durations beats)
         indices (linearize-indices durations)]
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
@@ -211,23 +240,25 @@
 
 (defn normalize-beats
   "Normalizes beats in parsed AST for linear uniform iteration by decorating them
-  with durations and indices based on a unit (q-pulse by default) within a meter.
+  with durations and indices based on a :unit (q-step by default) within a :meter.
   Note that the resulting format, designed for sequencing in consumers, is no longer hiccup."
   ([tree]
     (let [track (digest tree)
-          unit (get-step-beat track)
-          meter (get-meter-ratio track)]
-      (normalize-beats track unit meter)))
-  ([tree unit meter]
-   (-> tree (unitize-collections unit meter) itemize-beats)))
+          units (unit-context track)]
+      (normalize-beats track units)))
+  ([tree units]
+   (-> tree (unitize-collections units) itemize-beats)))
 
 (def normalize-beats! (memo normalize-beats))
 
 (defn step-beat-signals
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
   the index of its associated normalized beat (i.e. intersecting the beat's quantized duration)."
-  [tree]
-  (-> tree unitize-collections quantize-durations))
+  ([tree]
+    (let [units (unit-context tree)]
+      (step-beat-signals tree units)))
+  ([tree units]
+   (-> tree (unitize-collections units) quantize-durations)))
 
 (defn element-play-signals
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
@@ -256,14 +287,15 @@
 (defn provision-signals
   "Provisions quantized :play and :stop signals for every beat element in the tree.
   Enables state-agnostic and declarative event handling of beat elements by consumers."
-  [tree]
-  (let [beats (normalize-beats! tree)
-        beat-sigs (step-beat-signals tree)
-        play-sigs (element-play-signals beats)
-        stop-sigs (element-stop-signals beats)]
-    {:beat beat-sigs
-     :play play-sigs
-     :stop stop-sigs}))
+  ; FIXME normalize-beats is working with the play tree, which has no header info!
+  ([tree context] (provision-signals tree (normalize-beats! tree context) context))
+  ([tree beats context]
+   (let [beat-sigs (step-beat-signals tree context)
+         play-sigs (element-play-signals beats)
+         stop-sigs (element-stop-signals beats)]
+     {:beat beat-sigs
+      :play play-sigs
+      :stop stop-sigs})))
 
 (defn provision-elements
   "Groups all normalized beats' elements and their values by `kind`.
@@ -317,35 +349,42 @@
 
 (defn provision-metrics
   "Provisions basic metric values of step beats in a track that are useful for playback."
-  ([track]
-   (provision-metrics track (normalize-beats! track)))
-  ([track beats]
-   (let [durations (-> beats as-durations flatten)]
-     {:min (apply min durations)
-      :max (apply max durations)
-      :total (as-reduced-durations beats)})))
+  [beats]
+  (let [durations (-> beats as-durations flatten)]
+    {:min (apply min durations)
+     :max (apply max durations)
+     :total (as-reduced-durations beats)}))
 
 (defn provision-headers
   "Provisions essential and user-provided headers of a track for serialization and playback."
   [track]
   (let [headers (get-headers track)
+        ; tempo
         meter (get-meter track)]
     (assoc headers :meter meter)))
+
 
 ; TODO: Use keyword args to allow custom flexibile provisioning
 ;  - Also consider proposed Config! operator here, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
 (defn provision
   "Provisions a track for high-level interpretation and playback."
   [data]
-  (when-let [track (playable data)]
-    (let [tree (resolve-values data)
-          beats (normalize-beats! track)
+  ; (when-let [track (playable data)]
+    (println "@@@@@@@@@@@@@@@@@@@@@@@@")
+    ; (clojure.pprint/pprint (-> data resolve-values provision-context))
+    (let [track (playable data)
+          tree (resolve-values data)
+          context (unit-context tree)
           iterations (get-iterations tree)
           headers (provision-headers tree)
           units (provision-units tree)
-          metrics (provision-metrics track beats)
+          ; meter (-> headers :meter meter-as-ratio)
+          ; step (get-in units [:beat :step])
+          ; beats (normalize-beats! track step meter)
+          beats (normalize-beats! track context)
+          metrics (provision-metrics beats)
           elements (provision-elements beats)
-          signals (provision-signals track)
+          signals (provision-signals track beats context)
           data (provision-beats beats)
           source {:iterations iterations
                   :headers headers
@@ -355,7 +394,8 @@
                   :signals signals
                   :beats data}]
       #?(:clj source
-         :cljs (to-json source)))))
+         :cljs (to-json source))))
+;)
 
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
