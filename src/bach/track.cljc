@@ -26,7 +26,6 @@
     (insta/transform
      {:header (fn [[& [_ kind]] value]
                 (let [header-key (-> kind name clojure.string/lower-case keyword)]
-                  (println "---- get headersss?" header-key)
                   (swap! headers assoc header-key value)))}
      (resolve-values track))
     @headers))
@@ -39,7 +38,6 @@
      (insta/transform
        {:header (fn [[& [_ kind]] value]
                   (when (re-matches pattern (name kind))
-                    (println "get header???" (name kind) pattern)
                     (reset! header value)))}
      (resolve-values track))
     @header)))
@@ -81,10 +79,13 @@
    For example: The ratio of the 6|8 meter is 3/4."
   [track]
   (-> track get-meter meter-as-ratio))
-  ; (let [[beats-per-measure & [beat-unit]] (get-meter track)]
-  ;   (/ beats-per-measure beat-unit)))
 
-
+(defn get-durations
+  "Provides a sequence of every beat duration in a track tree."
+  [track]
+  (->> track
+       (hiccup-find [:beat])
+       (map #(let [[_ duration] %] duration))))
 
 (defn get-pulse-beat
   "Determines the reference unit to use for beats, based on time signature.
@@ -98,26 +99,12 @@
   variance via linear interpolation, monotonic timers, intervals, etc.
   This normalized beat serves as the fundamental unit of iteration for bach engines."
   [tree]
-  ; FIXME: Use ##Inf instead in `lowest-duration` once we upgrade to Clojure 1.9.946+
-  ; @see: https://cljs.github.io/api/syntax/Inf
-  (let [lowest-duration (atom 1024)
-        track (resolve-values tree)]
-    (insta/transform
-     {:beat (fn [duration _]
-              (when (< duration @lowest-duration)
-                (reset! lowest-duration duration)))}
-     track)
-    (let [pulse-beat (get-pulse-beat track)
-          meter (get-meter-ratio track)
-          step-beat @lowest-duration
-          step-beat-unit (gcd step-beat meter)
-          step-beat-aligns? (= 0 (mod (max step-beat meter)
-                                      (min step-beat meter)))]
-      (println "\n\n---- step beat aligns" step-beat-aligns? step-beat meter)
-      (if step-beat-aligns?
-        (min step-beat meter)
-        (min step-beat-unit pulse-beat)))))
+  (let [track (resolve-values tree)
+        meter (get-meter-ratio track)
+        durations (get-durations track)]
+    (reduce #(gcd %1 %2) meter durations)))
 
+  ;   (/ beats-per-measure beat-unit)))
 (defn get-pulse-beats-per-bar
   "Determines how many beats are in a bar/measure, based on the time signature."
   [track]
@@ -298,22 +285,8 @@
   (let [track (digest tree)]
     (when (valid? track) track)))
 
-; FIXME: May need to have this return a map instead with :headers and :play, to avoid losing data while passing around funcs
-; TODO (either):
-;  - Redundantly/safely call reduce-values or the like in each compose method that requires it
-;  - Pattern match against a context object in addition to custom `_ unit meter` args.
 (defn playable
   "Parses a track (hiccup tree) and returns the tree of the main Play! export."
   [track]
   (-> track parse get-play))
-  ; FAIL FIX: Instead should return simple map here, as its harder to transform the tree into an ideal structure for composition (it really just wants to work with the exported play tree and nothing else).
-  ; [tree]
-  ; (let [track (parse tree)
-  ;       ; headers (get-headers track)
-  ;       headers (hiccup-find [:header] track)
-  ;       play (get-play track)]
-  ;   (conj [:track]
-  ;         (into [:statement] headers)
-  ;         (conj [:statement] play))))
-    ; {:headers headers
-    ;  :play play}))
+

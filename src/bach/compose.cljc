@@ -13,7 +13,6 @@
 (ns bach.compose
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
-            [hiccup-find.core :refer [hiccup-find]]
             [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
             [bach.math :refer [inverse-ratio]]
