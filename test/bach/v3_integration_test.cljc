@@ -150,6 +150,7 @@
   :f = Chord('f')
   :g = Chord('g')
   :h = Chord('h')
+  :i = Chord('i')
 
   play! [
     8 of [
@@ -160,6 +161,7 @@
       when 6..8 do { 1 -> :f }
       when !{ 1 last? } do { 1 -> :g }
       when [even? !{2 6}] do { 1 -> :h }
+      when { gte? 5 lt? 3 } do { 1 -> :i }
     ]
   ]")
 
