@@ -382,7 +382,7 @@
 ; TODO: Use keyword args to allow custom flexibile provisioning
 ;  - Also consider proposed Config! operator here, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
 (defn provision
-  "Provisions a track for high-level interpretation and playback."
+  "Provisions a track AST for high-level interpretation and playback."
   [data]
   (let [tree (parse data)
         track (playable identity tree)

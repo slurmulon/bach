@@ -258,15 +258,14 @@
 (def resolve-values reduce-values)
 
 (defn resolve-durations
+  "Replaces reserved duration aliases (beat, bar) into native numeric values.
+  When used directly, note that this method should be called before reduce-values."
   [track]
   (let [headers (->> track (hiccup-find [:header]) (into [:statement]))
-        meter (get-meter-ratio headers)
-        pulse-beat (get-pulse-beat headers)]
+        bar (get-meter-ratio headers)
+        beat (get-pulse-beat headers)]
     (insta/transform
-      {:duration (fn [duration-name]
-                   (case (keyword duration-name)
-                     :beat pulse-beat
-                     :bar meter))}
+      {:duration #(case (keyword %) :beat beat :bar bar)}
       track)))
 
 ; FIXME: Probably remove for now, since this prevents `when` from being used if the main export of Play! is a loop
