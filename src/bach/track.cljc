@@ -250,10 +250,10 @@
     :mul *,
     :div /,
     :meter (fn [n d] [n d]),
-    :number to-string,
-    :int to-string,
-    :float to-string,
-    :name to-string,
+    :number from-string,
+    :int from-string,
+    :float from-string,
+    :name from-string,
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 (def resolve-values reduce-values)
 
@@ -265,7 +265,8 @@
         bar (get-meter-ratio headers)
         beat (get-pulse-beat headers)]
     (insta/transform
-      {:duration #(case (keyword %) :beat beat :bar bar)}
+      {:duration-dynamic #(case (keyword %) :beat beat :bar bar)
+       :duration-static #(/ 1 (from-string %))}
       track)))
 
 ; FIXME: Probably remove for now, since this prevents `when` from being used if the main export of Play! is a loop

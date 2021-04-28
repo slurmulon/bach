@@ -4,7 +4,7 @@
             #?(:clj [clojure.data.json :as json]
                :cljs [cljs.reader :as reader])))
 
-(def to-string #?(:clj clojure.edn/read-string :cljs reader/read-string))
+(def from-string #?(:clj clojure.edn/read-string :cljs reader/read-string))
 (def to-json #?(:clj json/write-str :cljs clj->js))
 
 (defn many

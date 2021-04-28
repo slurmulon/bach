@@ -156,13 +156,13 @@
   play! [
     8 of [
       2 -> :a
-      2 * bar -> :b
+      8 * 4n -> :b
       when { 1 4 7 } do { 1 -> :c }
       when even? do { 1 -> :e }
       when 6..8 do { 1 -> :f }
       when !{ 1 last? } do { 1 -> :g }
       when [ even? !{2 4} ] do { 3 -> :h }
-      when { gte? 5 lt? 3 } do { 1 -> :i }
+      when { gte? 5 lt? 3 } do { bar -> :i }
       when { odd? factor? 4 } do { 2 -> :j }
     ]
   ]")
