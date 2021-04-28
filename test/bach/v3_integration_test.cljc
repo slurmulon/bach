@@ -142,6 +142,22 @@
     ]
   ]")
 
+(def fixture-bach-e
+  ":a = Chord('a')
+  :b = Chord('b')
+  :c = Chord('c')
+  :e = Chord('e')
+  :f = Chord('f')
+
+  play! [
+    8 of [
+      2 -> :a
+      1 -> :b
+      when { 1 4 7 } do { 1 -> :c }
+      when { even? } do { 1 -> :e }
+      when 6..8 do { 1 -> :f }
+    ]
+  ]")
 
 (deftest compose
   (with-redefs [compose/uid next-id!]
@@ -264,7 +280,8 @@
 ; (clojure.pprint/pprint (-> fixture-bach-b ast/parse compose/provision))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable (compose/provision-signals {:unit 1/8 :meter 1})))
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time)) ;bach.data/to-json ));count))
-(clojure.pprint/pprint (-> fixture-bach-d compose/compose))
+; (clojure.pprint/pprint (-> fixture-bach-d compose/compose))
+(clojure.pprint/pprint (-> fixture-bach-e ast/parse track/parse compose/normalize-loops))
 
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse time))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable track/get-durations))

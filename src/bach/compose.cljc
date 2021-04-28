@@ -133,18 +133,50 @@
 
 (def unitize-duration normalize-duration)
 
-(defn- normalize-loop-whens
+; normalize-loop-when-all
+; normalize-loop-when-any
+; normalize-loop-when-match
+; normalize-loop-when-comp
+; normalize-loop-when-not
+; normalize-loop-when-iter
+
+(defn- normalize-loop-when
+  [total iter tree]
+  (insta/transform
+    {:range #(when (some #{iter} (range %1 (+ 1 %2))) iter)
+     :when-all (fn [& [:as all]]
+                 (when (every? #{iter} (many all)) iter))
+     :when-any (fn [& [:as all]]
+                 (when (some #{iter} (many all)) iter))
+     :when-match #(case (keyword %)
+                    :even (when (even? iter) iter)
+                    :odd (when (odd? iter) iter)
+                    :last (when (= iter total) iter)
+                    :first (when (= iter 1) iter))}
+     tree))
+
+; (defn- normalize-loop-whens
+(defn- normalize-loop-iteration
   "Normalizes :when nodes in :loop AST tree at a given iteration.
   Nilifies :when nodes that do not occur at the target iteration."
-  [iter tree]
-  (insta/transform {:when #(when (= iter %1) (many %2))} tree))
+  [total iter tree]
+  ; [iter tree]
+  ; (insta/transform {:when #(when (= iter %1) (many %2))} tree))
+  (->> tree
+       (normalize-loop-when total iter)
+       (insta/transform {:when #(when (= iter %1) (many %2))})))
+  ; (insta/transform {:when (fn [expr item]
+  ;                           (cond
+  ;                             (number? expr) (= iter expr)
+  ;                             (vector? expr) (} tree))
 
 (defn- normalize-loop
   "Normalizes :loop AST tree by multiplying the tree's range by the number
   of iterations/loops and processing :when nodes."
   [iters tree]
   (->> (range iters)
-       (mapcat #(normalize-loop-whens (+ 1 %) (rest tree)))
+       ; (mapcat #(normalize-loop-iteration (+ 1 %) (rest tree)))
+       (mapcat #(normalize-loop-iteration iters (+ 1 %) (rest tree)))
        (filter (complement nil?))))
 
 (defn normalize-loops

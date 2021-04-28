@@ -293,7 +293,69 @@
                       [:when-match "first"]
                       [:identifier [:name "b"]]]]]]]]
         (is (= want (parse code))))))
-  ; (testing "comparisons"
+  (testing "comparisons"
+    (testing "gte?"
+      (let [code "10 of [ :a, when gte? 4 do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "10"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-comp "gte" [:int "4"]]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+    (testing "gt?"
+      (let [code "10 of [ :a, when gt? 3 do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "10"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-comp "gt" [:int "3"]]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+    (testing "lte?"
+      (let [code "12 of [ :a, when lte? 7 do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "12"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-comp "lte" [:int "7"]]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+    (testing "lt?"
+      (let [code "12 of [ :a, when lt? 7 do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "12"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-comp "lt" [:int "7"]]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+    (testing "whitespace"
+      (let [code "12 of [ :a, when lt? 7 do :b :c :d ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "12"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-comp "lt" [:int "7"]]
+                      [:identifier [:name "b"]]]
+                     [:identifier [:name "c"]]
+                     [:identifier [:name "d"]]]]]]]
+        (is (= want (parse code))))))
   (testing "conditions"
     (testing "int"
       (let [code "2 of [ when 1 do :a, when 2 do :b ]"
