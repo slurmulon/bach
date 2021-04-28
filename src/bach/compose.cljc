@@ -154,7 +154,8 @@
                    :gt (when (> iter %2) iter)
                    :gte (when (>= iter %2) iter)
                    :lt (when (< iter %2) iter)
-                   :lte (when (<= iter %2) iter))
+                   :lte (when (<= iter %2) iter)
+                   :factor (when (= 0 (mod iter %2)) iter))
      :when-not #(when (not (= iter %)) iter)
      :when #(when (= iter %1) (many %2))}
      tree))

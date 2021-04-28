@@ -90,33 +90,33 @@
   :A = Chord('A7')
 
   :part-a = [
-    6/8 -> {
+    bar -> {
       :D
       Scale('A aeolian')
     }
-    6/8 -> :G
-    6/8 -> :C
-    6/8 -> :F
-    6/8 -> :B
-    6/8 -> :E
+    bar -> :G
+    bar -> :C
+    bar -> :F
+    bar -> :B
+    bar -> :E
   ]
 
   play! [
     3 of [
       :part-a
-      6/8 -> Chord('Am')
-      6/8 -> :A
+      bar -> Chord('Am')
+      bar -> :A
     ]
 
     :part-a
 
-    6/8 -> Chord('Am')
-    6/8 -> :E
-    6/8 -> :A
-    6/8 -> :D
-    6/8 -> :F
-    6/8 -> :E
-    2 * 6/8 -> Chord('Am')
+    bar -> Chord('Am')
+    bar -> :E
+    bar -> :A
+    bar -> :D
+    bar -> :F
+    bar -> :E
+    2 * bar -> Chord('Am')
   ]")
 
 (def fixture-bach-d
@@ -151,6 +151,7 @@
   :g = stub('g')
   :h = stub('h')
   :i = stub('i')
+  :j = stub('j')
 
   play! [
     8 of [
@@ -162,6 +163,7 @@
       when !{ 1 last? } do { 1 -> :g }
       when [ even? !{2 4} ] do { 3 -> :h }
       when { gte? 5 lt? 3 } do { 1 -> :i }
+      when { odd? factor? 4 } do { 2 -> :j }
     ]
   ]")
 
@@ -288,6 +290,7 @@
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time)) ;bach.data/to-json ));count))
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose))
 ; (clojure.pprint/pprint (-> fixture-bach-e ast/parse track/parse compose/normalize-loops))
+; (clojure.pprint/pprint (-> fixture-bach-c compose/compose))
 (clojure.pprint/pprint (-> fixture-bach-e compose/compose))
 ; (clojure.pprint/pprint (-> fixture-bach-e bach.ast/parse track/digest)) ;track/resolve-durations))
 

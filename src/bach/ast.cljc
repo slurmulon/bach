@@ -31,7 +31,7 @@
 
     <when-do>  = (atom | identifier | set | list)
     when-match = #'(even|odd|last|first)' <'?'>
-    when-comp  = #'(gte|gt|lte|lt)' <'? '> int
+    when-comp  = #'(gte|gt|lte|lt|factor)' <'? '> int
     <when-cond> = [<empty>] (int | range | when-match | when-comp) [<empty>]
     when-all   = [<empty>] <'['> [when-expr (<','|empty> when-expr)* [<','>]] <']'> [<empty>]
     when-any   = [<empty>] <'{'> [when-expr (<','|empty> when-expr)* [<','>]] <'}'> [<empty>]
