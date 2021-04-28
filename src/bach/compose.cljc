@@ -152,7 +152,8 @@
                     :even (when (even? iter) iter)
                     :odd (when (odd? iter) iter)
                     :last (when (= iter total) iter)
-                    :first (when (= iter 1) iter))}
+                    :first (when (= iter 1) iter))
+     :when-not #(when (not (= iter %)) iter)}
      tree))
 
 ; (defn- normalize-loop-whens

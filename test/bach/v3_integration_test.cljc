@@ -148,6 +148,8 @@
   :c = Chord('c')
   :e = Chord('e')
   :f = Chord('f')
+  :g = Chord('g')
+  :h = Chord('h')
 
   play! [
     8 of [
@@ -156,6 +158,8 @@
       when { 1 4 7 } do { 1 -> :c }
       when { even? } do { 1 -> :e }
       when 6..8 do { 1 -> :f }
+      when !{ 1 last? } do { 1 -> :g }
+      when [even? !{2 6}] do { 1 -> :h }
     ]
   ]")
 
