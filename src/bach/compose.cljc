@@ -148,8 +148,8 @@
      :when-match #(case (keyword %)
                     :even (when (even? iter) iter)
                     :odd (when (odd? iter) iter)
-                    :last (when (= iter total) iter) ; total
-                    :first (when (= iter 1) iter)) ; 1
+                    :last total
+                    :first 1)
      :when-comp #(case (keyword %1)
                    :gt (when (> iter %2) iter)
                    :gte (when (>= iter %2) iter)
@@ -385,7 +385,9 @@
   "Provisions a track for high-level interpretation and playback."
   [data]
   (let [track (playable data)
-        tree (resolve-values data)
+        ; tree (resolve-values data)
+        ; tree (digest data)
+        tree (consume data)
         units (unit-context tree)
         beats (normalize-beats! track units)
         source {:iterations (get-iterations tree)

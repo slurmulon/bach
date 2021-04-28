@@ -27,11 +27,9 @@
     set        = [<empty>] <'{'> [item (<','|empty> item)* [<','>]] <'}'> [<empty>]
     list       = [<empty>] <'['> [item (<','|empty> item)* [<','>]] <']'> [<empty>]
     loop       = [<empty>] int [<empty>] <'of'> [<empty>] (set | list) [<empty>]
-    (* ORIG *)
-    (* when       = [<empty>] <'when'> <empty> int <empty> when-do [<empty>] *)
     when       = [<empty>] <'when'> <empty> when-expr <empty> <'do'> <empty> when-do [<empty>]
-    <when-do>  = (atom | identifier | set | list)
 
+    <when-do>  = (atom | identifier | set | list)
     when-match = #'(even|odd|last|first)' <'?'>
     when-comp  = #'(gte|gt|lte|lt)' <'? '> int
     <when-cond> = [<empty>] (int | range | when-match | when-comp) [<empty>]
@@ -40,8 +38,8 @@
     when-not   = <'!'> (when-all | when-any)
     <when-expr> = [<'('>] when-all | when-any | when-not | when-cond [<')'>]
 
-
-    beat       = expr <'->'> (atom | set | identifier) [<empty>,<empty>]
+    (* beat       = expr <'->'> (atom | set | identifier) [<empty>,<empty>] *)
+    beat       = duration-expr <'->'> (atom | set | identifier) [<empty>,<empty>]
     assign     = identifier <'='> elem
     header     = meta <'='> (prim | expr)
     attribute  = name [<empty>] <':'> [<empty>] prim
@@ -71,5 +69,11 @@
     div = factor <'/'> factor
     <factor> = [<empty>] [<'('>] expr [<')'>] [<empty>]
     range = [<empty>] (int <'..'> int) [<empty>]
+
+    (* Durations *)
+    duration = #'(beat|bar)'
+    <duration-term> = [<empty>] duration | term | duration-factor [<empty>]
+    <duration-factor> = [<empty>] [<'('>] duration-expr [<')'>] [<empty>]
+    <duration-expr>   = [<empty>] duration-term | expr [<empty>]
   ")
 

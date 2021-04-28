@@ -143,24 +143,24 @@
   ]")
 
 (def fixture-bach-e
-  ":a = Chord('a')
-  :b = Chord('b')
-  :c = Chord('c')
-  :e = Chord('e')
-  :f = Chord('f')
-  :g = Chord('g')
-  :h = Chord('h')
-  :i = Chord('i')
+  ":a = stub('a')
+  :b = stub('b')
+  :c = stub('c')
+  :e = stub('e')
+  :f = stub('f')
+  :g = stub('g')
+  :h = stub('h')
+  :i = stub('i')
 
   play! [
     8 of [
       2 -> :a
-      1 -> :b
+      bar -> :b
       when { 1 4 7 } do { 1 -> :c }
-      when { even? } do { 1 -> :e }
+      when even? do { 1 -> :e }
       when 6..8 do { 1 -> :f }
       when !{ 1 last? } do { 1 -> :g }
-      when [even? !{2 6}] do { 1 -> :h }
+      when [ even? !{2 4} ] do { 3 -> :h }
       when { gte? 5 lt? 3 } do { 1 -> :i }
     ]
   ]")
@@ -272,7 +272,7 @@
                    {:items [{:duration 1, :elements ["chord.3"]}],
                     :duration 1,
                     :index 21}]}]
-        ; (clojure.pprint/pprint actual)
+        (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
 
@@ -287,7 +287,9 @@
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable (compose/provision-signals {:unit 1/8 :meter 1})))
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time)) ;bach.data/to-json ));count))
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose))
-(clojure.pprint/pprint (-> fixture-bach-e ast/parse track/parse compose/normalize-loops))
+; (clojure.pprint/pprint (-> fixture-bach-e ast/parse track/parse compose/normalize-loops))
+(clojure.pprint/pprint (-> fixture-bach-e compose/compose))
+; (clojure.pprint/pprint (-> fixture-bach-e bach.ast/parse track/digest)) ;track/resolve-durations))
 
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse time))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable track/get-durations))

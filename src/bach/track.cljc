@@ -102,6 +102,7 @@
   (let [track (resolve-values tree)
         meter (get-meter-ratio track)
         durations (get-durations track)]
+    (println "WUT" meter durations)
     (reduce #(gcd %1 %2) meter durations)))
 
 (defn get-pulse-beats-per-bar
@@ -257,6 +258,18 @@
     :string #(clojure.string/replace % #"^(\"|\')|(\"|\')$" "")} track))
 (def resolve-values reduce-values)
 
+(defn resolve-durations
+  [track]
+  (let [headers (->> track (hiccup-find [:header]) (into [:statement]))
+        meter (get-meter-ratio headers)
+        pulse-beat (get-pulse-beat headers)]
+    (insta/transform
+      {:duration (fn [duration-name]
+                   (case (keyword duration-name)
+                     :beat pulse-beat
+                     :bar meter))}
+      track)))
+
 ; FIXME: Probably remove for now, since this prevents `when` from being used if the main export of Play! is a loop
 (defn reduce-iterations
   "Reduces global loops (i.e. terations) of a parsed track's Play! into a list.
@@ -269,13 +282,21 @@
       track)
     track))
 
-(defn digest
-  "Resolves variables and reduces primitive values in a parsed track into native Clojure structs."
+(defn consume
+  "Resolves all scalar bach values (variables, primitives, constants, etc.) in
+  a parsed track into native Clojure types."
   [track]
   (-> track
       resolve-variables
-      resolve-values
-      reduce-iterations))
+      resolve-durations
+      resolve-values))
+
+(defn digest
+  "Resolves all scalar bach values in a parsed track into native Clojure types.
+  Then reduces loops exported with play! as a single list (which is not always desired,
+  hence the separate method.)"
+  [track]
+  (-> track consume reduce-iterations))
 
 (defn parse
   "Consumes a hiccup tree and produces a validated track tree (throws if an exception).
