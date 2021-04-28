@@ -242,3 +242,168 @@
                     [:name "color"]
                     [:string "'#FF0000'"]]]]]]]
       (is (= want (parse "Scale('C2 Minor', 1/4, color: '#FF0000')"))))))
+
+(deftest whens
+  (testing "matchers"
+    (testing "even?"
+      (let [code "10 of [ :a, when even? do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "10"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-match "even"]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+   (testing "odd?"
+      (let [code "10 of [ :a, when odd? do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "10"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-match "odd"]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+    (testing "last?"
+      (let [code "10 of [ :a, when last? do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "10"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-match "last"]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+   (testing "first?"
+      (let [code "10 of [ :a, when first? do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "10"]
+                    [:list
+                     [:identifier [:name "a"]]
+                     [:when
+                      [:when-match "first"]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code))))))
+  ; (testing "comparisons"
+  (testing "conditions"
+    (testing "int"
+      (let [code "2 of [ when 1 do :a, when 2 do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "2"]
+                    [:list
+                     [:when
+                      [:int "1"]
+                      [:identifier [:name "a"]]]
+                     [:when
+                      [:int "2"]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+    (testing "range"
+      (let [code "5 of [ when 1..3 do :a, when 4..5 do :b ]"
+            want [:track
+                  [:statement
+                   [:loop
+                    [:int "5"]
+                    [:list
+                     [:when
+                      [:range [:int "1"] [:int "3"]]
+                      [:identifier [:name "a"]]]
+                     [:when
+                      [:range [:int "4"] [:int "5"]]
+                      [:identifier [:name "b"]]]]]]]]
+        (is (= want (parse code)))))
+    (testing "expressions"
+      (testing "all"
+        (let [code "5 of [ when [1 5] do :a, when [2 4] do :b ]"
+              want [:track
+                    [:statement
+                     [:loop
+                      [:int "5"]
+                      [:list
+                       [:when
+                        [:when-all [:int "1"] [:int "5"]]
+                        [:identifier [:name "a"]]]
+                       [:when
+                        [:when-all [:int "2"] [:int "4"]]
+                        [:identifier [:name "b"]]]]]]]]
+          (is (= want (parse code)))))
+      (testing "any"
+       (let [code "5 of [ when {1 3 5} do :a, when {2 4} do :b ]"
+             want [:track
+                   [:statement
+                    [:loop
+                     [:int "5"]
+                     [:list
+                       [:when
+                        [:when-any [:int "1"] [:int "3"] [:int "5"]]
+                        [:identifier [:name "a"]]]
+                       [:when
+                        [:when-any [:int "2"] [:int "4"]]
+                        [:identifier [:name "b"]]]]]]]]
+          (is (= want (parse code)))))
+      (testing "not"
+        (testing "all"
+          (let [code "10 of [ when ![even? 1..5] do :x ]"
+                want [:track
+                      [:statement
+                       [:loop
+                        [:int "10"]
+                        [:list
+                         [:when
+                          [:when-not
+                           [:when-all
+                            [:when-match "even"]
+                            [:range
+                             [:int "1"]
+                             [:int "5"]]]]
+                          [:identifier [:name "x"]]]]]]]]
+            (is (= want (parse code)))))
+        (testing "any"
+          (let [code "10 of [ when !{even? 1..5} do :x ]"
+                want [:track
+                      [:statement
+                       [:loop
+                        [:int "10"]
+                        [:list
+                         [:when
+                          [:when-not
+                           [:when-any
+                            [:when-match "even"]
+                            [:range
+                             [:int "1"]
+                             [:int "5"]]]]
+                          [:identifier [:name "x"]]]]]]]]
+            (is (= want (parse code))))))
+      (testing "nested"
+        (testing "any -> all"
+          (let [code "10 of [ when { 1 3 [ 5..10 even? ] } do :x ]"
+                want [:track
+                      [:statement
+                       [:loop
+                        [:int "10"]
+                        [:list
+                         [:when
+                          [:when-any
+                           [:int "1"]
+                           [:int "3"]
+                           [:when-all
+                            [:range [:int "5"] [:int "10"]]
+                            [:when-match "even"]]]
+                          [:identifier [:name "x"]]]]]]]]
+            (is (= want (parse code)))))))
+    (testing "matches"
+      (testing "even")
+      (testing "odd")
+      (testing "last")
+      (testing "first"))))

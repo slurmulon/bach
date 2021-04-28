@@ -25,11 +25,11 @@
   :part-a = 3 of [
     3 -> { :a, scale('A dorian') }
     2 -> :e
-    when 3 { 1 -> :g }
+    when 3 do { 1 -> :g }
   ]
 
   :part-b = 2 of [
-    when 1 {
+    when 1 do {
       2 -> :a
       1 -> chord('Z')
     }
@@ -137,8 +137,8 @@
       1 -> Chord('Am')
       3/4 -> Chord('A')
       1/4 -> Chord('B')
-      when 1 { 2 -> Chord('E') }
-      when 2 { 2 -> Chord('B7b13') }
+      when 1 do { 2 -> Chord('E') }
+      when 2 do { 2 -> Chord('B7b13') }
     ]
   ]")
 
@@ -262,8 +262,11 @@
 (println "\n\nPlayable ======")
 ; (clojure.pprint/pprint (-> fixture-bach-b ast/parse track/playable))
 ; (clojure.pprint/pprint (-> fixture-bach-b ast/parse compose/provision))
+; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable (compose/provision-signals {:unit 1/8 :meter 1})))
+; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time)) ;bach.data/to-json ));count))
 (clojure.pprint/pprint (-> fixture-bach-d compose/compose))
 
+; (clojure.pprint/pprint (-> fixture-bach-d ast/parse time))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable track/get-durations))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/get-step-beat))
 ; (println (-> fixture-bach-d ast/parse compose/normalize-collections compose/as-durations))

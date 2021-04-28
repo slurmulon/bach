@@ -27,7 +27,19 @@
     set        = [<empty>] <'{'> [item (<','|empty> item)* [<','>]] <'}'> [<empty>]
     list       = [<empty>] <'['> [item (<','|empty> item)* [<','>]] <']'> [<empty>]
     loop       = [<empty>] int [<empty>] <'of'> [<empty>] (set | list) [<empty>]
-    when       = [<empty>] <'when'> <empty> int <empty> (atom | identifier | set | list) [<empty>]
+    (* ORIG *)
+    (* when       = [<empty>] <'when'> <empty> int <empty> when-do [<empty>] *)
+    when       = [<empty>] <'when'> <empty> when-expr <empty> <'do'> <empty> when-do [<empty>]
+    <when-do>  = (atom | identifier | set | list)
+
+    when-match = #'(even|odd|last|first)' <'?'>
+    when-comp  = #'(gte|gt|lt|lte)' <'? '> int
+    <when-cond> = [<empty>] (int | range | when-match | when-comp) [<empty>]
+    when-all   = [<empty>] <'['> [when-expr (<','|empty> when-expr)* [<','>]] <']'> [<empty>]
+    when-any   = [<empty>] <'{'> [when-expr (<','|empty> when-expr)* [<','>]] <'}'> [<empty>]
+    when-not   = <'!'> (when-all | when-any)
+    <when-expr> = [<'('>] when-all | when-any | when-not | when-cond [<')'>]
+
 
     beat       = expr <'->'> (atom | set | identifier) [<empty>,<empty>]
     assign     = identifier <'='> elem
@@ -41,6 +53,7 @@
     play       = [<empty>] <#'(?i)play!'> [<empty>] elem
     meter      = [<empty>] int <'|'> int [<empty>]
     (* duration   = [<empty>] (expr <'.'> #'(b|m)') | *)
+    bool       = #'(true|false)'
     string     = #'[\\'|\"](.*?)[\"|\\']'
     word       = #'[a-zA-Z]+'
     name       = #'[a-zA-Z_]+[a-zA-Z0-9_-]*'
@@ -56,4 +69,7 @@
     <term> = [<empty>] number | mul | div | factor [<empty>]
     mul = factor <'*'> factor
     div = factor <'/'> factor
-    <factor> = [<empty>] [<'('>] expr [<')'>] [<empty>]")
+    <factor> = [<empty>] [<'('>] expr [<')'>] [<empty>]
+    range = [<empty>] (int <'..'> int) [<empty>]
+  ")
+

@@ -668,11 +668,11 @@
   :part-a = 3 of [
     3 -> { :a, scale('A dorian') }
     2 -> :e
-    when 3 { 1 -> :g }
+    when 3 do { 1 -> :g }
   ]
 
   :part-b = 2 of [
-    when 1 {
+    when 1 do {
       2 -> :a
       1 -> chord('Z')
     }

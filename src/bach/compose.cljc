@@ -267,19 +267,6 @@
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) signals items)))
 
-; (defn provision-signals
-;   "Provisions quantized :play and :stop signals for every beat element in the tree.
-;   Enables state-agnostic and declarative event handling of beat elements by consumers."
-;   ([tree] (provision-signals tree (unit-context tree)))
-;   ([tree units]
-;    (let [beats (normalize-beats! tree units)
-;          beat-sigs (step-beat-signals tree units)
-;          play-sigs (element-play-signals beats)
-;          stop-sigs (element-stop-signals beats)]
-;      {:beat beat-sigs
-;       :play play-sigs
-;       :stop stop-sigs})))
-
 (defn provision-signals
   "Provisions quantized :play and :stop signals for every beat element in the tree.
   Enables state-agnostic and declarative event handling of beat elements by consumers."
@@ -289,7 +276,21 @@
          beat-sigs (step-beat-signals tree units)
          play-sigs (element-play-signals beats)
          stop-sigs (element-stop-signals beats)]
-     (map #(assoc-if {} {:beat %1 :play %2 :stop %3}) beat-sigs play-sigs stop-sigs))))
+     {:beat beat-sigs
+      :play play-sigs
+      :stop stop-sigs})))
+
+; ALT: Itemized single-array structure (more characters, less access-time complexity O(1))
+; (defn provision-signals
+;   "Provisions quantized :beat, :play and :stop signals for every playable element in the tree.
+;   Enables state-agnostic and declarative event handling of beat elements by consumers."
+;   ([tree] (provision-signals tree (unit-context tree)))
+;   ([tree units]
+;    (let [beats (normalize-beats! tree units)
+;          beat-sigs (step-beat-signals tree units)
+;          play-sigs (element-play-signals beats)
+;          stop-sigs (element-stop-signals beats)]
+;      (map #(assoc-if {} {:beat %1 :play %2 :stop %3}) beat-sigs play-sigs stop-sigs))))
 
 (defn provision-elements
   "Groups all normalized beats' elements and their values by `kind`.
