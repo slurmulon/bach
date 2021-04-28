@@ -384,10 +384,8 @@
 (defn provision
   "Provisions a track for high-level interpretation and playback."
   [data]
-  (let [track (playable data)
-        ; tree (resolve-values data)
-        ; tree (digest data)
-        tree (consume data)
+  (let [tree (parse data)
+        track (playable identity tree)
         units (unit-context tree)
         beats (normalize-beats! track units)
         source {:iterations (get-iterations tree)

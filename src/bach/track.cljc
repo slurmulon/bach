@@ -102,7 +102,6 @@
   (let [track (resolve-values tree)
         meter (get-meter-ratio track)
         durations (get-durations track)]
-    (println "WUT" meter durations)
     (reduce #(gcd %1 %2) meter durations)))
 
 (defn get-pulse-beats-per-bar
@@ -282,7 +281,8 @@
       track)
     track))
 
-(defn consume
+; (defn consume
+(defn digest
   "Resolves all scalar bach values (variables, primitives, constants, etc.) in
   a parsed track into native Clojure types."
   [track]
@@ -290,13 +290,6 @@
       resolve-variables
       resolve-durations
       resolve-values))
-
-(defn digest
-  "Resolves all scalar bach values in a parsed track into native Clojure types.
-  Then reduces loops exported with play! as a single list (which is not always desired,
-  hence the separate method.)"
-  [track]
-  (-> track consume reduce-iterations))
 
 (defn parse
   "Consumes a hiccup tree and produces a validated track tree (throws if an exception).
@@ -306,7 +299,9 @@
     (when (valid? track) track)))
 
 (defn playable
-  "Parses a track (hiccup tree) and returns the tree of the main Play! export."
-  [track]
-  (-> track parse get-play))
+  "Parses a track (hiccup tree) and returns the reduced/optimized tree of the main Play! export.
+  Allows optional parse-fn for flexibile handling of pre-parsed trees (e.g. identity)."
+  ([track] (playable parse track))
+  ([parse-fn track]
+   (-> track parse-fn reduce-iterations get-play)))
 

@@ -155,7 +155,7 @@
   play! [
     8 of [
       2 -> :a
-      bar -> :b
+      2 * bar -> :b
       when { 1 4 7 } do { 1 -> :c }
       when even? do { 1 -> :e }
       when 6..8 do { 1 -> :f }
@@ -272,7 +272,7 @@
                    {:items [{:duration 1, :elements ["chord.3"]}],
                     :duration 1,
                     :index 21}]}]
-        (clojure.pprint/pprint actual)
+        ; (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
 
