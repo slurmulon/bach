@@ -258,8 +258,8 @@
 (def resolve-values reduce-values)
 
 (defn resolve-durations
-  "Replaces reserved duration aliases (beat, bar) into native numeric values.
-  When used directly, note that this method should be called before reduce-values."
+  "Replaces reserved duration aliases (beat, bar, etc.) into native numeric values.
+  When used directly this method should be called before reduce-values."
   [track]
   (let [headers (->> track (hiccup-find [:header]) (into [:statement]))
         bar (get-meter-ratio headers)

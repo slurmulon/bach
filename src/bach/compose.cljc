@@ -84,10 +84,10 @@
   [tree]
   (let [tempo (get-tempo tree)
         meter (get-meter-ratio tree)
-        unit (get-step-beat tree)]
+        beat (get-step-beat tree)]
     {:tempo tempo
      :meter meter
-     :unit unit}))
+     :beat beat}))
 
 (defn as-durations
   "Transforms each node in a tree containing a map with a :duration into
@@ -119,17 +119,17 @@
 
 (defn normalize-duration
   "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided unit beat (i.e. the duration of a single normalized beat, in whole notes).
-  In general, this determines 'How many `unit`s` does the provided `duration` equate to in this `meter`?'."
+  In general, this determines 'How many beats` does the provided duration equate to in this meter?'."
   ([duration units]
-   (normalize-duration duration (:unit units) (:meter units)))
-  ([duration unit meter]
-  (let [inverse-unit (inverse-ratio #?(:clj (rationalize unit) :cljs unit))
-        inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
-        within-bar? (<= duration meter)]
-    ; TODO: Probably remove if condition, shouldn't be necessary
-    (if within-bar?
-      (/ duration unit)
-      (* duration (max inverse-unit inverse-meter))))))
+   (normalize-duration duration (:beat units) (:meter units)))
+  ([duration beat meter]
+   (let [inverse-beat (inverse-ratio #?(:clj (rationalize beat) :cljs beat))
+         inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
+         within-bar? (<= duration meter)]
+     ; TODO: Probably remove if condition, shouldn't be necessary
+     (if within-bar?
+       (/ duration beat)
+       (* duration (max inverse-beat inverse-meter))))))
 
 (def unitize-duration normalize-duration)
 
