@@ -15,10 +15,12 @@
             [nano-id.core :refer [nano-id]]
             [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
+            [bach.track :as tracks]
             [bach.math :refer [inverse-ratio]]
-            [bach.track :refer :all]
-            [bach.tree :refer :all]
-            [bach.data :refer :all]))
+            ; [bach.track :refer [resolve-values get-headers get-meter get-step-beat get-pulse-beat]
+            ; [bach.tree :refer :all]
+            [bach.tree :refer [cast-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
+            [bach.data :refer [many collect compare-items assoc-if cyclic-index problem]]))
 
 (def uid #(nano-id 6))
 
@@ -82,9 +84,9 @@
   Primarily exists for allowing certain functions working with durations to
   access and optionally override these values without requiring a non-play tree."
   [tree]
-  (let [tempo (get-tempo tree)
-        meter (get-meter-ratio tree)
-        beat (get-step-beat tree)]
+  (let [tempo (tracks/get-tempo tree)
+        meter (tracks/get-meter-ratio tree)
+        beat (tracks/get-step-beat tree)]
     {:tempo tempo
      :meter meter
      :beat beat}))
@@ -125,11 +127,10 @@
   ([duration beat meter]
    (let [inverse-beat (inverse-ratio #?(:clj (rationalize beat) :cljs beat))
          inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
-         within-bar? (<= duration meter)]
-     ; TODO: Probably remove if condition, shouldn't be necessary
-     (if within-bar?
+         ];within-bar? (<= duration meter)]
        (/ duration beat)
-       (* duration (max inverse-beat inverse-meter))))))
+       ; (* duration (max inverse-beat inverse-meter))))))
+       )))
 
 (def unitize-duration normalize-duration)
 
@@ -186,7 +187,7 @@
   Ouput: [:a #{:b :c} #{:d [:e :f]}]"
   [tree]
   (->> tree
-    resolve-values
+    tracks/resolve-values
     normalize-loops
     (insta/transform
       {:list (fn [& [:as all]] (-> all collect vec))
@@ -219,7 +220,7 @@
   Establishes 'step beats' (or q-steps) as the canonical unit of iteration and indexing.
   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   ([tree]
-   (let [track (digest tree)
+   (let [track (tracks/digest tree)
          units (unit-context track)]
      (unitize-collections track units)))
   ([tree units]
@@ -269,9 +270,19 @@
   the id of every element that should be played at its index."
   [beats]
   (mapcat (fn [beat]
-            (let [items (index-beat-items beat)
+            (let [; REMOVE (unused)
+                  ;items (index-beat-items beat)
+                  ; TODO: Return beat index instead!
                   elems (beat-as-element-ids beat)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
+
+(defn element-play-signals-2
+  "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
+  the id of every element that should be played at its index."
+  [beats]
+  (->> beats
+       (map-indexed #(cons %1 (take (- (:duration %2) 1) (repeat nil))))
+       flatten))
 
 (defn element-stop-signals
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
@@ -289,13 +300,18 @@
           (assoc acc index (distinct elems)))) signals items)))
 
 (defn provision-signals
-  "Provisions quantized :play and :stop signals for every beat element in the tree.
-  Enables state-agnostic and declarative event handling of beat elements by consumers."
+  "Provisions quantized :beat, :play and :stop signals that describe what
+  is relevant on each step-beat (if anything).
+  :beat contains the index of the associated normalized beat at each step.
+  :play contains the ids of beat elements that should be played at each step.
+  :stop contains the ids of beat elements that should be stopped at each step.
+  Enables state-agnostic and declarative event handling of beats by consumers."
   ([tree] (provision-signals tree (unit-context tree)))
   ([tree units]
    (let [beats (normalize-beats! tree units)
          beat-sigs (step-beat-signals tree units)
          play-sigs (element-play-signals beats)
+         ; play-sigs (element-play-signals-2 beats)
          stop-sigs (element-stop-signals beats)]
      {:beat beat-sigs
       :play play-sigs
@@ -324,6 +340,7 @@
       (fn [acc element]
         (let [uid (element-uid element)
               kind (element-kind element)
+              ; data (assoc element :id uid :kind kind)]
               data (select-keys element [:value :props])]
           (if (empty? element)
             acc
@@ -352,12 +369,12 @@
 (defn provision-units
   "Provisions essential and common unit values of a track for serialization and playback."
   [track]
-  (let [beat-units {:step (get-step-beat track)
-                    :pulse (get-pulse-beat track)}
-        bar-units  {:step (get-step-beats-per-bar track)
-                    :pulse (get-pulse-beats-per-bar track)}
-        time-units {:step (get-step-beat-time track)
-                    :pulse (get-pulse-beat-time track)}]
+  (let [beat-units {:step (tracks/get-step-beat track)
+                    :pulse (tracks/get-pulse-beat track)}
+        bar-units  {:step (tracks/get-step-beats-per-bar track)
+                    :pulse (tracks/get-pulse-beats-per-bar track)}
+        time-units {:step (tracks/get-step-beat-time track)
+                    :pulse (tracks/get-pulse-beat-time track)}]
    {:beat beat-units
     :bar  bar-units
     :time (assoc time-units :bar
@@ -374,22 +391,21 @@
 (defn provision-headers
   "Provisions essential and user-provided headers of a track for serialization and playback."
   [track]
-  (let [headers (get-headers track)
-        ; tempo
-        meter (get-meter track)]
+  (let [headers (tracks/get-headers track)
+        meter (tracks/get-meter track)]
     (assoc headers :meter meter)))
 
-
+; TODO: Probably rename to `serialize`, since the format it produces, with element ids, is most ideal for passing bach.json over the web etc.
 ; TODO: Use keyword args to allow custom flexibile provisioning
 ;  - Also consider proposed Config! operator here, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
 (defn provision
   "Provisions a track AST for high-level interpretation and playback."
   [data]
-  (let [tree (parse data)
-        track (playable identity tree)
+  (let [tree (tracks/parse data)
+        track (tracks/playable identity tree)
         units (unit-context tree)
         beats (normalize-beats! track units)
-        source {:iterations (get-iterations tree)
+        source {:iterations (tracks/get-iterations tree)
                 :headers (provision-headers tree)
                 :units (provision-units tree)
                 :metrics (provision-metrics beats)
@@ -397,11 +413,13 @@
                 :signals (provision-signals track units)
                 :beats (provision-beats beats)}]
     #?(:clj source
-        :cljs (to-json source))))
+       :cljs (to-json source))))
 
+; serialize
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
-   A 'playable' track is formatted so that it is easily iterated over by a high-level Bach engine."
+   Playable tracks are formatted so that they are easily iterated over by a high-level bach engine.
+  This format is ideal for serialization, particularly if sending bach.json over a network."
   [track]
   (cond
     (vector? track) (provision track)
@@ -410,7 +428,19 @@
 
 (def compose! (memo compose))
 
+; render
+; expand
+; (defn perform
+;   "Composes track and then replaces all beat element ids with their referenced objects.
+;   This format is ideal for interpretation, since it prevents consumers from needing to
+;   resolve beat elements. Interpretation requires this eventually anyways, so this gives
+;   the option to resolve ids once instead of using repeated getters, methods, etc."
+;   [track]
+;   (->> (compose track)
+;        (
+
+
 (defn clear!
   "Clears the cache state of all memoized functions."
   []
-  (map memo-clear! [validate! as-element! normalize-beats!]))
+  (map memo-clear! [tracks/validate! as-element! normalize-beats!]))

@@ -32,6 +32,7 @@
   ([coll k v]
    (conj coll (when v [k v]))))
 
+; clamp
 (defn cyclic-index
   "Modulates index against a cycle limit, ensuring index is always in range."
   [limit index]

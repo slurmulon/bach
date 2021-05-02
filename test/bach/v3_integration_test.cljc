@@ -289,9 +289,14 @@
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable (compose/provision-signals {:unit 1/8 :meter 1})))
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time)) ;bach.data/to-json ));count))
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose))
-(clojure.pprint/pprint (-> fixture-bach-e ast/parse track/parse compose/normalize-loops))
+; (clojure.pprint/pprint (-> fixture-bach-e ast/parse track/parse compose/normalize-loops))
 ; (clojure.pprint/pprint (-> fixture-bach-c compose/compose))
+(clojure.pprint/pprint (-> fixture-bach-d compose/compose))
 ; (clojure.pprint/pprint (-> fixture-bach-e compose/compose))
+; (let [tree (-> fixture-bach-a bach.ast/parse track/parse)
+;       track (track/playable identity tree)
+;       units (compose/unit-context tree)]
+;   (clojure.pprint/pprint (compose/normalize-beats track units)))
 ; (clojure.pprint/pprint (-> fixture-bach-e compose/compose bach.data/to-json count))
 ; (clojure.pprint/pprint (-> fixture-bach-e bach.ast/parse track/digest)) ;track/resolve-durations))
 

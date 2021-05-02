@@ -5,16 +5,16 @@
  :builds {:lib
           {:target :node-library
            :output-to "dist/lib.js"
-           :exports-var bach.track/compose}
+           :exports-var bach.compose/compose}
           ; TODO: Update package.json:main, package.json:module
           :esm
           {:target :esm
            :output-dir "dist"
-           :modules {:lib {:exports {compose bach.track/compose}}}}
+           :modules {:lib {:exports {compose bach.compose/compose}}}}
           :npm
           {:target :npm-module
            :output-dir "dist"
-           :entries [bach.track]}
+           :entries [bach.compose]}
           :test
           {:target    :node-test
            :output-to "target/js/node-tests.js"
