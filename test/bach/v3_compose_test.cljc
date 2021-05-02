@@ -10,9 +10,11 @@
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
-(def next-id! #(swap! id-counter inc))
+;(def next-id! #(do % (swap! id-counter inc)))
+; EXPERIMENT
+(def next-id! bach.data/nano-hash)
 (def next-ids! #(take % (repeatedly next-id!)))
-(def clear! #(do (reset! id-counter 0) (compose/clear!)))
+(def clear! #(do (reset! id-counter 0))) ;(compose/clear!)))
 
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
@@ -526,17 +528,17 @@
       (clear!)
       (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/element-play-signals)
-            want [["stub.1"]
-                  ["stub.2" "stub.3"]
+            want [["stub.6OzHc6"]
+                  ["stub.6mbq6m" "stub.z0Ntrz"]
                   nil
                   nil
-                  ["stub.4" "stub.6"]
+                  ["stub.UO6vk1" "stub.0U44U0"]
                   nil
                   nil
                   nil
                   nil
                   nil
-                  ["stub.5" "stub.7" "stub.8"]
+                  ["stub.cbw1Cc" "stub.Cubbb1" "stub.PzwAN0"]
                   nil
                   nil
                   nil
@@ -550,43 +552,43 @@
        (clear!)
        (let [tree (atomize-fixture fixture-a)
              actual (-> tree compose/normalize-beats compose/element-stop-signals)
-             want [["stub.8"]
-                   ["stub.1"]
+             want [["stub.PzwAN0"]
+                   ["stub.6OzHc6"]
                    nil
-                   ["stub.2"]
-                   ["stub.3"]
-                   nil
-                   nil
-                   nil
-                   ["stub.4"]
-                   nil
-                   ["stub.6"]
+                   ["stub.6mbq6m"]
+                   ["stub.z0Ntrz"]
                    nil
                    nil
                    nil
+                   ["stub.UO6vk1"]
                    nil
-                   ["stub.5"]
+                   ["stub.0U44U0"]
                    nil
-                   ["stub.7"]]]
+                   nil
+                   nil
+                   nil
+                   ["stub.Cubbb1"]
+                   nil
+                   ["stub.cbw1Cc"]]]
          (is (= want actual))))
      (testing "simultaneous occurence"
        (clear!)
        (let [tree (atomize-fixture fixture-b)
              actual (-> tree compose/normalize-beats compose/element-stop-signals)
-             want [["stub.7"]
-                   ["stub.1"]
+             want [["stub.cbw1Cc"]
+                   ["stub.6OzHc6"]
                    nil
-                   ["stub.2"]
-                   ["stub.3"]
-                   nil
-                   nil
-                   nil
-                   ["stub.4" "stub.6"]
+                   ["stub.6mbq6m"]
+                   ["stub.z0Ntrz"]
                    nil
                    nil
                    nil
+                   ["stub.UO6vk1" "stub.0U44U0"]
                    nil
-                   ["stub.5"]]]
+                   nil
+                   nil
+                   nil
+                   ["stub.Cubbb1"]]]
          ; (clojure.pprint/pprint actual)
          (is (= want actual)))))
    (testing "step beats"
@@ -604,45 +606,44 @@
         (let [tree (atomize-fixture fixture-a)
               actual (-> tree compose/normalize-beats compose/provision-elements)
               want {:stub
-                    {"1" {:value "a", :props ()},
-                     "2" {:value "b", :props ()},
-                     "3" {:value "c", :props ()},
-                     "6" {:value "f", :props ()},
-                     "4" {:value "d", :props ()},
-                     "8" {:value "h", :props ()},
-                     "5" {:value "e", :props ()},
-                     "7" {:value "g", :props ()}}}]
+                    {"6OzHc6" {:value "a", :props ()},
+                     "6mbq6m" {:value "b", :props ()},
+                     "z0Ntrz" {:value "c", :props ()},
+                     "0U44U0" {:value "f", :props ()},
+                     "UO6vk1" {:value "d", :props ()},
+                     "PzwAN0" {:value "h", :props ()},
+                     "Cubbb1" {:value "e", :props ()},
+                     "cbw1Cc" {:value "g", :props ()}}}]
           (is (= want actual))))
       (testing "some identical"
         (clear!)
         (let [tree (atomize-fixture fixture-c)
               actual (-> tree compose/normalize-beats compose/provision-elements)
               want {:stub
-                    {"1" {:value "a", :props ()},
-                     "2" {:value "b", :props ()}}}]
+                    {"6OzHc6" {:value "a", :props ()},
+                     "6mbq6m" {:value "b", :props ()}}}]
           (is (= want actual)))))
    (testing "beats"
       (clear!)
       (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/provision-beats)
-            want [{:items
-                    [{:duration 1, :elements ["stub.1"]}],
+            want [{:items [{:duration 1, :elements ["stub.6OzHc6"]}],
                    :duration 1,
                    :index 0}
                   {:items
-                    [{:duration 2, :elements ["stub.2"]}
-                     {:duration 3, :elements ["stub.3"]}],
+                   [{:duration 2, :elements ["stub.6mbq6m"]}
+                    {:duration 3, :elements ["stub.z0Ntrz"]}],
                    :duration 3,
                    :index 1}
                   {:items
-                    [{:duration 4, :elements ["stub.4"]}
-                     {:duration 6, :elements ["stub.6"]}],
+                   [{:duration 4, :elements ["stub.UO6vk1"]}
+                    {:duration 6, :elements ["stub.0U44U0"]}],
                    :duration 6,
                    :index 4}
                   {:items
-                    [{:duration 5, :elements ["stub.5"]}
-                     {:duration 7, :elements ["stub.7"]}
-                     {:duration 8, :elements ["stub.8"]}],
+                   [{:duration 5, :elements ["stub.Cubbb1"]}
+                    {:duration 7, :elements ["stub.cbw1Cc"]}
+                    {:duration 8, :elements ["stub.PzwAN0"]}],
                    :duration 8,
                    :index 10}]]
         ; (clojure.pprint/pprint actual)

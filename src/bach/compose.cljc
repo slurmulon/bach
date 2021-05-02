@@ -13,16 +13,13 @@
 (ns bach.compose
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
-            ; [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
             [bach.track :as tracks]
             [bach.math :refer [inverse-ratio]]
-            ; [bach.track :refer [resolve-values get-headers get-meter get-step-beat get-pulse-beat]
-            ; [bach.tree :refer :all]
             [bach.tree :refer [cast-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
             [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
-(def uid #(nano-id 6))
+(def uid #(nano-hash %))
 
 (defn element-kind
   [elem]
@@ -35,8 +32,7 @@
   ([elem seed]
    (if (map? elem)
      (:id elem)
-     ; (str (-> elem element-kind name) "." (uid))))
-     (str (-> elem element-kind name) "." (nano-hash seed)))))
+     (str (-> elem element-kind name) "." (uid seed)))))
 
 (defn element-uid
   [elem]
@@ -47,7 +43,6 @@
    Parsed bach 'atoms' are considered 'elements', each having a unique id."
   [kind args]
   {:id (element-id kind (into [kind] args))
-   ;:id (element-id kind)
    :kind (element-kind kind)
    :value (-> args first str)
    :props (rest args)})
@@ -418,7 +413,6 @@
     #?(:clj source
        :cljs (to-json source))))
 
-; serialize
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
    Playable tracks are formatted so that they are easily iterated over by a high-level bach engine.
@@ -428,22 +422,3 @@
     (vector? track) (provision track)
     (string? track) (-> track ast/parse provision)
     :else (problem "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))
-
-; (def compose! (memo compose))
-
-; render
-; expand
-; (defn perform
-;   "Composes track and then replaces all beat element ids with their referenced objects.
-;   This format is ideal for interpretation, since it prevents consumers from needing to
-;   resolve beat elements. Interpretation requires this eventually anyways, so this gives
-;   the option to resolve ids once instead of using repeated getters, methods, etc."
-;   [track]
-;   (->> (compose track)
-;        (
-
-
-; (defn clear!
-;   "Clears the cache state of all memoized functions."
-;   []
-;   (map memo-clear! [tracks/validate! as-element! normalize-beats!]))

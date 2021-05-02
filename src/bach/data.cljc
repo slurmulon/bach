@@ -9,10 +9,6 @@
 (def from-string #?(:clj clojure.edn/read-string :cljs reader/read-string))
 (def to-json #?(:clj json/write-str :cljs clj->js))
 
-#?(:cljs
-   (defn byte-seq->string [arr]
-    (c/utf8ByteArrayToString (apply array arr))))
-
 (defn many
   "Normalizes sequences, sets, maps and scalar values into a sequence."
   [x]
@@ -47,21 +43,14 @@
 (defn nano-hash
   "Calculates a deterministic alphanumeric hash of any value using nano-id."
   [x]
-  (let [alphabet "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
+  (let [alphabet "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         hash-gen (fn [n]
                    (->> x
                       hash
                       (iterate #(unsigned-bit-shift-right % 6))
                       (take n)
-                      reverse
-                      ; https://lambdaisland.com/blog/2017-06-12-clojure-gotchas-surrogate-pairs
-                      ; https://github.com/zelark/nano-id/blob/be4564fab4594d3fcf755b563563a2e3af700459/src/nano_id/random.cljc
-                      ;byte-array))
-                      #?(:clj byte-array
-                         )))
-                         ; :cljs byte-seq->string)))
-                         ; :cljs c/stringToUtf8ByteArray)))
-                         ; :cljs (apply array))))
+                      ; reverse
+                      #?(:clj byte-array)))
         hash-id (custom alphabet 6 hash-gen)]
   (hash-id)))
 
