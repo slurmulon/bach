@@ -13,14 +13,14 @@
 (ns bach.compose
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
-            [clojure.core.memoize :refer [memo memo-clear!]]
+            ; [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
             [bach.track :as tracks]
             [bach.math :refer [inverse-ratio]]
             ; [bach.track :refer [resolve-values get-headers get-meter get-step-beat get-pulse-beat]
             ; [bach.tree :refer :all]
             [bach.tree :refer [cast-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
-            [bach.data :refer [many collect compare-items assoc-if cyclic-index problem]]))
+            [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
 (def uid #(nano-id 6))
 
@@ -31,10 +31,12 @@
     (-> elem name clojure.string/lower-case keyword)))
 
 (defn element-id
-  [elem]
-  (if (map? elem)
-    (:id elem)
-    (str (-> elem element-kind name) "." (uid))))
+  ([elem] (element-id elem elem))
+  ([elem seed]
+   (if (map? elem)
+     (:id elem)
+     ; (str (-> elem element-kind name) "." (uid))))
+     (str (-> elem element-kind name) "." (nano-hash seed)))))
 
 (defn element-uid
   [elem]
@@ -44,12 +46,13 @@
   "Creates a beat element from an :atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each having a unique id."
   [kind args]
-  {:id (element-id kind)
+  {:id (element-id kind (into [kind] args))
+   ;:id (element-id kind)
    :kind (element-kind kind)
    :value (-> args first str)
    :props (rest args)})
 
-(def as-element! (memo as-element))
+; (def as-element! (memo as-element))
 
 (defn element-as-ids
   "Transforms normalized beat element(s) into their unique ids."
@@ -192,7 +195,7 @@
     (insta/transform
       {:list (fn [& [:as all]] (-> all collect vec))
        :set (fn [& [:as all]] (->> all collect (into #{})))
-       :atom (fn [[_ kind] [_ & args]] (as-element! kind args))
+       :atom (fn [[_ kind] [_ & args]] (as-element kind args))
        :beat #(assoc {} :duration %1 :elements (many %2))})))
 
 (defn transpose-collections
@@ -255,7 +258,7 @@
   ([tree units]
    (-> tree (unitize-collections units) itemize-beats)))
 
-(def normalize-beats! (memo normalize-beats))
+; (def normalize-beats! (memo normalize-beats))
 
 (defn step-beat-signals
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
@@ -308,7 +311,7 @@
   Enables state-agnostic and declarative event handling of beats by consumers."
   ([tree] (provision-signals tree (unit-context tree)))
   ([tree units]
-   (let [beats (normalize-beats! tree units)
+   (let [beats (normalize-beats tree units)
          beat-sigs (step-beat-signals tree units)
          play-sigs (element-play-signals beats)
          ; play-sigs (element-play-signals-2 beats)
@@ -404,7 +407,7 @@
   (let [tree (tracks/parse data)
         track (tracks/playable identity tree)
         units (unit-context tree)
-        beats (normalize-beats! track units)
+        beats (normalize-beats track units)
         source {:iterations (tracks/get-iterations tree)
                 :headers (provision-headers tree)
                 :units (provision-units tree)
@@ -426,7 +429,7 @@
     (string? track) (-> track ast/parse provision)
     :else (problem "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))
 
-(def compose! (memo compose))
+; (def compose! (memo compose))
 
 ; render
 ; expand
@@ -440,7 +443,7 @@
 ;        (
 
 
-(defn clear!
-  "Clears the cache state of all memoized functions."
-  []
-  (map memo-clear! [tracks/validate! as-element! normalize-beats!]))
+; (defn clear!
+;   "Clears the cache state of all memoized functions."
+;   []
+;   (map memo-clear! [tracks/validate! as-element! normalize-beats!]))

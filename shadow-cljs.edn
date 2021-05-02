@@ -1,11 +1,18 @@
 {:source-paths ["src", "test"]
+ ; :lein true
  :dependencies [[instaparse "1.4.10"]
+                [nano-id "1.0.0"]
+                [hiccup-find "1.0.0"]
+                ;[org.clojure/core.memoize "1.0.236"]
                 [org.clojure/tools.cli "1.0.194"]]
  :dev-http {8080 "target/"}
  :builds {:lib
           {:target :node-library
            :output-to "dist/lib.js"
            :exports-var bach.compose/compose}
+           ; :exports-var bach.data/nano-hash}
+           ; :exports {compose bach.compose/compose,
+           ;           hashy bach.data/nano-hash}}
           ; TODO: Update package.json:main, package.json:module
           :esm
           {:target :esm

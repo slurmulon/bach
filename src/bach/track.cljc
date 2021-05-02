@@ -2,11 +2,11 @@
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
             [hiccup-find.core :refer [hiccup-find]]
-            [clojure.core.memoize :refer [memo memo-clear!]]
+            ; [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
             [bach.math :refer [gcd powers-of-two safe-ratio]]
             [bach.tree :refer [hiccup-query]]
-            [bach.data :refer :all]))
+            [bach.data :refer [compare-items from-string problem]]))
 
 (def default-tempo 120)
 (def default-meter [4 4])
@@ -154,7 +154,7 @@
   [track]
   (let [tempo (get-tempo track)]
     (if (not (<= 0 tempo valid-max-tempo))
-      (problem "Tempos must be between 0 and " valid-max-tempo " beats per minute")
+      (problem (str "Tempos must be between 0 and " valid-max-tempo " beats per minute"))
       true)))
 
 (defn valid-meter?
@@ -162,7 +162,7 @@
   [track]
   (let [[_ & [unit-beat]] (get-meter track)]
     (if (not (some #{unit-beat} (rest valid-divisors)))
-      (problem "Meter unit beats (i.e. pulse beats) must be even and no greater than " (last valid-divisors))
+      (problem (str "Meter unit beats (i.e. pulse beats) must be even and no greater than " (last valid-divisors)))
       true)))
 
 (defn valid-play?
@@ -192,7 +192,7 @@
                    (problem (str "Beat values can only be an atom or set but found: " tag))))
        :div (fn [_ [& div]]
               (when (not (some #{div} valid-divisors))
-                (problem "All divisors must be even and no greater than " (last valid-divisors))))}
+                (problem (str "All divisors must be even and no greater than " (last valid-divisors)))))}
       track)))
   true)
 
@@ -208,7 +208,7 @@
       (every? true?)))
 
 (def valid? validate)
-(def validate! (memo validate))
+; (def validate! (memo validate))
 
 (defn resolve-variables
   "Dereferences and resolves any variables found in the parsed track.
