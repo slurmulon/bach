@@ -2,7 +2,7 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as string]
             [bach.ast :refer [parse]]
-            [bach.track :as track :refer [compose]]
+            [bach.compose :refer [compose]]
             [bach.data :as data :refer [to-json]])
   #?(:clj (:gen-class)))
 
@@ -35,7 +35,7 @@
         ""
         "Actions:"
         "  parse        Parses UTF-8 encoded bach data into an Abstract Syntax Tree (AST)"
-        "  compile      Compiles UTF-8 bach data into bach.json, an easy to interpret JSON micro-format"]
+        "  compose      Compiles UTF-8 bach data into bach.json, an easy to interpret JSON micro-format"]
        (string/join \newline)))
 
 (defn error-msg [errors]
