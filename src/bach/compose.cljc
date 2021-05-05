@@ -1,4 +1,5 @@
 ; TODO: Refactor modules and functions based on protocols, so we don't rely on naming consistencies to fully express intent
+; TODO: Use clojure.core.reducers as well: https://clojure.org/reference/reducers
 
 ; # Help
 ; https://gist.github.com/stathissideris/1397681b9c63f09c6992

@@ -1,6 +1,7 @@
 (ns bach.ast
-  (:require #?(:cljs [instaparse.core :as insta :refer-macros [defparser]]
-               :clj [instaparse.core :as insta :refer [defparser]])))
+  (:require #?@(:cljs [[instaparse.core :as insta :refer-macros [defparser]]]
+                :clj [[instaparse.core :as insta :refer [defparser]]])
+            [bach.data :refer [problem]]))
 
 ; TODO!:
 ;  - Think about `Config!` operator, allowing users to specify run-time configuration flags per track
@@ -26,7 +27,7 @@
 
     set        = [<empty>] <'{'> [item (<','|empty> item)* [<','>]] <'}'> [<empty>]
     list       = [<empty>] <'['> [item (<','|empty> item)* [<','>]] <']'> [<empty>]
-    loop       = [<empty>] int [<empty>] <'of'> [<empty>] (set | list) [<empty>]
+    loop       = [<empty>] int [<empty>] <'of'> [<empty>] (set | list | identifier) [<empty>]
     when       = [<empty>] <'when'> <empty> when-expr <empty> <'do'> <empty> when-do [<empty>]
 
     <when-do>  = (atom | identifier | set | list)
@@ -72,3 +73,11 @@
     duration-static = #'(2|4|8|16|32|64|128|256)' <'n'>
   ")
 
+; (defn failure
+;   [code]
+;   (->> code (insta/parses parse) insta/get-failure))
+
+; (defn parse!
+;   [code]
+;   (let [result (parse code)]
+;     (if-not (insta/failure? result) code (problem result))))

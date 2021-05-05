@@ -192,7 +192,12 @@
                    (problem (str "Beat values can only be an atom or set but found: " tag))))
        :div (fn [_ [& div]]
               (when (not (some #{div} valid-divisors))
-                (problem (str "All divisors must be even and no greater than " (last valid-divisors)))))}
+                (problem (str "All divisors must be even and no greater than " (last valid-divisors)))))
+       :loop (fn [_ value]
+               (if (vector? value)
+                 (when (not (some #{(first value)} [:set :list]))
+                   (problem (str "Loop values can only be lists and sets")))
+                 (problem (str "Loops values must be a collection"))))}
       track)))
   true)
 
@@ -281,12 +286,19 @@
       track)
     track))
 
-; (defn consume
+(defn consume
+  [track]
+  (cond
+    (vector? track) track
+    (string? track) (ast/parse track)
+    :else (problem "Cannot parse track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))
+
 (defn digest
   "Resolves all scalar bach values (variables, primitives, constants, etc.) in
   a parsed track into native Clojure types."
   [track]
   (-> track
+      consume
       resolve-variables
       resolve-durations
       resolve-values))
@@ -296,7 +308,8 @@
   Resulting track tree is NOT valid hiccup, and is designed for internal use in bach.compose."
   [tree]
   (let [track (digest tree)]
-    (when (valid? track) track)))
+    ; (when (valid? track) track)))
+    (do (valid? track) track)))
 
 (defn playable
   "Parses a track (hiccup tree) and returns the reduced/optimized tree of the main Play! export.
@@ -304,4 +317,3 @@
   ([track] (playable parse track))
   ([parse-fn track]
    (-> track parse-fn reduce-iterations get-play)))
-

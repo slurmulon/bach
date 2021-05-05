@@ -49,7 +49,6 @@
                       hash
                       (iterate #(unsigned-bit-shift-right % 6))
                       (take n)
-                      ; reverse
                       #?(:clj byte-array)))
         hash-id (custom alphabet 6 hash-gen)]
   (hash-id)))
