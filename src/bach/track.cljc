@@ -308,8 +308,11 @@
   Resulting track tree is NOT valid hiccup, and is designed for internal use in bach.compose."
   [tree]
   (let [track (digest tree)]
-    ; (when (valid? track) track)))
-    (do (valid? track) track)))
+    (if (insta/failure? track)
+      track
+      ; (problem track)
+      (do (valid? track) track))))
+    ; (do (valid? track) track)))
 
 (defn playable
   "Parses a track (hiccup tree) and returns the reduced/optimized tree of the main Play! export.

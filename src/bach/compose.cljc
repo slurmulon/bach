@@ -22,29 +22,31 @@
 
 (def uid #(nano-hash %))
 
-(defn element-kind
+(defn element->kind
   [elem]
   (if (map? elem)
-    (-> elem :kind element-kind)
+    (-> elem :kind element->kind)
     (-> elem name clojure.string/lower-case keyword)))
 
-(defn element-id
-  ([elem] (element-id elem elem))
+(defn element->id
+  ([elem] (element->id elem elem))
   ([elem seed]
    (if (map? elem)
      (:id elem)
-     (str (-> elem element-kind name) "." (uid seed)))))
+     (str (-> elem element->kind name) "." (uid seed)))))
 
-(defn element-uid
+(defn element->uid
   [elem]
-  (-> elem element-id (clojure.string/split #"\.") last))
+  (-> elem element->id (clojure.string/split #"\.") last))
 
-(defn as-element
+; TODO: defrecord Element
+
+(defn make-element
   "Creates a beat element from an :atom kind and collection of arguments.
    Parsed bach 'atoms' are considered 'elements', each having a unique id."
   [kind args]
-  {:id (element-id kind (into [kind] args))
-   :kind (element-kind kind)
+  {:id (element->id kind (into [kind] args))
+   :kind (element->kind kind)
    :value (-> args first str)
    :props (rest args)})
 
@@ -77,6 +79,8 @@
   (->> beat :items
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
+
+; TODO: defrecord DurationUnits
 
 (defn unit-context
   "Provides a standardized structure containing essential duration unit values.
@@ -191,7 +195,7 @@
     (insta/transform
       {:list (fn [& [:as all]] (-> all collect vec))
        :set (fn [& [:as all]] (->> all collect (into #{})))
-       :atom (fn [[_ kind] [_ & args]] (as-element kind args))
+       :atom (fn [[_ kind] [_ & args]] (make-element kind args))
        :beat #(assoc {} :duration %1 :elements (many %2))})))
 
 (defn transpose-collections
@@ -337,8 +341,8 @@
     beat-as-elements
     (reduce
       (fn [acc element]
-        (let [uid (element-uid element)
-              kind (element-kind element)
+        (let [uid (element->uid element)
+              kind (element->kind element)
               ; data (assoc element :id uid :kind kind)]
               data (select-keys element [:value :props])]
           (if (empty? element)
