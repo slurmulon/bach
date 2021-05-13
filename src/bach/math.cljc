@@ -2,9 +2,6 @@
 
 (def to-ratio #?(:clj rationalize :cljs float))
 
-; (def math-floor #?(:clj #(Math/floor %) :cljs js/Math.floor))
-; (def math-ceil #?(:clj #(Math/ceil %) :cljs js/Math.ceil))
-
 (def powers-of-two (iterate (partial * 2) 1))
 
 (defn gcd
@@ -52,6 +49,3 @@
               ratio))
           (catch js/Error _
             0))))
-
-
-

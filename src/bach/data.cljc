@@ -1,6 +1,5 @@
 (ns bach.data
   (:require [instaparse.core :as insta]
-            [hiccup-find.core :refer [hiccup-find]]
             [nano-id.core :refer [custom]]
             #?(:cljs [goog.crypt :as c])
             #?(:clj [clojure.data.json :as json]
@@ -53,6 +52,7 @@
         hash-id (custom alphabet 6 hash-gen)]
   (hash-id)))
 
+; TODO: Replace w/ slingshot
 (defn problem
   "Throws a generic exception in a way that works in both Clojure and ClojureScript"
   [error]

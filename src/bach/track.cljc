@@ -2,7 +2,6 @@
   (:require [instaparse.core :as insta]
             [nano-id.core :refer [nano-id]]
             [hiccup-find.core :refer [hiccup-find]]
-            ; [clojure.core.memoize :refer [memo memo-clear!]]
             [bach.ast :as ast]
             [bach.math :refer [gcd powers-of-two safe-ratio]]
             [bach.tree :refer [hiccup-query]]
@@ -118,7 +117,6 @@
      (max step-beat meter)
      (min step-beat meter))))
 
-; TODO: Write tests
 (defn get-pulse-beat-time
   "Determines the number of milliseconds equal to a one pulse-beat duration."
   [track]
@@ -286,6 +284,7 @@
       track)
     track))
 
+; TODO: Rename to parse (then rename parse to consume)
 (defn consume
   [track]
   (cond

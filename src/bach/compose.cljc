@@ -1,15 +1,7 @@
+; TODO: Also use multi-methods
+;  - @see: https://www.braveclojure.com/multimethods-records-protocols/
 ; TODO: Refactor modules and functions based on protocols, so we don't rely on naming consistencies to fully express intent
-; TODO: Use clojure.core.reducers as well: https://clojure.org/reference/reducers
-
-; # Help
-; https://gist.github.com/stathissideris/1397681b9c63f09c6992
-; https://rmulhol.github.io/clojure/2015/05/12/flatten-tree-seq.html
-; http://gigasquidsoftware.com/blog/2013/05/01/growing-a-language-with-clojure-and-instaparse/
-; https://stackoverflow.com/questions/60591121/how-can-i-turn-an-ordered-tree-into-a-collection-of-named-nodes-in-clojure
-; https://dnaeon.github.io/graphs-and-clojure/
-
-; # History
-; https://github.com/slurmulon/bach/blob/c04c808193f1f278c2779111b1f029cedd4af4b1/src/bach/track.clj
+; TODO: Use clojure.core.reducers as well (if compatiable with cljs): https://clojure.org/reference/reducers
 
 (ns bach.compose
   (:require [instaparse.core :as insta]
@@ -128,14 +120,14 @@
   ([duration units]
    (normalize-duration duration (:beat units) (:meter units)))
   ([duration beat meter]
-   (let [inverse-beat (inverse-ratio #?(:clj (rationalize beat) :cljs beat))
-         inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
-         ];within-bar? (<= duration meter)]
+   ; (let [inverse-beat (inverse-ratio #?(:clj (rationalize beat) :cljs beat))
+   ;       inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
+   ;       ];within-bar? (<= duration meter)]
        (/ duration beat)
        ; (* duration (max inverse-beat inverse-meter))))))
-       )))
+       ))
 
-(def unitize-duration normalize-duration)
+(def unitize-duration #(-> % normalize-duration int))
 
 (defn- normalize-loop-iteration
   "Normalizes :when nodes in :loop AST tree at a given iteration.
@@ -231,7 +223,7 @@
         linearize-collections
         (cast-tree
           #(and (map? %) (:duration %))
-          #(let [duration (int (unitize-duration (:duration %) units))]
+          #(let [duration (unitize-duration (:duration %) units)]
              (assoc % :duration duration))))))
 
 (defn itemize-beats
@@ -260,6 +252,7 @@
 
 ; (def normalize-beats! (memo normalize-beats))
 
+; TODO: Rename to provision-beat-steps
 (defn step-beat-signals
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
   the index of its associated normalized beat (i.e. intersecting the beat's quantized duration)."
@@ -268,6 +261,7 @@
   ([tree units]
    (-> tree (unitize-collections units) quantize-durations)))
 
+; TODO: Rename to provision-play-steps
 (defn element-play-signals
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be played at its index."
@@ -287,6 +281,7 @@
        (map-indexed #(cons %1 (take (- (:duration %2) 1) (repeat nil))))
        flatten))
 
+; TODO: Rename to provision-stop-steps
 (defn element-stop-signals
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be stopped at its index."
@@ -302,6 +297,7 @@
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) signals items)))
 
+; TODO: Rename to provision-steps
 (defn provision-signals
   "Provisions quantized :beat, :play and :stop signals that describe what
   is relevant on each step-beat (if anything).
@@ -420,10 +416,12 @@
 
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
-   Playable tracks are formatted so that they are easily iterated over by a high-level bach engine.
-  This format is ideal for serialization, particularly if sending bach.json over a network."
-  [track]
-  (cond
-    (vector? track) (provision track)
-    (string? track) (-> track ast/parse provision)
-    :else (problem "Cannot compose track, provided unsupported data format. Must be a parsed AST vector or a UTF-8 encoded string.")))
+   Playable tracks are formatted so that they are easily and efficiently iterated over by a
+  high-level bach engine (such as gig, for JS)."
+  [data]
+  (let [track (tracks/consume data)]
+    (if (not (insta/failure? track))
+      (provision track)
+      (->> track
+           (into {:fail true})
+           #?(:clj identity :cljs to-json)))))
