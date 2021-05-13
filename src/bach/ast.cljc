@@ -1,3 +1,5 @@
+; ns bach.syntax
+; ns bach.lang
 (ns bach.ast
   (:require #?@(:cljs [[instaparse.core :as insta :refer-macros [defparser]]]
                 :clj [[instaparse.core :as insta :refer [defparser]]])
@@ -8,20 +10,19 @@
 ;  - Allows bach engines to dynamically adapt interpretation of tracks on an individual level
 ;  - Use cases:
 ;    * Track is large and you don't want the quantized "signals" exported via `bach.compose/compose`
-;  
 (defparser parse
   "(* Core *)
     track = statement*
     statement = token (<empty> token)*
 
-    <token>    = elem | assign | header | play | <comment>
-    <expr>     = [<empty>] term | add | sub [<empty>]
-    <elem>     = [<empty>] entity | prim | expr [<empty>]
-    <entity>   = [<empty>] atom | coll | beat | identifier [<empty>]
-    <item>     = entity | when
-    <seq>      = [<empty>] list | loop [<empty>]
-    <coll>     = [<empty>] seq | set [<empty>]
-    <prim>     = [<empty>] string | number | meter [<empty>]
+    <token>    = elem | assign | header | play | <comment> | <empty>
+    <expr>     = term | add | sub
+    <entity>   = atom | coll | beat | identifier
+    <elem>     = entity | prim | expr
+    <item>     = [<empty>] entity | when [<empty>]
+    <seq>      = list | loop
+    <coll>     = seq | set
+    <prim>     = string | number | meter
     <init>     = <'('> arguments <')'>
     atom       = [<empty>] keyword [<empty>] init [<empty>]
 
@@ -40,15 +41,15 @@
     <when-expr> = [<'('>] when-all | when-any | when-not | when-cond [<')'>]
 
     beat       = expr <'->'> (atom | set | identifier) [<empty>,<empty>]
-    assign     = identifier <'='> elem
-    header     = meta <'='> (prim | expr)
+    assign     = identifier [<empty>] <'='> [<empty>] elem
+    header     = meta [<empty>] <'='> [<empty>] (prim | expr)
     attribute  = name [<empty>] <':'> [<empty>] prim
     identifier = [<empty>] <':'> name [<empty>]
     arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
-    meta       = [<empty>] <'@'> name [<empty>]
+    meta       = <'@'> name
     (* TODO: Rename to kind *)
     keyword    = [<empty>] <'~'> | name [<empty>]
-    play       = [<empty>] <#'(?i)play!'> [<empty>] elem
+    play       = <#'(?i)play!'> [<empty>] elem
     meter      = [<empty>] int <'|'> int [<empty>]
     bool       = #'(true|false)'
     string     = #'[\\'|\"](.*?)[\"|\\']'
