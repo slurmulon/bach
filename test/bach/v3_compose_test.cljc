@@ -517,7 +517,7 @@
                    {:duration 14, :elements [:identifier :g]}},
                  :duration 16,
                  :index 20}]
-          actual (compose/normalize-beats tree {:beat (/ 1 2) :meter 1})]
+          actual (compose/normalize-beats tree (/ 1 2))]
       (is (= want actual)))))
 
 (deftest steps
