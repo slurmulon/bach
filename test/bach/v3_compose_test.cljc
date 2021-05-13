@@ -1,8 +1,6 @@
 (ns bach.v3-compose-test
   (:require #?(:clj [clojure.test :refer [deftest is testing]]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
-            ; https://github.com/clojure/test.check/blob/master/doc/intro.md#clojurescript
-            [clojure.core.memoize :refer [memo memo-clear!]]
             [instaparse.core :as insta]
             [bach.compose :as compose]
             [bach.track :as track]))
@@ -519,15 +517,15 @@
                    {:duration 14, :elements [:identifier :g]}},
                  :duration 16,
                  :index 20}]
-          actual (compose/normalize-beats tree {:beat 1/2 :meter 1})]
+          actual (compose/normalize-beats tree {:beat (/ 1 2) :meter 1})]
       (is (= want actual)))))
 
-(deftest signals
+(deftest steps
   (with-redefs [compose/uid next-id!]
     (testing "play"
       (clear!)
       (let [tree (atomize-fixture fixture-a)
-            actual (-> tree compose/normalize-beats compose/element-play-signals)
+            actual (-> tree compose/normalize-beats compose/provision-play-steps)
             want [["stub.6OzHc6"]
                   ["stub.6mbq6m" "stub.z0Ntrz"]
                   nil
@@ -551,7 +549,7 @@
      (testing "separate occurence"
        (clear!)
        (let [tree (atomize-fixture fixture-a)
-             actual (-> tree compose/normalize-beats compose/element-stop-signals)
+             actual (-> tree compose/normalize-beats compose/provision-stop-steps)
              want [["stub.PzwAN0"]
                    ["stub.6OzHc6"]
                    nil
@@ -574,7 +572,7 @@
      (testing "simultaneous occurence"
        (clear!)
        (let [tree (atomize-fixture fixture-b)
-             actual (-> tree compose/normalize-beats compose/element-stop-signals)
+             actual (-> tree compose/normalize-beats compose/provision-stop-steps)
              want [["stub.cbw1Cc"]
                    ["stub.6OzHc6"]
                    nil
@@ -594,7 +592,7 @@
    (testing "step beats"
      (clear!)
      (let [tree (atomize-fixture fixture-a)
-           actual (compose/step-beat-signals tree)
+           actual (compose/provision-beat-steps tree)
            want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
        (is (= want actual))))))
 

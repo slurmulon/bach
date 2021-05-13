@@ -13,6 +13,7 @@
             [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
 (def uid #(nano-hash %))
+(def serialize #?(:clj identity :cljs to-json))
 
 (defn element->kind
   [elem]
@@ -127,7 +128,7 @@
        ; (* duration (max inverse-beat inverse-meter))))))
        ))
 
-(def unitize-duration #(-> % normalize-duration int))
+(def unitize-duration (comp int normalize-duration))
 
 (defn- normalize-loop-iteration
   "Normalizes :when nodes in :loop AST tree at a given iteration.
@@ -253,16 +254,18 @@
 ; (def normalize-beats! (memo normalize-beats))
 
 ; TODO: Rename to provision-beat-steps
-(defn step-beat-signals
+; (defn step-beat-signals
+(defn provision-beat-steps
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
   the index of its associated normalized beat (i.e. intersecting the beat's quantized duration)."
   ([tree]
-    (step-beat-signals tree (unit-context tree)))
+    (provision-beat-steps tree (unit-context tree)))
   ([tree units]
    (-> tree (unitize-collections units) quantize-durations)))
 
 ; TODO: Rename to provision-play-steps
-(defn element-play-signals
+; (defn element-play-signals
+(defn provision-play-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be played at its index."
   [beats]
@@ -273,7 +276,8 @@
                   elems (beat-as-element-ids beat)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
-(defn element-play-signals-2
+; (defn element-play-signals-2
+(defn provision-play-steps-2
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be played at its index."
   [beats]
@@ -282,7 +286,8 @@
        flatten))
 
 ; TODO: Rename to provision-stop-steps
-(defn element-stop-signals
+; (defn element-stop-signals
+(defn provision-stop-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be stopped at its index."
   [beats]
@@ -298,23 +303,23 @@
           (assoc acc index (distinct elems)))) signals items)))
 
 ; TODO: Rename to provision-steps
-(defn provision-signals
+; (defn provision-signals
+(defn provision-steps
   "Provisions quantized :beat, :play and :stop signals that describe what
   is relevant on each step-beat (if anything).
   :beat contains the index of the associated normalized beat at each step.
   :play contains the ids of beat elements that should be played at each step.
   :stop contains the ids of beat elements that should be stopped at each step.
   Enables state-agnostic and declarative event handling of beats by consumers."
-  ([tree] (provision-signals tree (unit-context tree)))
+  ([tree] (provision-steps tree (unit-context tree)))
   ([tree units]
    (let [beats (normalize-beats tree units)
-         beat-sigs (step-beat-signals tree units)
-         play-sigs (element-play-signals beats)
-         ; play-sigs (element-play-signals-2 beats)
-         stop-sigs (element-stop-signals beats)]
-     {:beat beat-sigs
-      :play play-sigs
-      :stop stop-sigs})))
+         beat-steps (provision-beat-steps tree units)
+         play-steps (provision-play-steps beats)
+         stop-steps (provision-stop-steps beats)]
+     {:beat beat-steps
+      :play play-steps
+      :stop stop-steps})))
 
 ; ALT: Itemized single-array structure (more characters, less access-time complexity O(1))
 ; (defn provision-signals
@@ -394,7 +399,6 @@
         meter (tracks/get-meter track)]
     (assoc headers :meter meter)))
 
-; TODO: Probably rename to `serialize`, since the format it produces, with element ids, is most ideal for passing bach.json over the web etc.
 ; TODO: Use keyword args to allow custom flexibile provisioning
 ;  - Also consider proposed Config! operator here, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
 (defn provision
@@ -403,16 +407,14 @@
   (let [tree (tracks/parse data)
         track (tracks/playable identity tree)
         units (unit-context tree)
-        beats (normalize-beats track units)
-        source {:iterations (tracks/get-iterations tree)
-                :headers (provision-headers tree)
-                :units (provision-units tree)
-                :metrics (provision-metrics beats)
-                :elements (provision-elements beats)
-                :signals (provision-signals track units)
-                :beats (provision-beats beats)}]
-    #?(:clj source
-       :cljs (to-json source))))
+        beats (normalize-beats track units)]
+    {:iterations (tracks/get-iterations tree)
+     :headers (provision-headers tree)
+     :units (provision-units tree)
+     :metrics (provision-metrics beats)
+     :elements (provision-elements beats)
+     :steps (provision-steps track units)
+     :beats (provision-beats beats)}))
 
 (defn compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
@@ -420,8 +422,7 @@
   high-level bach engine (such as gig, for JS)."
   [data]
   (let [track (tracks/consume data)]
-    (if (not (insta/failure? track))
-      (provision track)
-      (->> track
-           (into {:fail true})
-           #?(:clj identity :cljs to-json)))))
+    (serialize
+      (if (ast/parsed? track)
+        (provision track)
+        (into {:fail true} track)))))

@@ -140,6 +140,15 @@
                         [:div [:int "6"] [:int "8"]]]
                        [:set]]]]]]
           (is (= want (parse "[4 * 6/8 -> {}]")))))
+      (testing "identifier"
+        (let [want [:track
+                    [:statement
+                     [:beat
+                      [:mul
+                       [:int "4"]
+                       [:div [:int "6"] [:int "8"]]]
+                      [:identifier [:name "a"]]]]]]
+          (is (= want (parse "4 * 6/8 -> :a")))))
       (testing "optional parens"
         (let [want [:track
                     [:statement

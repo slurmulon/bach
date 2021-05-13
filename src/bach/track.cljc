@@ -309,9 +309,7 @@
   (let [track (digest tree)]
     (if (insta/failure? track)
       track
-      ; (problem track)
       (do (valid? track) track))))
-    ; (do (valid? track) track)))
 
 (defn playable
   "Parses a track (hiccup tree) and returns the reduced/optimized tree of the main Play! export.

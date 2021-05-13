@@ -1,18 +1,11 @@
 (ns bach.v3-integration-test
   (:require #?(:clj [clojure.test :refer [deftest is testing]]
                :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
-            ; https://github.com/clojure/test.check/blob/master/doc/intro.md#clojurescript
-            [clojure.core.memoize :refer [memo memo-clear!]]
             [instaparse.core :as insta]
             [hiccup-find.core :refer [hiccup-find]]
             [bach.compose :as compose]
             [bach.ast :as ast]
             [bach.track :as track]))
-
-; (def id-counter (atom 0))
-; (def next-id! #(swap! id-counter inc))
-; (def next-ids! #(take % (repeatedly next-id!)))
-; (def clear! #(do (reset! id-counter 0) (compose/clear!)))
 
 (def fixture-bach-a
   "@Tempo = 150
@@ -168,114 +161,111 @@
   ]")
 
 (deftest compose
-  ; (with-redefs [compose/uid next-id!]
-    (testing "basic"
-      ; (clear!)
-      (let [actual (compose/compose fixture-bach-a)
-            want {:iterations 2,
-                  :headers {:tempo 150, :meter [4 4]},
-                  :units
-                  {:beat {:step 1, :pulse 1/4},
-                   :bar {:step 1, :pulse 4},
-                   :time {:step 1600.0, :pulse 400.0, :bar 1600.0}},
-                  :metrics {:min 1, :max 3, :total 22},
-                  :elements
-                  {:scale {"LgmmDL" {:value "A dorian", :props []}},
-                   :chord
-                    {"1np1h1" {:value "A7", :props []},
-                     "Wzp6U0" {:value "E6", :props []},
-                     "PznzRP" {:value "Gm", :props []},
-                     "kb3z00" {:value "Z", :props []},
-                     "ua0AMu" {:value "F#", :props []}}},
-                  :signals
-                  {:beat [0 0 0 1 1 2 2 2 3 3 4 4 4 5 5 6 7 7 8 9 10 11],
-                   :play
-                    [["chord.1np1h1" "scale.LgmmDL"]
-                     nil
-                     nil
-                     ["chord.Wzp6U0"]
-                     nil
-                     ["chord.1np1h1" "scale.LgmmDL"]
-                     nil
-                     nil
-                     ["chord.Wzp6U0"]
-                     nil
-                     ["chord.1np1h1" "scale.LgmmDL"]
-                     nil
-                     nil
-                     ["chord.Wzp6U0"]
-                     nil
-                     ["chord.PznzRP"]
-                     ["chord.kb3z00" "chord.1np1h1"]
-                     nil
-                     ["chord.ua0AMu"]
-                     ["chord.Wzp6U0"]
-                     ["chord.ua0AMu"]
-                     ["chord.Wzp6U0"]],
-                    :stop
-                    [["chord.Wzp6U0"]
-                      nil
-                      nil
-                      ["chord.1np1h1" "scale.LgmmDL"]
-                      nil
-                      ["chord.Wzp6U0"]
-                      nil
-                      nil
-                      ["chord.1np1h1" "scale.LgmmDL"]
-                      nil
-                      ["chord.Wzp6U0"]
-                      nil
-                      nil
-                      ["chord.1np1h1" "scale.LgmmDL"]
-                      nil
-                      ["chord.Wzp6U0"]
-                      ["chord.PznzRP"]
-                      ["chord.kb3z00"]
-                      ["chord.1np1h1"]
-                      ["chord.ua0AMu"]
-                      ["chord.Wzp6U0"]
-                      ["chord.ua0AMu"]]},
-                  :beats
-                  [{:items [{:duration 3, :elements ["chord.1np1h1" "scale.LgmmDL"]}],
-                    :duration 3,
-                    :index 0}
-                   {:items [{:duration 2, :elements ["chord.Wzp6U0"]}],
-                    :duration 2,
-                    :index 3}
-                   {:items [{:duration 3, :elements ["chord.1np1h1" "scale.LgmmDL"]}],
-                    :duration 3,
-                    :index 5}
-                   {:items [{:duration 2, :elements ["chord.Wzp6U0"]}],
-                    :duration 2,
-                    :index 8}
-                   {:items [{:duration 3, :elements ["chord.1np1h1" "scale.LgmmDL"]}],
-                    :duration 3,
-                    :index 10}
-                   {:items [{:duration 2, :elements ["chord.Wzp6U0"]}],
-                    :duration 2,
-                    :index 13}
-                   {:items [{:duration 1, :elements ["chord.PznzRP"]}],
-                    :duration 1,
-                    :index 15}
-                   {:items
-                    [{:duration 1, :elements ["chord.kb3z00"]}
-                     {:duration 2, :elements ["chord.1np1h1"]}],
-                    :duration 2,
-                    :index 16}
-                   {:items [{:duration 1, :elements ["chord.ua0AMu"]}],
-                    :duration 1,
-                    :index 18}
-                   {:items [{:duration 1, :elements ["chord.Wzp6U0"]}],
-                    :duration 1,
-                    :index 19}
-                   {:items [{:duration 1, :elements ["chord.ua0AMu"]}],
-                    :duration 1,
-                    :index 20}
-                   {:items [{:duration 1, :elements ["chord.Wzp6U0"]}],
-                    :duration 1,
-                    :index 21}]}]
-        ; (clojure.pprint/pprint actual)
-        (is (= want actual)))))
+  (testing "basic"
+    (let [actual (compose/compose fixture-bach-a)
+          want {:iterations 2,
+                :headers {:tempo 150, :meter [4 4]},
+                :units
+                {:beat {:step 1, :pulse (/ 1 4)},
+                  :bar {:step 1, :pulse 4},
+                  :time {:step 1600.0, :pulse 400.0, :bar 1600.0}},
+                :metrics {:min 1, :max 3, :total 22},
+                :elements
+                {:scale {"LgmmDL" {:value "A dorian", :props []}},
+                  :chord
+                  {"1np1h1" {:value "A7", :props []},
+                    "Wzp6U0" {:value "E6", :props []},
+                    "PznzRP" {:value "Gm", :props []},
+                    "kb3z00" {:value "Z", :props []},
+                    "ua0AMu" {:value "F#", :props []}}},
+                :steps
+                {:beat [0 0 0 1 1 2 2 2 3 3 4 4 4 5 5 6 7 7 8 9 10 11],
+                  :play
+                  [["chord.1np1h1" "scale.LgmmDL"]
+                    nil
+                    nil
+                    ["chord.Wzp6U0"]
+                    nil
+                    ["chord.1np1h1" "scale.LgmmDL"]
+                    nil
+                    nil
+                    ["chord.Wzp6U0"]
+                    nil
+                    ["chord.1np1h1" "scale.LgmmDL"]
+                    nil
+                    nil
+                    ["chord.Wzp6U0"]
+                    nil
+                    ["chord.PznzRP"]
+                    ["chord.kb3z00" "chord.1np1h1"]
+                    nil
+                    ["chord.ua0AMu"]
+                    ["chord.Wzp6U0"]
+                    ["chord.ua0AMu"]
+                    ["chord.Wzp6U0"]],
+                  :stop
+                  [["chord.Wzp6U0"]
+                    nil
+                    nil
+                    ["chord.1np1h1" "scale.LgmmDL"]
+                    nil
+                    ["chord.Wzp6U0"]
+                    nil
+                    nil
+                    ["chord.1np1h1" "scale.LgmmDL"]
+                    nil
+                    ["chord.Wzp6U0"]
+                    nil
+                    nil
+                    ["chord.1np1h1" "scale.LgmmDL"]
+                    nil
+                    ["chord.Wzp6U0"]
+                    ["chord.PznzRP"]
+                    ["chord.kb3z00"]
+                    ["chord.1np1h1"]
+                    ["chord.ua0AMu"]
+                    ["chord.Wzp6U0"]
+                    ["chord.ua0AMu"]]},
+                :beats
+                [{:items [{:duration 3, :elements ["chord.1np1h1" "scale.LgmmDL"]}],
+                  :duration 3,
+                  :index 0}
+                  {:items [{:duration 2, :elements ["chord.Wzp6U0"]}],
+                  :duration 2,
+                  :index 3}
+                  {:items [{:duration 3, :elements ["chord.1np1h1" "scale.LgmmDL"]}],
+                  :duration 3,
+                  :index 5}
+                  {:items [{:duration 2, :elements ["chord.Wzp6U0"]}],
+                  :duration 2,
+                  :index 8}
+                  {:items [{:duration 3, :elements ["chord.1np1h1" "scale.LgmmDL"]}],
+                  :duration 3,
+                  :index 10}
+                  {:items [{:duration 2, :elements ["chord.Wzp6U0"]}],
+                  :duration 2,
+                  :index 13}
+                  {:items [{:duration 1, :elements ["chord.PznzRP"]}],
+                  :duration 1,
+                  :index 15}
+                  {:items
+                  [{:duration 1, :elements ["chord.kb3z00"]}
+                    {:duration 2, :elements ["chord.1np1h1"]}],
+                  :duration 2,
+                  :index 16}
+                  {:items [{:duration 1, :elements ["chord.ua0AMu"]}],
+                  :duration 1,
+                  :index 18}
+                  {:items [{:duration 1, :elements ["chord.Wzp6U0"]}],
+                  :duration 1,
+                  :index 19}
+                  {:items [{:duration 1, :elements ["chord.ua0AMu"]}],
+                  :duration 1,
+                  :index 20}
+                  {:items [{:duration 1, :elements ["chord.Wzp6U0"]}],
+                  :duration 1,
+                  :index 21}]}]
+      (is (= want actual)))))
 
 
 ; (clojure.pprint/pprint (-> fixture-bach-b ast/parse compose/provision (select-keys [:headers :units])))
@@ -291,7 +281,7 @@
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose))
 ; (clojure.pprint/pprint (-> fixture-bach-e ast/parse track/parse compose/normalize-loops))
 ; (clojure.pprint/pprint (-> fixture-bach-c compose/compose))
-; (clojure.pprint/pprint (-> fixture-bach-d compose/compose))
+; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time))
 ; (clojure.pprint/pprint (-> fixture-bach-e compose/compose))
 ; (let [tree (-> fixture-bach-a bach.ast/parse track/parse)
 ;       track (track/playable identity tree)
@@ -301,6 +291,8 @@
 ; (clojure.pprint/pprint (-> fixture-bach-e bach.ast/parse track/digest)) ;track/resolve-durations))
 
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse time))
+(clojure.pprint/pprint (-> fixture-bach-d track/parse time))
+; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable track/get-durations))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/get-step-beat))
 ; (println (-> fixture-bach-d ast/parse compose/normalize-collections compose/as-durations))
