@@ -74,6 +74,8 @@
     duration-static = #'(2|4|8|16|32|64|128|256)' <'n'>
   ")
 
+(def parsed? (comp not insta/failure?))
+
 ; (defn failure
 ;   [code]
 ;   (->> code (insta/parses parse) insta/get-failure))
