@@ -12,6 +12,8 @@
             [bach.tree :refer [cast-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
             [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
+(def ^:dynamic *unit-beat* (/ 1 4))
+
 (def uid #(nano-hash %))
 (def serialize #?(:clj identity :cljs to-json))
 
@@ -73,19 +75,10 @@
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
 
-; TODO: defrecord DurationUnits
-
-(defn unit-context
-  "Provides a standardized structure containing essential duration unit values.
-  Primarily exists for allowing certain functions working with durations to
-  access and optionally override these values without requiring a non-play tree."
-  [tree]
-  (let [tempo (tracks/get-tempo tree)
-        meter (tracks/get-meter-ratio tree)
-        beat (tracks/get-step-beat tree)]
-    {:tempo tempo
-     :meter meter
-     :beat beat}))
+(defn unit-beat
+  "Establishes the unit (in whole notes) to standardize all durations as."
+  ([] *unit-beat*)
+  ([tree] (tracks/get-step-beat tree)))
 
 (defn as-durations
   "Transforms each node in a tree containing a map with a :duration into
@@ -115,20 +108,11 @@
   [tree]
   (->> tree (map as-reduced-durations) quantize))
 
-(defn normalize-duration
-  "Adjusts a beat's duration from being based on whole notes (i.e. 1 = 4 quarter notes) to being based on the provided unit beat (i.e. the duration of a single normalized beat, in whole notes).
-  In general, this determines 'How many beats` does the provided duration equate to in this meter?'."
-  ([duration units]
-   (normalize-duration duration (:beat units) (:meter units)))
-  ([duration beat meter]
-   ; (let [inverse-beat (inverse-ratio #?(:clj (rationalize beat) :cljs beat))
-   ;       inverse-meter (inverse-ratio #?(:clj (rationalize meter) :cljs meter))
-   ;       ];within-bar? (<= duration meter)]
-       (/ duration beat)
-       ; (* duration (max inverse-beat inverse-meter))))))
-       ))
-
-(def unitize-duration (comp int normalize-duration))
+(defn unitize-duration
+  "Normalizes a duration value into an integer based on a unit value.
+  In practice, this converts raw durations (in whole notes) into q-steps."
+  ([duration] (unitize-duration duration *unit-beat*))
+  ([duration unit] (int (/ duration unit))))
 
 (defn- normalize-loop-iteration
   "Normalizes :when nodes in :loop AST tree at a given iteration.
@@ -175,7 +159,6 @@
 
 ; TODO: Detect cyclic references!
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
-; TODO: Rename to normalize-collections or reduce-collections
 (defn normalize-collections
   "Normalizes all bach collections in parsed AST as native Clojure structures.
   Enables pragmatic handling of trees and colls in subsequent functions.
@@ -217,14 +200,14 @@
   In practice this ensures all durations are integers and can be used for indexing and quantized iteration."
   ([tree]
    (let [track (tracks/digest tree)
-         units (unit-context track)]
-     (unitize-collections track units)))
-  ([tree units]
+         unit (unit-beat track)]
+     (unitize-collections track unit)))
+  ([tree unit]
     (->> tree
         linearize-collections
         (cast-tree
           #(and (map? %) (:duration %))
-          #(let [duration (unitize-duration (:duration %) units)]
+          #(let [duration (unitize-duration (:duration %) unit)]
              (assoc % :duration duration))))))
 
 (defn itemize-beats
@@ -246,75 +229,54 @@
   with durations and indices based on a :unit (q-step by default) within a :meter.
   Note that the resulting format, designed for sequencing in consumers, is no longer hiccup."
   ([tree]
-    (let [units (unit-context tree)]
-      (normalize-beats tree units)))
-  ([tree units]
-   (-> tree (unitize-collections units) itemize-beats)))
+    (let [unit (unit-beat tree)]
+      (normalize-beats tree unit)))
+  ([tree unit]
+   (-> tree (unitize-collections unit) itemize-beats)))
 
-; (def normalize-beats! (memo normalize-beats))
-
-; TODO: Rename to provision-beat-steps
-; (defn step-beat-signals
 (defn provision-beat-steps
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
   the index of its associated normalized beat (i.e. intersecting the beat's quantized duration)."
   ([tree]
-    (provision-beat-steps tree (unit-context tree)))
-  ([tree units]
-   (-> tree (unitize-collections units) quantize-durations)))
+    (provision-beat-steps tree (unit-beat tree)))
+  ([tree unit]
+   (-> tree (unitize-collections unit) quantize-durations)))
 
-; TODO: Rename to provision-play-steps
-; (defn element-play-signals
 (defn provision-play-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be played at its index."
   [beats]
   (mapcat (fn [beat]
-            (let [; REMOVE (unused)
-                  ;items (index-beat-items beat)
-                  ; TODO: Return beat index instead!
-                  elems (beat-as-element-ids beat)]
+            (let [elems (beat-as-element-ids beat)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
-; (defn element-play-signals-2
-(defn provision-play-steps-2
-  "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
-  the id of every element that should be played at its index."
-  [beats]
-  (->> beats
-       (map-indexed #(cons %1 (take (- (:duration %2) 1) (repeat nil))))
-       flatten))
-
-; TODO: Rename to provision-stop-steps
-; (defn element-stop-signals
 (defn provision-stop-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be stopped at its index."
   [beats]
   (let [duration (as-reduced-durations beats)
         items (mapcat index-beat-items beats)
-        signals (-> duration (take (repeat nil)) vec)]
+        steps (-> duration (take (repeat nil)) vec)]
     (reduce
       (fn [acc item]
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
               item-elems (many (element-as-ids (:elements item)))
               acc-elems (many (get acc index))
               elems (concat item-elems acc-elems)]
-          (assoc acc index (distinct elems)))) signals items)))
+          (assoc acc index (distinct elems)))) steps items)))
 
-; TODO: Rename to provision-steps
-; (defn provision-signals
 (defn provision-steps
-  "Provisions quantized :beat, :play and :stop signals that describe what
-  is relevant on each step-beat (if anything).
+  "Provisions quantized :beat, :play and :stop sequences that describe what
+  data is relevant on each step.
+  Although dense, these sequences enable stage-agnostic, context-free and
+  efficient playback by preemptively calculating the state of each quantized step.
   :beat contains the index of the associated normalized beat at each step.
   :play contains the ids of beat elements that should be played at each step.
-  :stop contains the ids of beat elements that should be stopped at each step.
-  Enables state-agnostic and declarative event handling of beats by consumers."
-  ([tree] (provision-steps tree (unit-context tree)))
-  ([tree units]
-   (let [beats (normalize-beats tree units)
-         beat-steps (provision-beat-steps tree units)
+  :stop contains the ids of beat elements that should be stopped at each step."
+  ([tree] (provision-steps tree (unit-beat tree)))
+  ([tree unit]
+   (let [beats (normalize-beats tree unit)
+         beat-steps (provision-beat-steps tree unit)
          play-steps (provision-play-steps beats)
          stop-steps (provision-stop-steps beats)]
      {:beat beat-steps
@@ -325,7 +287,7 @@
 ; (defn provision-signals
 ;   "Provisions quantized :beat, :play and :stop signals for every playable element in the tree.
 ;   Enables state-agnostic and declarative event handling of beat elements by consumers."
-;   ([tree] (provision-signals tree (unit-context tree)))
+;   ([tree] (provision-signals tree (unit-beat tree)))
 ;   ([tree units]
 ;    (let [beats (normalize-beats! tree units)
 ;          beat-sigs (step-beat-signals tree units)
@@ -344,7 +306,6 @@
       (fn [acc element]
         (let [uid (element->uid element)
               kind (element->kind element)
-              ; data (assoc element :id uid :kind kind)]
               data (select-keys element [:value :props])]
           (if (empty? element)
             acc
@@ -400,20 +361,20 @@
     (assoc headers :meter meter)))
 
 ; TODO: Use keyword args to allow custom flexibile provisioning
-;  - Also consider proposed Config! operator here, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
+;  - Also consider proposed setting flags, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
 (defn provision
   "Provisions a track AST for high-level interpretation and playback."
   [data]
   (let [tree (tracks/parse data)
         track (tracks/playable identity tree)
-        units (unit-context tree)
-        beats (normalize-beats track units)]
+        unit (unit-beat tree)
+        beats (normalize-beats track unit)]
     {:iterations (tracks/get-iterations tree)
      :headers (provision-headers tree)
      :units (provision-units tree)
      :metrics (provision-metrics beats)
      :elements (provision-elements beats)
-     :steps (provision-steps track units)
+     :steps (provision-steps track unit)
      :beats (provision-beats beats)}))
 
 (defn compose
