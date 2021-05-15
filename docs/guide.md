@@ -273,15 +273,11 @@ In this example we declare a beat that plays a "C minor" scale for a half note (
 
 But a beat by itself isn't too useful. Rarely (if ever) does a song only contain a single note, chord or scale.
 
-### Collections
+### Lists
 
 Collections are what you use to group beats and/or elements together.
 
 They let you say "play this, then this" and so on. In `bach` this pattern is called a "rhythmic timeline".
-
-There are only two types of collections in `bach`: "lists" and "sets".
-
-#### Lists
 
 Lists are simply an ordered collection of beats to play.
 
@@ -321,7 +317,7 @@ Unlike other music notations, you don't have to explicitly concern yourself with
 
 Technically the only thing `bach` cares about are the beats to be played and in what order.
 
-#### Sets
+### Sets
 
 Sometimes you need to play multiple elements at once in a beat.
 
@@ -346,7 +342,167 @@ In the example from the [Tracks](#tracks) section, both a scale and chord will p
 }
 ```
 
-#### Nesting
+### Loops
+
+Music naturally has sections that repeat. They can repeat identically or with variance based
+on some condition (e.g. codas in sheet music).
+
+`bach` supports this use case, and much more, with loops.
+
+In the most basic sense, loops allow you to say "play this collection X times".
+
+Loops are defined using `of`, with the number of iterations/repeats specified on the left-hand side and the collection to loop on the right:
+
+```bach
+4 of [
+  2 + 1/2 -> Chord('A7')
+  1 + 1/2 -> Chord('Em')
+]
+```
+
+### Whens
+
+Loops in `bach` are powerful and expressive because they give you control over a large number of conditions.
+
+They do not limit you to simply saying "repeat this X times."
+
+You can also say things like "repeat 4 times, but on the final repetition play this here instead."
+
+This is achieved by using `when`, which must be defined inside of a loop.
+
+`when` is followed by a condition (more on this next), `do`, and a set or list to play whenever the condition matches the loop's current repeat/iteration.
+
+```bach
+4 of [
+  1 -> Chord('Em9')
+  when { 1 3 } do { Chord('C') }
+  when { 2 4 } do { Chord('C/D') }
+]
+```
+
+The example above loops over a list four times. On every loop/iteration it will play `Chord('Em9')` on the first beat.
+
+After this beat we have a `when` followed by another.
+Just like anything else in a list, each `when` is processed sequentially (i.e. after the previous beat and before the next beat).
+
+But unlike everything else that can be used in a list, a `when` will
+only play if its condition matches the loop's current iteration.
+
+Walking through the track sequentially helps to illustrate this logic:
+
+- Loop 1
+  * Beat 1: `Em9`
+  * Beat 2: `C`
+- Loop 2
+  - Beat 1: `Em9`
+  - Beat 2: `C/D`
+- Loop 3
+  - Beat 1: `Em9`
+  - Beat 2: `C`
+- Loop 4
+  - Beat 1: `Em9`
+  - Beat 2: `C/D`
+
+Notice how each loop iteration alternates between the chords `C` and `C/D` on the second beat.
+
+The condition of our first `when` is `{ 1 3 }`, which says "do this on iterations 1 or 3".
+The condition of our second `when` has the same logic but instead applies to iterations 2 and 4.
+
+By using some of `bach`'s additional `when` conditions, the previous example can be simplified further:
+
+```bach
+4 of [
+  1 -> Chord('Em9')
+  when odd? do { Chord('C') }
+  when even? do { Chord('C/D') }
+]
+```
+
+We achieve the exact same result, but with two benefits by using `odd?` and `even?`:
+ - They are semantic and easier to read and understand
+ - They do not need to be updated if we change the number of loop iterations (say, from 4 to 8)
+
+Now that we understand `when` conditions in a basic sense, we will now cover all of the supported conditions.
+
+#### Conditions
+
+All `when` conditions are applied to the current repeat/iteration of a loop (during parsing, playback, etc.).
+
+**Integer**
+
+If a condition is an integer (e.g. 1, 5, 12) then it will only match on that iteration.
+
+**Not**
+
+If a condition is prefixed with `!` it will be negated.
+
+In other words, instead of saying "if the iteration matches this condition", you're saying "if the iteration does NOT match this condition".
+
+This example loops over a list 4 times but only plays `Chord('B')` on iterations 1, 2, and 4 (in other words, "not 3").
+
+```bach
+4 of [
+  1 -> Chord('A')
+  when !3 do { 1 -> Chord('B') }
+  1 -> Chord('C')
+]
+```
+
+This results in the following playback sequence:
+
+```
+A B C
+A B C
+A B 
+A B C
+```
+
+**Comparison**
+
+Several keywords are supported for common comparisons.
+
+ - `gt? 1`
+   * Match iterations greater than 1
+ - `gte? 1`
+   * Match iterations greater than or equal to 1
+ - `lt? 4`
+   * Match iterations less than 4
+ - `lte? 4`
+   * Match iterations less than or equal to 4
+ - `factor? 4`
+   * Match iterations that are divisible by 4 (i.e. every 4th iteration)
+ - `even?`
+   * Match iterations that are even (i.e. divisible by 2, same as `factor? 2`)
+ - `odd?`
+   * Match iterations that are odd (i.e. not divisible by 2)
+ - `first?`
+   * Match the first iteration (semantic alias for `1`)
+ - `last?`
+   * Match the last iteration
+ - `2..4`
+   * Match any iteration between 2 and 4 (inclusive)
+
+**Any**
+
+If a condition is in curly braces (`{ }`), it will match if **any** conditions nested in the braces match the current iteration.
+
+- `when { 1 3 } do`
+  * Match if the iteration is 1 or 3
+- `when !{ 1 4 } do`
+  * Match iterations other than 1 and 4
+- `when { odd? last? } do`
+  * Match odd iterations and the last iteration
+
+**All**
+
+If a condition is in brackets (`[ ]`), it will match if **all** of the conditions nested in the brackets match the current iteration.
+
+- `when [factor? 3 gte? 6] do`
+  * Match iterations that are a factor of 3 and greater than or equal to 6
+- `when [even? !{ 2 6 }] do`
+  * Match iterations that are even but not 2 or 6
+
+### Nesting
 
 Nesting, in the most general sense, is whenever you have one thing that contains another. You can think of it as a way to describe the general pattern of a hierarchy.
 
@@ -358,12 +514,12 @@ You can also say that the set is nested within the list, or even that the list i
 
 But when we talk about nesting in `bach` it can be assumed that we are referring to collection nesting, unless it's stated otherwise.
 
-##### Usage
+#### Usage
 
 The most common use case for nesting is when you define a set within a beat in order to group multiple elements together, as in the first beat of the example we've been focusing on.
 
 ```bach
-!Play [
+play! [
   4 -> {
     Scale('B minor')
     Chord('Bm')
@@ -375,26 +531,148 @@ With the help of some whitespace, we can naturally see that the beat is nested i
 
 Whenever we can identify a point where nesting occurs in the hierarchy, we call this a "level". The list at the top of the track would be at the first level of nesting, the beats in that list on the second level and so on.
 
-##### Rules
+#### Rules
 
-In the spirit of keeping `bach` simple and understandable, collection nesting is limited to the following rules:
+The following rules apply to the first level of nesting:
 
- - Lists may contain sets
- - Lists may **not** contain other lists
- - Sets may **not** contain sets or lists
+ - Collections refer to Lists, Sets and Loops
+ - Lists and Sets may contain any Collection
+ - Loops and Whens may only contain Lists or Sets
+ - Beats may only contain Sets
 
-As a result, lists **cannot** be nested in another collection at _any_ level.
+These rules do **not** influence or limit deeper nesting levels.
 
-##### Formatting
+For example, although loops may only contain lists or sets, _those_ lists/sets
+may contain loops:
 
-For each level of nesting, it's suggested that you indent the text with two spaces.
+```
+:a = [1/2 -> chord('A') 1/2 -> chord('E')]
+:b = [1/2 -> chord('B') 1/2 -> chord('G')]
+
+4 of [
+  2 of :a
+  3 of :b
+]
+```
+
+#### Variations
+
+These minimal nesting rules empower you with a high degree of flexibility with how you
+organize your tracks.
+
+It also encourages people to discover, establish and refine conventions.
+
+Lets explore some of the different ways you could use nesting to represent the track.
+
+Say we have the following track, representing the harmony of a funk song:
+
+```bach
+:a = [
+  7/8 -> {
+    Scale('C# mixolydian')
+    Chord('C#')
+  }
+  9/8 -> Chord('B')
+]
+
+:b = [
+  1 -> {
+    Scale('C# mixolydian')
+    Chord('C#')
+  }
+  1 -> Chord('B')
+]
+
+:c = [
+  1/2 -> Chord('F#')
+  3/8 -> Chord('E')
+  9/8 -> Chord('C#')
+]
+
+play! [:a :b :b :b :c :c :c :c]
+```
+
+There's a couple of new things going on here. We have broken out the individual repeated sections of the track and labeled them as `:a`, `:b`, and `:c`.
+
+We then `play!` a list that will play part `:a` 1 time, part `:b` 3 times and part `:c` four times.
+
+Labeling these repeated sections is key here because it allows them to be defined only once but re-used endlessly.
+
+This not only helps keep your tracks succinct and well-organized, but it also makes changes
+easier to perform later since you only have to perform them in one place.
+
+Of course, you are not forced to use labels whatsoever and can still produce well-organized and readable tracks using other strategies.
+
+Here is the same track using loops instead of labels:
+
+```bach
+play! [
+  7/8 -> {
+    Scale('C# mixolydian')
+    Chord('C#')
+  }
+  9/8 -> Chord('B')
+
+  3 of [
+    1 -> {
+      Scale('C# mixolydian')
+      Chord('C#')
+    }
+    1 -> Chord('B')
+  ]
+
+  4 of [
+    1/2 -> Chord('F#')
+    3/8 -> Chord('E')
+    9/8 -> Chord('C#')
+  ]
+]
+```
+
+This track, in my opinion, is even easier to read and understand because you don't
+have to refer back and forth between the labeled values and `play!` - it's just all in
+one convenient place.
+
+The key lesson here is that nesting allows the same track to be written and organized
+any number of ways, so you should always be open to experimenting with different
+approaches.
+
+With that said, when you're writing tracks with a team of people, it's important
+to favor consistency over experimentation.
+
+In this case its best to establish conventions that ensure everybody's productivity
+is high. Although they should be consistently applied, these conventions should be
+kept open to iteration and change, adapting to whatever your team finds best over time.
+
+Here are some other approaches and styles to consider:
+ - Using lists to indicate measures, which is more natural for sheet music readers.
+
+```bach
+play! [
+  [ 1/2 -> Chord('E') 1/2 -> Chord('C#m') ]
+  [ 1/2 -> Chord('E') 1/2 -> Chord('B') ]
+]
+```
+
+ - Grouping/sectioning your lists by element (e.g. scale, chord, etc.) and then bringing them together as a set
+
+```bach
+:scales = [ 1 -> Scale('E aeolian') ]
+:chords = [ 3/8 -> Chord('Em9') 5/8 -> Chord('C') ]
+
+play! { :scales :chords }
+```
+
+#### Formatting
+
+For each level of nesting it's suggested that you indent the text with two spaces.
 
 This helps keep your tracks visually well organized, and therefore easier to read, understand and change later.
 
 The general consensus is that, although it takes up more visual space, this:
 
 ```
-!Play [
+play! [
   4 -> {
     Scale('B minor')
     Chord('Bm')
