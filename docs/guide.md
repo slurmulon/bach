@@ -69,14 +69,14 @@ We will begin by looking at a real-world example of a track, and this track will
 The following track represents the chord progression of a soul song.
 
 ```bach
-@Meter = 4|4
-@Tempo = 175
+@meter = 4|4
+@tempo = 175
 
 :B = Chord('Bm')
 :E = Chord('Em')
 :F = Chord('F#m7')
 
-!Play [
+play! [
   2 -> {
     Scale('B minor')
     :B
@@ -176,11 +176,11 @@ Headers are defined using the `@` character, followed by a unique name, an equal
 This example shows how to specify the meter and tempo of a track:
 
 ```bach
-@Meter = 3|4
-@Tempo = 110
+@meter = 3|4
+@tempo = 110
 ```
 
-`bach` allows you to define any headers you like, but `@Meter` and `@Tempo` are special and reserved since they influence how `bach` calculates beat durations.
+`bach` allows you to define any headers you like, but `@meter` and `@tempo` are special and reserved since they influence how `bach` calculates beat durations.
 
 You can find a list of useful headers in the [Syntax](/syntax#useful) document, but be aware that supporting these headers involves customizing your `bach` interpreter, a task that requires external code changes.
 
@@ -193,7 +193,7 @@ The meter header of a track defines its time signature, which specifies two impo
 The following meter tells `bach` that the track has 5 beats in a measure and that an 1/8th note is the beat unit, or the value of an individual beat.
 
 ```bach
-@Meter = 5|8
+@meter = 5|8
 ```
 
 When a meter header is not specified in your track, `bach` assumes you are using common time (`4|4`).
@@ -562,7 +562,7 @@ organize your tracks.
 
 It also encourages people to discover, establish and refine conventions.
 
-Lets explore some of the different ways you could use nesting to represent the track.
+Lets explore some of the different ways you could use nesting to represent a track.
 
 Say we have the following track, representing the harmony of a funk song:
 
@@ -592,7 +592,7 @@ Say we have the following track, representing the harmony of a funk song:
 play! [:a :b :b :b :c :c :c :c]
 ```
 
-There's a couple of new things going on here. We have broken out the individual repeated sections of the track and labeled them as `:a`, `:b`, and `:c`.
+There's a couple of new things going on here. We have broken out the individual repeated sections of the track and labeled them as `:a`, `:b`, and `:c` (using [Variables](#variables)).
 
 We then `play!` a list that will play part `:a` 1 time, part `:b` 3 times and part `:c` four times.
 
@@ -683,7 +683,7 @@ play! [
 is easier to read and understand than this:
 
 ```
-!Play [ 4 -> { Scale('B minor') Chord('Bm') } ]
+play! [ 4 -> { Scale('B minor') Chord('Bm') } ]
 ```
 
 But of course this ultimately comes down to your personal preferences and individual use cases.
@@ -705,14 +705,14 @@ Therefore the duration not only specifies how long a beat is played for in a lis
 The value of a duration can be an integer, a fraction, or a mathematical expression composed of either.
 
 ```
-1    = Whole note (or one entire measure when `@Meter = 4|4`
+1    = Whole note (or one entire measure when `@meter = 4|4`
 1/2  = Half note
 1/4  = Quarter note
 1/8  = Eighth note
 1/16 = Sixteenth note
 
-1/128 = Minimum duration
-1024  = Maximum duration
+1/512 = Minimum duration
+512   = Maximum duration
 
 2 + (1/2) = Two and a half whole notes
 2 * (6/8) = Two measures when the meter is 6|8
@@ -721,17 +721,28 @@ The value of a duration can be an integer, a fraction, or a mathematical express
 1 - (1/8) = Seven eigth notes
 ```
 
-To adhere with music theory, durations are strictly based on **common time** (`@Meter = 4|4`).
+`bach` also provides useful aliases for certain durations:
+
+```
+bar  = Whole measure based on meter
+beat = Single beat based on meter
+2n   = Half note
+4n   = Quarter note
+8n   = Eigth note
+16n  = Sixteenth note
+```
+
+To adhere with music theory, numerical durations are strictly based on **common time** (`@meter = 4|4`).
 
 This means that `1` always means four quarter notes, and only equates with a full measure when the number of beats in a measure is 4 (as in `4|4`, `3|4`, `5|4`, etc.).
 
-The examples in the remainder of this section assume common time, since this is the default when a `@Meter` header is not provided.
+The examples in the remainder of this section assume common time, since this is the default when a `@meter` header is not provided.
 
 #### Examples
 
 We have already encountered several examples of durations throughout the guide, so let's now take a more focused look at durations in order to understand them hollistically.
 
-A list playing a `Note('C2')` for an entire measure, starting at the first beat in the measure, would be specified like so:
+A list playing a `Note('C2')` for an entire measure in common time, starting at the first beat in the measure, would be specified like so:
 
 ```
 [1 -> Note('C2')]
@@ -757,7 +768,7 @@ is the same as this:
 [Note('C2'), Note('F2')]
 ```
 
-Beat durations can also use basic mathematical operators (i.e. add, subtract, multiply, divide).
+Numerical beat durations can also use basic mathematical operators (i.e. add, subtract, multiply, divide).
 
 This makes the translation between sheet music and `bach` an easy task.
 
@@ -778,9 +789,9 @@ It's also usefeul for specifying more complicated rhythms:
 They also let you work (sanely) with less common meters such as `6|8`:
 
 ```
-@Meter = 6|8
+@meter = 6|8
 
-!Play [
+play! [
   6/8 -> Chord('Dmin')
   6/8 -> Chord('Dmin/F')
   6/8 -> Chord('E7b9')
@@ -792,6 +803,22 @@ They also let you work (sanely) with less common meters such as `6|8`:
 It's worth noting how the last chord, `A7`, is played for two measures (via `2 * 6/8`).
 
 If we were using the `4|4` meter, we would just say `2` instead since all durations are based on common time.
+
+Using duration aliases, we can simplify the track even further:
+
+```
+@meter = 6|8
+
+play! [
+  bar -> Chord('Dmin')
+  bar -> Chord('Dmin/F')
+  bar -> Chord('E7b9')
+  bar -> Chord('Bb7')
+  2 * bar -> Chord('A7')
+]
+```
+
+This is also less affected by changes to the meter, since `bar` always means 1 measure.
 
 ### Variables
 
@@ -820,14 +847,14 @@ Our primary example track already uses variables, so let's compare and see what 
 Here is how the track looks as-is, with variables.
 
 ```bach
-@Meter = 4|4
-@Tempo = 44
+@meter = 4|4
+@tempo = 44
 
 :B = Chord('Bm')
 :E = Chord('Em')
 :F = Chord('F#m7')
 
-!Play [
+play! [
   4 -> {
     Scale('B minor')
     :B
@@ -842,10 +869,10 @@ Here is how the track looks as-is, with variables.
 Here's how it looks without any variables:
 
 ```bach
-@Meter = 4|4
-@Tempo = 44
+@meter = 4|4
+@tempo = 44
 
-!Play [
+play! [
   4 -> {
     Scale('B minor')
     Chord('Bm')
@@ -878,9 +905,9 @@ These limits are beneficial and justified, but right now they inhibit how much l
 Consider the following track:
 
 ```bach
-@Tempo = 130
+@tempo = 130
 
-!Play [
+play! [
   16 -> {
     Scale('E mixolydian')
     Chord('E')
@@ -912,7 +939,7 @@ The natural instinct is to assign this part to a variable as its own list.
 This would reduce duplication in the track quite a bit:
 
 ```bach
-@Tempo = 130
+@tempo = 130
 
 :Part = [
   1 -> Chord('A')
@@ -921,7 +948,7 @@ This would reduce duplication in the track quite a bit:
   4 -> Chord('E')
 ]
 
-!Play [
+play! [
   16 -> {
     Scale('E mixolydian')
     Chord('E')
@@ -944,15 +971,15 @@ In the near future `bach` will elegantly handle this situation, but for now this
 
 ### Play
 
-The final but arguably most important element in `bach` is `!Play`.
+The final but arguably most important element in `bach` is `play!`.
 The reason it's so important is because it specifies the main entrypoint of a track.
 
-In other words, `bach` looks for the `!Play` element first and foremost, then it processes everything referenced by `!Play` from there.
+In other words, `bach` looks for the `play!` element first and foremost, then it processes everything referenced by `play!` from there.
 
 ```bach
-@Tempo = 82
+@tempo = 82
 
-!Play [
+play! [
   8 -> {
     Scale('G mixolydian')
     Chord('G7')
@@ -962,7 +989,7 @@ In other words, `bach` looks for the `!Play` element first and foremost, then it
 ]
 ```
 
-Only one `!Play` element is allowed and expected per track, and anything that isn't referenced by the element will be **ignored** during processing.
+Only one `play!` element is allowed and expected per track, and anything that isn't referenced by the element will be **ignored** during processing.
 
 ## Authoring
 
