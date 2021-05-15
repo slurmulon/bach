@@ -11,14 +11,14 @@ If you have suggestions or want to contribute example tracks yourself, please he
 ## Basic
 
 ```bach
-@Meter = 4|4
-@Tempo = 128
+@meter = 4|4
+@tempo = 128
 
 :B = Chord('Bm')
 :E = Chord('Em')
 :F = Chord('F#m7')
 
-!Play [
+play! [
   1 -> {
     Scale('B minor')
     :B
@@ -31,10 +31,10 @@ If you have suggestions or want to contribute example tracks yourself, please he
 ```
 
 ```bach
-@Meter = 4|4
-@Tempo = 169
+@meter = 4|4
+@tempo = 169
 
-!Play [
+play! [
   7/8 -> {
     Scale('A aeolian')
     Chord('F')
@@ -45,10 +45,10 @@ If you have suggestions or want to contribute example tracks yourself, please he
 ```
 
 ```bach
-@Meter = 4|4
-@Tempo = 130
+@meter = 4|4
+@tempo = 130
 
-!Play [
+play! [
   3/8 -> {
     Scale('G aeolian')
     Chord('Gmin')
@@ -64,10 +64,10 @@ If you have suggestions or want to contribute example tracks yourself, please he
 ### Compound meters
 
 ```bach
-@Meter = 12|8
-@Tempo = 150
+@meter = 12|8
+@tempo = 150
 
-!Play [
+play! [
   12/8 -> {
     Scale('A minor')
     Chord('A')
@@ -90,10 +90,10 @@ If you have suggestions or want to contribute example tracks yourself, please he
 ### Mixed meters
 
 ```bach
-@Meter = 5|8
-@Tempo = 150
+@meter = 5|8
+@tempo = 150
 
-!Play [
+play! [
   3/8 -> {
     Scale('D dorian')
     Chord('Dm9')
@@ -103,10 +103,10 @@ If you have suggestions or want to contribute example tracks yourself, please he
 ```
 
 ```bach
-@Meter = 3|4
-@Tempo = 132
+@meter = 3|4
+@tempo = 132
 
-!Play [
+play! [
   6/4 -> {
     Scale('C# phrygian')
     Chord('C#m')

@@ -80,7 +80,7 @@ The executable currently supports the following actions:
   (:require [bach.track :refer [compose]]))
 
 ; Parses, optimizes and compiles bach data into an interpretable hash-map
-(compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
+(compose "play! [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
 
 #### Repl
@@ -92,7 +92,7 @@ $ lein -U repl
 ```clojure
 (use 'bach.track :reload)
 
-(compose "!Play [1 -> Chord('A'), 1 -> Chord('C')]")
+(compose "play! [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
 
 #### Testing
@@ -152,8 +152,8 @@ const bach = require('bach-cljs').default
 ```js
 import bach from 'bach-cljs'
 
-const json = bach(`@Tempo = 65
-  !Play [
+const json = bach(`@tempo = 65
+  play! [
     1 -> Chord('E')
     1/2 -> Chord('G#min')
     1/2 -> Chord('B')

@@ -29,18 +29,26 @@ An [Extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Bac
 ## Preview
 
 ```bach
-@Tempo = 159
-@Meter = 6|8
+@Tempo = 135
 
-!Play [
-  1 * 6/8 -> {
-    Scale('D minor')
-    Chord('Dmin')
-  }
-  1 * 6/8 -> Chord('Dmin/F')
-  1 * 6/8 -> Chord('E7b9')
-  1 * 6/8 -> Chord('Bb7')
-  2 * 6/8 -> Chord('A7')
+play! [
+  4 of [
+    3/8 -> {
+      Scale('E aeolian')
+      Chord('Em')
+    }
+    5/8 -> Chord('Am')
+    3/8 -> Chord('Bm')
+    5/8 -> Chord('Cmaj7')
+  ]
+
+  2 of [
+    1 -> Chord('Am')
+    3/4 -> Chord('A')
+    1/4 -> Chord('B')
+    when 1 do { 2 -> Chord('E') }
+    when 2 do { 2 -> Chord('B7b13') }
+  ]
 ]
 ```
 
@@ -160,11 +168,11 @@ The duration is defined on the left-hand side while the associated `Element` is 
 
 ## Collections
 
-A `Collection` refers to a `List` or a `Set` of data, or some [combination of both](#nesting).
+A `Collection` refers to a `List`, `Set`, `Loop` or some [combination](#nesting) of them.
 
 ### Lists
 
-A `List` is an ordered `Collection` of `Beats` or `Elements` and is fundamental in defining rhythms.
+A `List` is an ordered `Collection` of `Beats` or `Collections` and is fundamental in defining rhythms.
 
 `Beats` defined in `Lists` will be played sequentially in the natural order (left to right, or top to bottom) and will **not** overlap.
 
@@ -186,11 +194,11 @@ A `List` is an ordered `Collection` of `Beats` or `Elements` and is fundamental 
 
 ### Sets
 
-`Elements` defined in `Sets` are order independent and will be played in parallel.
+`Elements` defined in `Sets` are order independent and will be played simultaneously.
 
 `Sets` are primarily useful for grouping multiple `Elements` together at a certain point in time.
 
-`Sets` may contain any number of `Elements`.
+`Sets` may contain any number of `Elements` or `Collections`.
 
 `Sets` may **not** contain `Beats` since the duration value is irrelevant.
 
@@ -204,6 +212,63 @@ A `List` is an ordered `Collection` of `Beats` or `Elements` and is fundamental 
 
 ```
 { Scale('E lydian'), Chord('E') }
+```
+
+### Loops
+
+`Loops` allow you to repeat identical collections multiple times over.
+
+`Loops` may only contain `Lists` and `Sets`.
+
+#### Syntax
+
+```
+<integer> of <list|set>
+```
+
+#### Examples
+
+```
+4 of [1 -> Chord('A'), 1 -> Chord('E')]
+```
+
+```
+4 of [
+  2 of [1/2 -> chord('A'), 1/2 -> chord('E')]
+  3 of [1/2 -> chord('B'), 1/2 -> chord('G')]
+]
+```
+
+### Whens
+
+`Whens` extend `Loops` with basic numeric conditions.
+
+They are a powerful tool for reducing duplication without sacrificing expressiveness.
+
+`Whens` may only be defined in a loop, at any nesting level.
+
+`Whens` match their conditions against the "current" loop iteration (by number, starting at 1) as the track is linearly traversed.
+
+For a complete list of supported `when` conditions, visit the [Guide](#guide)
+
+#### Syntax
+
+```
+<loop> [
+  when <condition> do <set|list>
+]
+```
+
+#### Example
+
+```
+2 of [
+  1 -> Chord('Am')
+  3/4 -> Chord('A')
+  1/4 -> Chord('B')
+  when 1 do { 2 -> Chord('E') }
+  when 2 do { 2 -> Chord('B7b13') }
+]
 ```
 
 ### Nesting
@@ -366,6 +431,7 @@ Only one `!Play` definition is allowed per track file.
 ### Collections
  - `[]` = List (sequential / ordered)
  - `{}` = Set (parallel / unordered)
+ - `<t> of <c>` = Loop (`t` = Times/repeats, `c` = collection)
 
 ### Headers
 
@@ -397,8 +463,84 @@ Only one `!Play` definition is allowed per track file.
 
  - `'foo'` or `"bar"` = string
  - `123` or `4.5` = number
- - `#000000` or `#fff` = color
+ - `true` or `false` = boolean
 
+### Durations
+
+ - `bar` = 1 measure (based on `@meter`)
+ - `beat` = 1 beat unit (based on `@meter`)
+ - `2n` = Half note
+ - `4n` = Quarter note
+ - `8n` = Eigth note
+ - `16n` = Sixteenth note
+ - `32n` = Thirty-second note
+ - `64n` = Sixty-fourth note
+
+### Whens
+
+#### Expressions
+
+**Any**
+
+`when {} do`
+
+Logical "or" operator. Matches if any of the inner conditions match.
+
+ - `when { 2 4 8 } do`
+   * Play on iterations 2, 4 and 8
+ - `when { first? last? } do`
+   * Play on the first and last iterations
+ - `when { even? 3 } do`
+   * Play on iterations that are even or equal to 3
+ - `when { last? lt? 4 } do`
+   * Play on iterations less than 4 and the last iteration
+
+**All**
+
+`when [] do`
+
+Logical "and" operator. Matches if all of the inner conditions match.
+
+ - `when [ odd? gt? 2 ] do`
+   * Play on iterations that are odd and greater than 2
+ - `when [ 4..16, factor? 4 ] do`
+   * Play on iterations that are between 4 and 16 and a factor of 4
+
+**Not**
+
+`when !1  do`
+
+Logical "not" operator.
+
+Negates any condition (or sub-condition) of a `when`.
+
+ - `when !1 do`
+   * Play on iterations that are not 1
+ - `when !{ factor? 2 gt? 4 } do`
+   * Play on iterations that are neither a factor of 2 or greater than 4
+
+#### Comparisons
+
+ - `gt? 1`
+   * Match iterations greater than 1
+ - `gte? 1`
+   * Match iterations greater than or equal to 1
+ - `lt? 4`
+   * Match iterations less than 4
+ - `lte? 4`
+   * Match iterations less than or equal to 4
+ - `factor? 4`
+   * Match iterations that are divisible by 4 (i.e. every 4th iteration)
+ - `even?`
+   * Match iterations that are even (i.e. divisible by 2, same as `factor? 2`)
+ - `odd?`
+   * Match iterations that are odd (i.e. not divisible by 2)
+ - `first?`
+   * Match the first iteration (semantic alias for `1`)
+ - `last?`
+   * Match the last iteration
+ - `2..4`
+   * Match any iteration between 2 and 4 (inclusive)
 
 ## Conventions
 

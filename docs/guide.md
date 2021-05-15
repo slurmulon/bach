@@ -375,8 +375,8 @@ This is achieved by using `when`, which must be defined inside of a loop.
 ```bach
 4 of [
   1 -> Chord('Em9')
-  when { 1 3 } do { Chord('C') }
-  when { 2 4 } do { Chord('C/D') }
+  when { 1 3 } do { 1 -> Chord('C') }
+  when { 2 4 } do { 1 -> Chord('C/D') }
 ]
 ```
 
@@ -426,7 +426,7 @@ Now that we understand `when` conditions in a basic sense, we will now cover all
 
 #### Conditions
 
-All `when` conditions are applied to the current repeat/iteration of a loop (during parsing, playback, etc.).
+All `when` conditions are applied to the current repeat/iteration of the closest parent loop (during parsing, playback, etc.).
 
 **Integer**
 
@@ -436,7 +436,7 @@ If a condition is an integer (e.g. 1, 5, 12) then it will only match on that ite
 
 If a condition is prefixed with `!` it will be negated.
 
-In other words, instead of saying "if the iteration matches this condition", you're saying "if the iteration does NOT match this condition".
+Instead of saying "if the iteration matches this condition", you're saying "if the iteration does NOT match this condition".
 
 This example loops over a list 4 times but only plays `Chord('B')` on iterations 1, 2, and 4 (in other words, "not 3").
 
@@ -730,6 +730,8 @@ beat = Single beat based on meter
 4n   = Quarter note
 8n   = Eigth note
 16n  = Sixteenth note
+32n  = Thirty-second note
+64n  = Sixty-fourth note
 ```
 
 To adhere with music theory, numerical durations are strictly based on **common time** (`@meter = 4|4`).
@@ -740,7 +742,7 @@ The examples in the remainder of this section assume common time, since this is 
 
 #### Examples
 
-We have already encountered several examples of durations throughout the guide, so let's now take a more focused look at durations in order to understand them hollistically.
+We have already encountered many examples of durations throughout the guide, so let's now take a more focused look at durations in order to understand them hollistically.
 
 A list playing a `Note('C2')` for an entire measure in common time, starting at the first beat in the measure, would be specified like so:
 
@@ -824,6 +826,8 @@ This is also less affected by changes to the meter, since `bar` always means 1 m
 
 More often than not you will need to play the same element multiple times in a track.
 
+If you've followed the guide linearly then you have already encountered this concept and have seen variables used.
+
 Variables allow you to assign a name to a value and then reference that value later by the variable's name.
 
 This helps to reduce duplication and human error and makes changing the track much easier later on.
@@ -892,83 +896,6 @@ If you use a value more than once it's recommended that you always assign it to 
 
 If you only use a value once, as is the case with `Scale('B minor')`, then it's up to you whether not to assign it to a variable.
 
-#### Limitations
-
-As of now there are a couple of limitations to variables regarding lists.
-
-Assigning a list to a variable is perfectly valid, but there are currently some undesirable limitations that prevent lists from being combined and re-used.
-
-As we discussed earlier, collection nesting, particularly around lists, is limited by design.
-
-These limits are beneficial and justified, but right now they inhibit how much lists can benefit from variables.
-
-Consider the following track:
-
-```bach
-@tempo = 130
-
-play! [
-  16 -> {
-    Scale('E mixolydian')
-    Chord('E')
-  }
-
-  1 -> Chord('A')
-  1/2 -> Chord('C')
-  1/2 -> Chord('B7')
-  4 -> Chord('E')
-
-  1 -> Chord('A')
-  1/2 -> Chord('C')
-  1/2 -> Chord('B7')
-  4 -> Chord('E')
-]
-```
-
-Note how one part in the list is repeated:
-
-```bach
-1 -> Chord('A')
-1/2 -> Chord('C')
-1/2 -> Chord('B7')
-4 -> Chord('E')
-```
-
-The natural instinct is to assign this part to a variable as its own list.
-
-This would reduce duplication in the track quite a bit:
-
-```bach
-@tempo = 130
-
-:Part = [
-  1 -> Chord('A')
-  1/2 -> Chord('C')
-  1/2 -> Chord('B7')
-  4 -> Chord('E')
-]
-
-play! [
-  16 -> {
-    Scale('E mixolydian')
-    Chord('E')
-  }
-
-  :Part
-  :Part
-]
-```
-
-The issue is that, at least right now, `bach` will interpret this as a list nested in a list, and this is not supported.
-
-The ideal behavior would be for `bach` to sort of merge `:Part` into the main list, that way `bach` only deals with one list and avoids violating the nesting constraints.
-
-This lacking feature is especially problematic for complex or long tracks that repeat not only the same musical elements but also the same phrases or parts several times over.
-
-In the near future `bach` will elegantly handle this situation, but for now this must be noted as a limitation to work around.
-
-> If you are a programmer who is interested in contributing to `bach` and solving this problem, please check out the [Contribute](/contribute) page.
-
 ### Play
 
 The final but arguably most important element in `bach` is `play!`.
@@ -992,7 +919,6 @@ play! [
 Only one `play!` element is allowed and expected per track, and anything that isn't referenced by the element will be **ignored** during processing.
 
 ## Authoring
-
 
 Now that you are familiar with the fundamentals, we can begin putting `bach` to practical use by authoring some tracks.
 
@@ -1018,8 +944,6 @@ You can find a collection of open-source example tracks in the [Examples](exampl
 
  - New project that is still taking shape and finding its place in the world (so, there's not much tooling, yet :sob:)
  - No interpretation or application of music theory, such as the notes that make up a scale or code (this is the responsibility of [`bach-js`](/dev#bach-js))
- - No reserved aliases for common semantic durations (e.g. `:bar`, `1/2 * :bar`, etc)
  - No official support yet for clef
  - No official semantics around instruments (you can use an `@Instrument` header to indicate this)
- - No local repeater symbols, all tracks are currently considered loopable by default
  - Converting `bach.json` into `bach` again (i.e. inverse conversion) is not supported yet
