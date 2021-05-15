@@ -478,3 +478,42 @@
       (testing "odd")
       (testing "last")
       (testing "first"))))
+
+(deftest comments
+  (testing "basic"
+    (let [code "## Hello"
+          want [:track [:statement]]]
+      (is (= want (parse code)))))
+  (testing "nested"
+    (testing "in list"
+      (let [code "[ 1 -> Chord('A')\n## Ignore\n 2 -> Chord('B') ]"
+            want [:track
+                  [:statement
+                   [:list
+                    [:beat
+                     [:int "1"]
+                     [:atom
+                      [:keyword [:name "Chord"]]
+                      [:arguments [:string "'A'"]]]]
+                    [:beat
+                     [:int "2"]
+                     [:atom
+                      [:keyword [:name "Chord"]]
+                      [:arguments [:string "'B'"]]]]]]]]
+        (is (= want (parse code)))))
+    (testing "in set"
+      (let [code "{ 1 -> Chord('A')\n## Ignore\n 2 -> Chord('B') }"
+            want [:track
+                  [:statement
+                   [:set
+                    [:beat
+                     [:int "1"]
+                     [:atom
+                      [:keyword [:name "Chord"]]
+                      [:arguments [:string "'A'"]]]]
+                    [:beat
+                     [:int "2"]
+                     [:atom
+                      [:keyword [:name "Chord"]]
+                      [:arguments [:string "'B'"]]]]]]]]
+        (is (= want (parse code)))))))

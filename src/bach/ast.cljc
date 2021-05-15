@@ -19,7 +19,7 @@
     <expr>     = term | add | sub
     <entity>   = atom | coll | beat | identifier
     <elem>     = entity | prim | expr
-    <item>     = [<empty>] entity | when [<empty>]
+    <item>     = [<empty>] entity | when | <comment> [<empty>]
     <seq>      = list | loop
     <coll>     = seq | set
     <prim>     = string | number | meter
@@ -59,7 +59,7 @@
     float      = #'(0|([1-9][0-9]*))(\\.[0-9]+)+'
     <number>   = int | float
     <empty>    = #'(\\r\\n|\\n|\\r|\\s)*'
-    <comment>  = #'#{2}(.*?)(\\n|\\r)'
+    <comment>  = #'#{2}(.+)'
 
     (* Math *)
     add = term <'+'> expr
