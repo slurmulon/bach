@@ -61,6 +61,47 @@ play! [
 
 ## Advanced
 
+### Common meter
+
+```
+@tempo = 108
+
+:A = [
+  3/8 -> {
+    Scale('E aeolian')
+    Chord('Em9')
+  }
+  5/8 -> Chord('C')
+  3/8 -> Chord('Em9')
+  4/8 -> Chord('C')
+  9/8 -> Chord('C/D')
+]
+
+:B = [
+  3/8 -> Chord('B')
+  5/8 -> Chord('Em9')
+  1 -> Chord('Em9')
+]
+
+:C = [
+  3/8 -> Chord('B')
+  5/8 -> Chord('G')
+  1 -> Chord('G')
+]
+
+play! [
+  7 of :A
+  2 of :B
+  3 of [
+    :C
+    when !{ last? } do { :B }
+  ]
+  3/8 -> Chord('B')
+  5/8 -> Chord('Em9')
+  1 -> Chord('B7b13')
+]
+```
+
 ### Compound meters
 
 ```bach
@@ -84,6 +125,47 @@ play! [
 
   6/8 -> Chord('A7')
   6/8 -> Chord('D7')
+]
+```
+
+```
+@meter = 6|8
+@tempo = 166
+
+:D = Chord('Dm')
+:G = Chord('G7')
+:C = Chord('Cmaj7')
+:F = Chord('Fmaj7')
+:B = Chord('Bm7b5')
+:E = Chord('E7')
+:A = Chord('A7')
+:Am = Chord('Am')
+
+:chorus = [
+  bar -> {
+    :D
+    Scale('A aeolian')
+  }
+  bar -> :G
+  bar -> :C
+  bar -> :F
+  bar -> :B
+  bar -> :E
+  bar -> :Am
+]
+
+play! [
+  3 of [
+    :chorus
+    bar -> :A
+  ]
+  :chorus
+  bar -> :E
+  bar -> :A
+  bar -> :D
+  bar -> :F
+  bar -> :E
+  2 * bar -> :Am
 ]
 ```
 

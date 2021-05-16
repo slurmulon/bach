@@ -240,7 +240,7 @@ _Note how the `Bm7` is surrounded by quotes, specifying this data as a string._
 If you wanted to associate more information with this chord, such as which voicing the chord is in, you can simply add another argument, where each argument beyond the first is separated by a comma:
 
 ```
-Chord('Bm7', voicing: 2, triad: 1)
+Chord('Bm7', voicing: 2, triad: true)
 ```
 
 In this example, the arguments being provided after the chord value are somewhat special because they have a label/name.
@@ -533,14 +533,16 @@ Whenever we can identify a point where nesting occurs in the hierarchy, we call 
 
 #### Rules
 
-The following rules apply to the first level of nesting:
+The following rules always apply:
 
- - Collections refer to Lists, Sets and Loops
  - Lists and Sets may contain any Collection
- - Loops and Whens may only contain Lists or Sets
- - Beats may only contain Sets
+ - Beats may only contain Sets of Elements
 
-These rules do **not** influence or limit deeper nesting levels.
+While these rules apply to the first level of nesting:
+
+ - Loops and Whens may only contain Lists or Sets
+
+These "first level" rules do **not** influence or limit deeper nesting levels.
 
 For example, although loops may only contain lists or sets, _those_ lists/sets
 may contain loops:
