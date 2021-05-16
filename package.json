@@ -2,11 +2,14 @@
   "name": "bach-cljs",
   "version": "2.0.0",
   "description": "Semantic music notation",
-  "main": "index.js",
+  "main": "dist/bach.cjs.js",
+  "module": "dist/bach.esm.js",
+  "browser": "dist/bach.umd.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
+    "@peculiar/webcrypto": "^1.1.7",
     "google-closure-library": "^20210106.0.0",
     "source-map-support": "^0.5.19"
   },
@@ -18,6 +21,8 @@
     "dev": "npx shadow-cljs compile lib && npx shadow-cljs watch lib",
     "build": "npx shadow-cljs release lib",
     "build:esm": "npx shadow-cljs release esm",
+    "build:npm": "npx shadow-cljs release npm",
+    "build:umd": "npx shadow-cljs release umd",
     "repl": "npx shadow-cljs node-repl lib",
     "cljs-repl": "npx shadow-cljs cljs-repl lib",
     "clj-repl": "npx shadow-cljs clj-repl lib",
