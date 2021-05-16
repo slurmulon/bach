@@ -1,6 +1,8 @@
 (ns bach.v3-compose-test
-  (:require #?(:clj [clojure.test :refer [deftest is testing]]
-               :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
+  (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
+               :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
+                      [goog.string :as gstring]
+                      [goog.string.format :as format]])
             [instaparse.core :as insta]
             [bach.compose :as compose]
             [bach.track :as track]))
@@ -8,8 +10,6 @@
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
-;(def next-id! #(do % (swap! id-counter inc)))
-; EXPERIMENT
 (def next-id! bach.data/nano-hash)
 (def next-ids! #(take % (repeatedly next-id!)))
 (def clear! #(do (reset! id-counter 0))) ;(compose/clear!)))
@@ -75,7 +75,7 @@
                duration
                [:atom
                  [:keyword [:name "stub"]]
-                 [:arguments [:string (->> beat last name (format "'%s'"))]]]])}
+                 [:arguments [:string (->> beat last name (#?(:clj format :cljs gstring/format) "'%s'"))]]]])}
     fixture))
 
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
@@ -334,8 +334,6 @@
                      [:beat 1 [:identifier :b]]
                      [:beat 3 [:identifier :z]]]]
               actual (-> tree track/reduce-values compose/normalize-loops)]
-          ; (clojure.pprint/pprint (compose/normalize-collections actual))
-          ; (clojure.pprint/pprint actual)
           (is (= want actual))))
       )))
 
@@ -587,7 +585,6 @@
                    nil
                    nil
                    ["stub.Cubbb1"]]]
-         ; (clojure.pprint/pprint actual)
          (is (= want actual)))))
    (testing "step beats"
      (clear!)
@@ -644,7 +641,6 @@
                     {:duration 8, :elements ["stub.PzwAN0"]}],
                    :duration 8,
                    :index 10}]]
-        ; (clojure.pprint/pprint actual)
         (is (= want actual))))))
 
 ; (clojure.pprint/pprint (->> fixture-a atomize-fixture (conj [:play]) compose/get-play))
@@ -697,7 +693,7 @@
 ;                            compose/get-play
 ;                            compose/normalize-beats))
                            ; compose/normalize-collections)); compose/itemize-beats))
-(clojure.pprint/pprint (-> fixture-bach-a compose/compose))
+; (clojure.pprint/pprint (-> fixture-bach-a compose/compose))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/validate))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/parse compose/get-iterations))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/reduce-iterations))

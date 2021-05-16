@@ -1,9 +1,10 @@
 (ns bach.data
-  (:require [instaparse.core :as insta]
-            [nano-id.core :refer [custom]]
-            #?(:cljs [goog.crypt :as c])
-            #?(:clj [clojure.data.json :as json]
-               :cljs [cljs.reader :as reader])))
+  (:require #?@(:clj [[clojure.data.json :as json]]
+                :cljs [[bach.crypto]
+                       [goog.crypt :as c]
+                       [cljs.reader :as reader]])
+            [instaparse.core :as insta]
+            [nano-id.core :refer [custom]]))
 
 (def from-string #?(:clj clojure.edn/read-string :cljs reader/read-string))
 (def to-json #?(:clj json/write-str :cljs clj->js))

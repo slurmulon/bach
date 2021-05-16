@@ -1,11 +1,14 @@
 (ns bach.v3-integration-test
-  (:require #?(:clj [clojure.test :refer [deftest is testing]]
-               :cljs [cljs.test :refer-macros [deftest is testing run-tests]])
+  (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
+               :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]])
             [instaparse.core :as insta]
             [hiccup-find.core :refer [hiccup-find]]
             [bach.compose :as compose]
             [bach.ast :as ast]
             [bach.track :as track]))
+
+; #?(:cljs
+;    (set! (. js/global -crypto) crypto))
 
 (def fixture-bach-a
   "@Tempo = 150
@@ -291,7 +294,7 @@
 ; (clojure.pprint/pprint (-> fixture-bach-e bach.ast/parse track/digest)) ;track/resolve-durations))
 
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse time))
-(clojure.pprint/pprint (-> fixture-bach-d track/parse time))
+; (clojure.pprint/pprint (-> fixture-bach-d track/parse time))
 ; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable track/get-durations))
 ; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/get-step-beat))
