@@ -12,10 +12,12 @@
             [bach.tree :refer [cast-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
             [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
-(def ^:dynamic *unit-beat* (/ 1 4))
 
 (def uid #(nano-hash %))
+
 (def serialize #?(:clj identity :cljs to-json))
+
+(def ^:dynamic *unit-beat* (/ 1 4))
 
 (defn element->kind
   [elem]
@@ -76,7 +78,7 @@
        (sort-by :duration)))
 
 (defn unit-beat
-  "Establishes the unit (in whole notes) to standardize all durations as."
+  "Establishes the unit (in whole notes) to standardize all beat durations as."
   ([] *unit-beat*)
   ([tree] (tracks/get-step-beat tree)))
 
@@ -110,6 +112,7 @@
 
 (defn unitize-duration
   "Normalizes a duration value into an integer based on a unit value.
+  In other words it determines how many units a duration equates to.
   In practice, this converts raw durations (in whole notes) into q-steps."
   ([duration] (unitize-duration duration *unit-beat*))
   ([duration unit] (int (/ duration unit))))
@@ -268,7 +271,7 @@
 (defn provision-steps
   "Provisions quantized :beat, :play and :stop sequences that describe what
   data is relevant on each step.
-  Although dense, these sequences enable stage-agnostic, context-free and
+  Although dense, these sequences enable state-agnostic, context-free and
   efficient playback by preemptively calculating the state of each quantized step.
   :beat contains the index of the associated normalized beat at each step.
   :play contains the ids of beat elements that should be played at each step.
