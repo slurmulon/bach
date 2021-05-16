@@ -24,7 +24,7 @@
     <coll>     = seq | set
     <prim>     = string | number | meter
     <init>     = <'('> arguments <')'>
-    atom       = [<empty>] keyword [<empty>] init [<empty>]
+    atom       = [<empty>] kind [<empty>] init [<empty>]
 
     set        = [<empty>] <'{'> [item (<','|empty> item)* [<','>]] <'}'> [<empty>]
     list       = [<empty>] <'['> [item (<','|empty> item)* [<','>]] <']'> [<empty>]
@@ -47,8 +47,7 @@
     identifier = [<empty>] <':'> name [<empty>]
     arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
     meta       = <'@'> name
-    (* TODO: Rename to kind *)
-    keyword    = [<empty>] <'~'> | name [<empty>]
+    kind       = [<empty>] <'~'> | name [<empty>]
     play       = <#'(?i)play!'> [<empty>] elem
     meter      = [<empty>] int <'|'> int [<empty>]
     bool       = #'(true|false)'
@@ -59,6 +58,7 @@
     float      = #'(0|([1-9][0-9]*))(\\.[0-9]+)+'
     <number>   = int | float
     <empty>    = #'(\\r\\n|\\n|\\r|\\s)*'
+    (* WARN: This is likely not very optimal. Revisit. *)
     <comment>  = #'#{2}(.+)'
 
     (* Math *)

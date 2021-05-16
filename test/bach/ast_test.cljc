@@ -222,26 +222,26 @@
                    [:set]]]]]]
       (is (= want (parse "[1 -> {}]"))))))
 
-(deftest atoms ; AKA instantiated keywords
+(deftest atoms ; AKA instantiated kinds
   (testing "note"
     (let [want [:track
                 [:statement
                  [:atom
-                  [:keyword [:name "Note"]]
+                  [:kind [:name "Note"]]
                   [:arguments [:string "'C2'"]]]]]]
       (is (= want (parse "Note('C2')")))))
   (testing "scale"
     (let [want [:track
                 [:statement
                  [:atom
-                  [:keyword [:name "Scale"]]
+                  [:kind [:name "Scale"]]
                   [:arguments [:string "'C2 Major'"]]]]]]
       (is (= want (parse "Scale('C2 Major')")))))
   (testing "multiple arguments"
     (let [want [:track
                 [:statement
                  [:atom
-                  [:keyword [:name "Scale"]]
+                  [:kind [:name "Scale"]]
                   [:arguments
                    [:string "'C2 Minor'"]
                    [:div
@@ -493,12 +493,12 @@
                     [:beat
                      [:int "1"]
                      [:atom
-                      [:keyword [:name "Chord"]]
+                      [:kind [:name "Chord"]]
                       [:arguments [:string "'A'"]]]]
                     [:beat
                      [:int "2"]
                      [:atom
-                      [:keyword [:name "Chord"]]
+                      [:kind [:name "Chord"]]
                       [:arguments [:string "'B'"]]]]]]]]
         (is (= want (parse code)))))
     (testing "in set"
@@ -509,11 +509,11 @@
                     [:beat
                      [:int "1"]
                      [:atom
-                      [:keyword [:name "Chord"]]
+                      [:kind [:name "Chord"]]
                       [:arguments [:string "'A'"]]]]
                     [:beat
                      [:int "2"]
                      [:atom
-                      [:keyword [:name "Chord"]]
+                      [:kind [:name "Chord"]]
                       [:arguments [:string "'B'"]]]]]]]]
         (is (= want (parse code)))))))
