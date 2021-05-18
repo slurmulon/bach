@@ -3,7 +3,8 @@
   :url "https://github.com/slurmulon/bach"
   :license {:name "MIT"
             :url "https://opensource.org/licenses/MIT"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [;[org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojure "1.10.0"]
                  [org.clojure/clojurescript "1.8.34"]
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/tools.cli "1.0.194"]
