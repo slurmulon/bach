@@ -196,10 +196,21 @@
     tracks/resolve-values
     normalize-loops
     (insta/transform
-      {:list (fn [& [:as all]] (-> all collect vec))
+      ; {:list (fn [& [:as all]] (-> all collect vec))
+      {:list (fn [& [:as all]] (with-meta (-> all collect vec) {:bach-list true}))
        :set (fn [& [:as all]] (->> all collect (into #{})))
        :atom (fn [[_ kind] [_ & args]] (make-element kind args))
-       :beat #(assoc {} :duration %1 :elements (many %2))})))
+       ; :beat #(assoc {} :duration %1 :elements (many %2))})))
+       :beat #(assoc {} :duration %1 :elements (vec (many %2)))})))
+
+(defn transpose-sets
+  [tree]
+  (cast-tree set?
+    (fn [set-coll]
+      (let [set-items (->> set-coll collect (map #(if (sequential? %) (vec %) [%])))
+            aligned-items (->> set-items transpose (mapv #(into #{} %)))]
+        (if (next aligned-items) aligned-items (first aligned-items))))
+    tree))
 
 (defn transpose-collections
   "Aligns and transposes parallel collection elements of a parsed AST, enabling linear time-invariant iteration by consumers.
@@ -209,24 +220,17 @@
    Ouput: [[#{:a :c} #{:b :d}] :e :f]"
   [tree]
   (->> tree
-       ; normalize-collections
-       ; cast-tree sequential?
-       ;  - unitize duration of each element in the list (root-level) and then return a quantized version of that list
-       (cast-tree set?
-         (fn [set-coll]
-           ; (println "---- transpose set-coll" set-coll (vec (filter (complement nil?) set-coll)))
-           (println "---- transpose set-coll" set-coll (map #(if (sequential? %) (vec %) [%])
-                                (filter (complement nil?) set-coll)))
-           ; (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
-           (let [set-items (map #(if (sequential? %) (vec %) [%])
-                                (filter (complement nil?) set-coll))
-                 aligned-items (->> set-items transpose (mapv #(into #{} %)))]
-                 ; aligned-items (->> set-items
-                 ;                    transpose
-                 ;                    (mapv #(when-not (empty? %) (into #{} %))))]
-                 ; aligned-coll (if (next aligned-items) aligned-items (first aligned-items))]
-             (if (next aligned-items) aligned-items (first aligned-items)))))))
-             ; (filter (complement nil?) aligned-coll))))))
+       normalize-collections
+       transpose-sets))
+       ; (cast-tree set?
+       ;   (fn [set-coll]
+       ;     ; (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
+       ;           ; aligned-coll (if (next aligned-items) aligned-items (first aligned-items))]
+       ;     (let [set-items (->> set-coll
+       ;                          (filter (complement nil?))
+       ;                          (map #(if (sequential? %) (vec %) [%])))
+       ;           aligned-items (->> set-items transpose (mapv #(into #{} %)))]
+       ;       (if (next aligned-items) aligned-items (first aligned-items)))))))
 
 
 (defn unitize-durations
@@ -236,24 +240,61 @@
     #(let [duration (unitize-duration (:duration %) unit)]
        (assoc % :duration duration)) tree))
 
+; (defn synchronize-collections
+;   [tree unit]
+;   (->> (unitize-durations (normalize-collections tree) unit)
+;        (post-tree
+;          #(and (map? %) (:duration %))
+;           (fn [beat]
+;             ; (cons beat (take (- (:duration beat) 1) (repeat nil)))))
+;             (into [beat] (take (- (:duration beat) 1) (repeat nil)))))
+;        ; transpose-sets))
+;        ))
+
+
+
+; quantize-collections
 (defn synchronize-collections
   [tree unit]
   ; (-> tree normalize-collections (unitize-durations unit)))
   (->> (unitize-durations (normalize-collections tree) unit)
-       ; (post-tree #(and (vector? %) (not (map-entry? %)))
-       (cast-tree
-         #(and (vector? %) (not (map-entry? %)))
+  ; (->> (with-meta (unitize-durations (normalize-collections tree) unit) {:root true})
+       (post-tree
+         #(and (not (map-entry? %)) (contains? (meta %) :bach-list) (vector? %))
+       ; (cast-tree
+         ; #(and (vector? %) (not (map-entry? %)))
+         ; #(and (sequential? %) (not (map-entry? %)))
+         ; sequential?
+         ; #(contains? (meta %) :bach-list)
+         ; @see: Same problem discussed here, may need to upgrade to Clojure 1.10
+         ; https://clojure.atlassian.net/browse/CLJ-2031
+         ; #(and (vector? %) (not (map-entry? %)) (contains? (meta %) :bach-list))
+         ; #(and (vector? %) (not (map-entry? %)) (not (contains? (meta %) :root)))
+         ; #(and (vector? %) (not (map-entry? %)))
        ; (post-tree sequential?
        ; (cast-tree vector?
          (fn [seq-coll]
-           (println "seq coll" seq-coll (type seq-coll))
+           (println "--- COL" (type seq-coll) (meta seq-coll) seq-coll)
+           ; (apply list (reduce
            (reduce
              (fn [acc item]
-               (into acc (cons item (take (- (:duration item) 1) (repeat nil)))))
+               (println "---- item" item)
+               ; (into acc (cons item (take (- (:duration item) 1) (repeat nil)))))
+               (if-let [duration (:duration item)]
+                 (into acc (cons item (take (- (:duration item) 1) (repeat nil))))
+                 (into acc (transpose-sets item))))
+                 ; (into #{} item)))
+               ; (if (map? item)
+               ;   (into acc (cons item (take (- (:duration item) 1) (repeat nil))))
+               ;   acc))
+
                ; (into acc (cons item (take (- (:duration item) 1) (repeat #{})))))
              []
              seq-coll)))
-       transpose-collections))
+             ; (into [] seq-coll))))
+       ; transpose-collections))
+       ; transpose-sets))
+))
 
 
 ; defn synchronize-collections
