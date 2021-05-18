@@ -6,6 +6,10 @@
   [is? as tree]
   (clojure.walk/prewalk #(if (is? %) (as %) %) tree))
 
+(defn post-tree
+  [is? as tree]
+  (clojure.walk/postwalk #(if (is? %) (as %) %) tree))
+
 (defn flatten-by
   "Flattens and reduces collection using `by` function."
   [by coll]
@@ -74,12 +78,14 @@
   Input:  [[1 2] [3 4] [5 6] [7 8 9]]
   Output: [[1 3 5 7] [2 4 6 8] [9]]"
   [coll]
-  (mapv (fn [index]
-          (mapv #(get % index)
-                (filter #(contains? % index) coll)))
-        (->> (map count coll)
-             (apply max)
-             range)))
+  (if (empty? coll)
+    (vec coll)
+    (mapv (fn [index]
+            (mapv #(get % index)
+                  (filter #(contains? % index) coll)))
+          (->> (map count coll)
+               (apply max)
+               range))))
 
 (defn linearize-indices
   "Projects the starting indices of each weighted node in coll/tree onto linear space.

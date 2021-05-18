@@ -47,8 +47,11 @@
         hash-gen (fn [n]
                    (->> x
                       hash
+                      ; .toHashCode
                       (iterate #(unsigned-bit-shift-right % 6))
                       (take n)
+                      reverse
+                      ; #?(:cljs reverse)
                       #?(:clj byte-array)))
         hash-id (custom alphabet 6 hash-gen)]
   (hash-id)))

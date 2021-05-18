@@ -1,8 +1,10 @@
 (ns bach.v3-compose-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
-               :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
+               :cljs [[bach.crypto]
+                      [cljs.test :refer-macros [deftest is testing run-tests]]
                       [goog.string :as gstring]
-                      [goog.string.format :as format]])
+                      ; [goog.string.format :as format]])
+                      [goog.string.format]])
             [instaparse.core :as insta]
             [bach.compose :as compose]
             [bach.track :as track]))
@@ -10,9 +12,12 @@
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
-(def next-id! bach.data/nano-hash)
+; (def next-id! bach.data/nano-hash)
+(def next-id! (memoize #(swap! id-counter + 1)))
 (def next-ids! #(take % (repeatedly next-id!)))
 (def clear! #(do (reset! id-counter 0))) ;(compose/clear!)))
+
+(def norm #?(:clj identity :cljs clj->js))
 
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
@@ -67,6 +72,30 @@
     [:number "3"]
     [:identifier :b]]])
 
+; list in set with mis-aligned indices/durations
+(def fixture-d
+  [:set
+   [:list
+    [:beat
+      [:number "2"]
+      [:identifier :a1]]
+    [:beat
+      [:number "3"]
+      [:identifier :a2]]]
+   [:list
+    [:beat
+     [:number "1"]
+     [:identifier :b1]]
+    [:beat
+     [:number "1"]
+     [:identifier :b2]]
+    [:beat
+     [:number "1"]
+     [:identifier :b3]]
+    [:beat
+     [:number "2"]
+     [:identifier :b4]]]])
+
 (defn atomize-fixture
   [fixture]
   (insta/transform
@@ -75,7 +104,20 @@
                duration
                [:atom
                  [:keyword [:name "stub"]]
-                 [:arguments [:string (->> beat last name (#?(:clj format :cljs gstring/format) "'%s'"))]]]])}
+                 ; WARN: Fixes all cljc tests, borks cljs
+                 ; [:arguments [:string (->> beat last name (#?(:clj format :cljs gstring/format) "'%s'"))]]]])}
+                 [:arguments [:string (->> beat
+                                           last
+                                           name
+                                           ; #?(:clj (format "'%s'")
+                                           ;    ; WEIRD: Fixes most cljs tests, causes explosion on two
+                                           ;    ; :cljs #(gstring/format "'%s'" %)))]]]])}
+                                           ;    ; ))]]]])}
+                                           ;    :cljs (gstring/format "'%s'")))]]]])}
+                                           (#?(:clj format :cljs gstring/format) "'%s'"))]]]])}
+                                           ; #(#?(:clj format :cljs gstring/format) "'%s'" %))]]]])}
+                 ; WARN: Fixes most cljs tests, changes id in cljc
+                 ; [:arguments [:string (->> beat last name #(#?(:clj format :cljs gstring/format) "'%s'"))]]]])}
     fixture))
 
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
@@ -337,6 +379,28 @@
           (is (= want actual))))
       )))
 
+(deftest durations
+  (testing "reduction"
+    (testing "set -> lists"
+      (let [tree #{[2 2] [2 1 1]}
+            tree-2 [:set
+                   [:list
+                    [:beat 2 [:identifier :scale-a]]
+                    [:beat 2 [:identifier :scale-b]]]
+                   [:list
+                    [:beat 2 [:identifier :chord-a]]
+                    [:beat 1 [:identifier :chord-b]]
+                    [:beat 1 [:identifier :chord-c]]]]
+            want 4
+            actual (-> tree compose/reduce-durations)]
+        (is (= want actual))))
+    (testing "list -> sets"
+      (let [tree [#{1 2} #{3 4} 5]
+            want 11
+            actual (-> tree compose/reduce-durations)]
+        (is (= want actual))))))
+
+
 ; (testing "durations"
 ;   (testing "beats"
 ;     (let [tree [:beat
@@ -425,7 +489,7 @@
                 #{{:duration 2 :elements [:identifier :b]}
                   {:duration 3 :elements [:identifier :c]}}
                 [#{{:duration 4 :elements [:identifier :d]}
-                  {:duration 6 :elements [:identifier :f]}}
+                   {:duration 6 :elements [:identifier :f]}}
                  #{{:duration 5 :elements [:identifier :e]}
                    {:duration 7 :elements [:identifier :g]}}]]
           actual (compose/transpose-collections tree)]
@@ -470,6 +534,19 @@
             actual (compose/linearize-collections tree)]
         (is (= want actual))))))
 
+(deftest synchronize-collections
+  (testing "set -> list"
+    (let [tree fixture-d
+          want []
+          actual (compose/synchronize-collections tree 1/2)]
+      (clojure.pprint/pprint actual)
+      (is (= want actual)))))
+
+; FIXME: Need to test something like this:
+; {
+;   [1 -> scale('E lydian') 1 -> scale('E lydian')]
+;   [1 -> chord('E') 1/2 -> chord('G#min') 1/2 -> chord('B')]
+; }
 (deftest beats
   (testing "linearize"
     (let [tree fixture-a
@@ -493,6 +570,7 @@
                  :duration 8,
                  :index 10}]
           actual (compose/linearize-beats tree)]
+      (clojure.pprint/pprint actual)
       (is (= want actual))))
   (testing "normalize"
     (let [tree fixture-a
@@ -542,6 +620,7 @@
                   nil
                   nil
                   nil]]
+        ; (clojure.pprint/pprint actual)
         (is (= want actual))))
    (testing "stop"
      (testing "separate occurence"
@@ -641,7 +720,7 @@
                     {:duration 8, :elements ["stub.PzwAN0"]}],
                    :duration 8,
                    :index 10}]]
-        (is (= want actual))))))
+        (is (= (norm want) actual))))))
 
 ; (clojure.pprint/pprint (->> fixture-a atomize-fixture (conj [:play]) compose/get-play))
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/playable))

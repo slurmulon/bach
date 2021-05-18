@@ -7,8 +7,7 @@
             [bach.ast :as ast]
             [bach.track :as track]))
 
-; #?(:cljs
-;    (set! (. js/global -crypto) crypto))
+(def norm #?(:clj identity :cljs clj->js))
 
 (def fixture-bach-a
   "@Tempo = 150
@@ -165,7 +164,7 @@
 
 (deftest compose
   (testing "basic"
-    (let [actual (compose/compose fixture-bach-a)
+    (let [actual (compose/provision fixture-bach-a)
           want {:iterations 2,
                 :headers {:tempo 150, :meter [4 4]},
                 :units
@@ -269,38 +268,4 @@
                   :duration 1,
                   :index 21}]}]
       (is (= want actual)))))
-
-
-; (clojure.pprint/pprint (-> fixture-bach-b ast/parse compose/provision (select-keys [:headers :units])))
-; (clojure.pprint/pprint (-> fixture-bach-b ast/parse track/get-step-beat))
-; (clojure.pprint/pprint (-> fixture-bach-b ast/parse compose/provision-units))
-; (clojure.pprint/pprint (-> fixture-bach-b compose/compose))
-; (clojure.pprint/pprint (-> fixture-bach-b ast/parse track/digest))
-(println "\n\nPlayable ======")
-; (clojure.pprint/pprint (-> fixture-bach-b ast/parse track/playable))
-; (clojure.pprint/pprint (-> fixture-bach-b ast/parse compose/provision))
-; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable (compose/provision-signals {:unit 1/8 :meter 1})))
-; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time)) ;bach.data/to-json ));count))
-; (clojure.pprint/pprint (-> fixture-bach-d compose/compose))
-; (clojure.pprint/pprint (-> fixture-bach-e ast/parse track/parse compose/normalize-loops))
-; (clojure.pprint/pprint (-> fixture-bach-c compose/compose))
-; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time))
-; (clojure.pprint/pprint (-> fixture-bach-e compose/compose))
-; (let [tree (-> fixture-bach-a bach.ast/parse track/parse)
-;       track (track/playable identity tree)
-;       units (compose/unit-context tree)]
-;   (clojure.pprint/pprint (compose/normalize-beats track units)))
-; (clojure.pprint/pprint (-> fixture-bach-e compose/compose bach.data/to-json count))
-; (clojure.pprint/pprint (-> fixture-bach-e bach.ast/parse track/digest)) ;track/resolve-durations))
-
-; (clojure.pprint/pprint (-> fixture-bach-d ast/parse time))
-; (clojure.pprint/pprint (-> fixture-bach-d track/parse time))
-; (clojure.pprint/pprint (-> fixture-bach-d compose/compose time))
-; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/playable track/get-durations))
-; (clojure.pprint/pprint (-> fixture-bach-d ast/parse track/get-step-beat))
-; (println (-> fixture-bach-d ast/parse compose/normalize-collections compose/as-durations))
-; (clojure.pprint/pprint (-> fixture-bach-b ast/parse track/playable compose/unitize-collections))
-; (clojure.pprint/pprint (->> fixture-bach-b ast/parse track/digest (hiccup-find [:header])))
-; (println "norm duration" (-> fixture-bach-b track/resolve-values compose/provision-units (get-in [:beat :step])))
-; (println "norm duration" (-> fixture-bach-b ast/parse compose/provision-headers))
 

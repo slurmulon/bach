@@ -9,7 +9,7 @@
             [bach.ast :as ast]
             [bach.track :as tracks]
             [bach.math :refer [inverse-ratio]]
-            [bach.tree :refer [cast-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
+            [bach.tree :refer [cast-tree post-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
             [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
 
@@ -94,7 +94,26 @@
   [tree]
   (clojure.walk/postwalk
     #(cond
+       ; FIXME: Doesn't work as expected for following:
+       ; play! {
+       ;   [1 -> scale('E lydian') 1 -> scale('E lydian')]
+       ;   [1 -> chord('E') 1/2 -> chord('G#min') 1/2 -> chord('B')]
+       ; }
+       ; ORIG
        (set? %) (flatten-by max (seq %))
+       ; TEST
+       ; (set? %) (flatten-by min (seq %))
+       (sequential? %) (flatten-by + %)
+       :else %)
+    tree))
+
+(defn reduce-durations-2
+  "Transforms a tree of numeric duration nodes into a single total duration
+  according to bach's nesting rules (max of sets, sum of seqentials)."
+  [tree]
+  (clojure.walk/postwalk
+    #(cond
+       (set? %) (flatten-by min (seq %))
        (sequential? %) (flatten-by + %)
        :else %)
     tree))
@@ -103,6 +122,11 @@
   "Transforms a parsed AST into a homogenous duration tree, then reduces it."
   [tree]
   (->> tree as-durations reduce-durations))
+
+(defn as-reduced-durations-2
+  "Transforms a parsed AST into a homogenous duration tree, then reduces it."
+  [tree]
+  (->> tree as-durations reduce-durations-2))
 
 (defn quantize-durations
   "Transforms a unitized duration tree into a 1-ary sequence quantized to the tree's greatest-common duration (i.e. step beat).
@@ -185,12 +209,76 @@
    Ouput: [[#{:a :c} #{:b :d}] :e :f]"
   [tree]
   (->> tree
-       normalize-collections
+       ; normalize-collections
+       ; cast-tree sequential?
+       ;  - unitize duration of each element in the list (root-level) and then return a quantized version of that list
        (cast-tree set?
          (fn [set-coll]
-           (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
+           ; (println "---- transpose set-coll" set-coll (vec (filter (complement nil?) set-coll)))
+           (println "---- transpose set-coll" set-coll (map #(if (sequential? %) (vec %) [%])
+                                (filter (complement nil?) set-coll)))
+           ; (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
+           (let [set-items (map #(if (sequential? %) (vec %) [%])
+                                (filter (complement nil?) set-coll))
                  aligned-items (->> set-items transpose (mapv #(into #{} %)))]
+                 ; aligned-items (->> set-items
+                 ;                    transpose
+                 ;                    (mapv #(when-not (empty? %) (into #{} %))))]
+                 ; aligned-coll (if (next aligned-items) aligned-items (first aligned-items))]
              (if (next aligned-items) aligned-items (first aligned-items)))))))
+             ; (filter (complement nil?) aligned-coll))))))
+
+
+(defn unitize-durations
+  [tree unit]
+  (cast-tree
+    #(and (map? %) (:duration %))
+    #(let [duration (unitize-duration (:duration %) unit)]
+       (assoc % :duration duration)) tree))
+
+(defn synchronize-collections
+  [tree unit]
+  ; (-> tree normalize-collections (unitize-durations unit)))
+  (->> (unitize-durations (normalize-collections tree) unit)
+       ; (post-tree #(and (vector? %) (not (map-entry? %)))
+       (cast-tree
+         #(and (vector? %) (not (map-entry? %)))
+       ; (post-tree sequential?
+       ; (cast-tree vector?
+         (fn [seq-coll]
+           (println "seq coll" seq-coll (type seq-coll))
+           (reduce
+             (fn [acc item]
+               (into acc (cons item (take (- (:duration item) 1) (repeat nil)))))
+               ; (into acc (cons item (take (- (:duration item) 1) (repeat #{})))))
+             []
+             seq-coll)))
+       transpose-collections))
+
+
+; defn synchronize-collections
+;  1. unitize durations
+;      TODO: Move this to `unitize-durations`
+;      (cast-tree
+;          #(and (map? %) (:duration %))
+;          #(let [duration (unitize-duration (:duration %) unit)]
+;             (assoc % :duration duration))))))
+;  2. quantize each sequential (via cast-tree, based on unit)
+;      (cast-tree sequential?
+;        (let [;duration (-> seq-coll as-reduced-durations)
+;              durations (->> seq-coll (map as-reduced-durations))
+;              duration (apply max durations)
+;              indices (linearize-indices durations)
+;              items (reduce (fn [acc item]
+;                              (into acc (cons item (take (:duration item) (repeat nil))))) [] seq-coll)
+;              ;items (take duration (repeat nil))]
+;  3. calculate start index of each item based on its duration (so, linearize-indices)
+;  4. upsert each item at its starting index into reduced quantized list
+;  5. (maybe -> NO) filter out nil (but probably keep since it reduces complexity and redundancy in provision-*-steps stuff)
+;    - 6. If we retain quantization and keep the nils, then call transpose-collections
+;       - Shows we MUST keep nils if we want to utilize current transpose-collections as-is,
+;         otherwise we have the exact same problem of using positional array alignment instead of time-plane alignment
+;       - Retaining quantization also enables recursive transposition
 
 (defn linearize-collections
   "Linearly transposes and flattens all collections in the parsed AST into a 1-ary sequence."
@@ -218,9 +306,15 @@
   containing the beat's item(s) (as a set), duration (in q-steps) and index (in q-steps).
   Assumes beat collections are normalized and all durations are integers (used for indexing)."
   [beats]
-  (let [durations (map as-reduced-durations beats)
+  ; NOTE: Instead of using max for sets (which inhibits defining parallel beats with different durations that should NOT move the index), consider using min instead
+  ;  - We could also consider re-factoring :beats more similar to :elements (in provision)
+  (let [;durations (map as-reduced-durations beats)
+        durations (map as-reduced-durations-2 beats)
         indices (linearize-indices durations)]
+    ; TODO: Rename :index to :step
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
+
+; TODO: synthesize-beats
 
 ; TODO: Probably just remove and rename position-beats to this
 (defn linearize-beats
@@ -250,7 +344,9 @@
   the id of every element that should be played at its index."
   [beats]
   (mapcat (fn [beat]
-            (let [elems (beat-as-element-ids beat)]
+            (let [elems (beat-as-element-ids beat)
+                  ; TEST (using max durations here instead of min durations during linearize-beats
+                  duration (-> beat :items as-reduced-durations)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 (defn provision-stop-steps
