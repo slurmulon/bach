@@ -14,7 +14,8 @@
   :main ^:skip-aot bach.cli
   :target-path "target/%s"
   :plugins [[lein-bin "0.3.5"]
-            [lein-cljfmt "0.7.0"]]
+            [lein-cljfmt "0.7.0"]
+            [lein-eftest "0.5.9"]]
   :deploy-repositories [["releases" :clojars]
                          ["snapshots" :clojars]]
   :profiles {:uberjar {:aot :all}})
