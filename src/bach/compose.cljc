@@ -279,11 +279,21 @@
            (reduce
              (fn [acc item]
                (println "---- item" item)
+               ; ORIG
                ; (into acc (cons item (take (- (:duration item) 1) (repeat nil)))))
                (if-let [duration (:duration item)]
+               ; (when-let [duration (:duration item)]
                  (into acc (cons item (take (- (:duration item) 1) (repeat nil))))
-                 (into acc (transpose-sets item))))
+                 ; CLOSE (using if-let)
+                 ; (into acc (transpose-sets item))))
+                 ; (transpose-sets (into acc item))))
+                 (when (set? item)
+                   (into acc (transpose-sets item)))))
+                 ; (transpose-sets 
                  ; (into #{} item)))
+                 ; )
+               ; (when (set? item)
+               ;   (transpose-sets item)))
                ; (if (map? item)
                ;   (into acc (cons item (take (- (:duration item) 1) (repeat nil))))
                ;   acc))
@@ -292,9 +302,9 @@
              []
              seq-coll)))
              ; (into [] seq-coll))))
-       ; transpose-collections))
-       ; transpose-sets))
-))
+       ; ORIG
+       transpose-sets))
+; ))
 
 
 ; defn synchronize-collections

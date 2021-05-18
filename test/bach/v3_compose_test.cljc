@@ -96,6 +96,33 @@
      [:number "2"]
      [:identifier :b4]]]])
 
+(def fixture-e
+  [:list
+   [:set
+    [:list
+      [:beat
+        [:number "2"]
+        [:identifier :a1]]
+      [:beat
+        [:number "3"]
+        [:identifier :a2]]]
+    [:list
+      [:beat
+        [:number "3"]
+        [:identifier :b1]]
+      [:beat
+        [:number "2"]
+        [:identifier :b2]]];]
+   ; [:set
+    [:list
+     [:beat
+      [:number "1"]
+      [:identifier :c1]]
+     [:beat
+      [:number "4"]
+      [:identifier :c2]]]]])
+
+
 (defn atomize-fixture
   [fixture]
   (insta/transform
@@ -537,8 +564,26 @@
 (deftest synchronize-collections
   (testing "set -> list"
     (let [tree fixture-d
-          want []
+          want [#{{:duration 2, :elements '(:identifier :b1)}
+                  {:duration 4, :elements '(:identifier :a1)}}
+                nil
+                #{{:duration 2, :elements '(:identifier :b2)}}
+                nil
+                #{{:duration 6, :elements '(:identifier :a2)}
+                  {:duration 2, :elements '(:identifier :b3)}}
+                nil
+                #{{:duration 4, :elements '(:identifier :b4)}}
+                nil
+                nil
+                nil]
           actual (compose/synchronize-collections tree 1/2)]
+      ; (clojure.pprint/pprint actual)
+      (is (= want actual))))
+  (testing "list -> set -> list"
+    (let [tree fixture-e
+          want :break ;[]
+          actual (compose/synchronize-collections tree 1)] ;1/2)]
+      (println "!!!!!!!!!!!!!! wut")
       (clojure.pprint/pprint actual)
       (is (= want actual)))))
 
