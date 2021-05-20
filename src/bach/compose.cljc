@@ -13,7 +13,8 @@
             [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
 
-(def uid #(nano-hash %))
+; (def uid #(nano-hash %))
+(def uid nano-hash)
 
 (def serialize #?(:clj identity :cljs to-json))
 
@@ -30,8 +31,8 @@
   ([elem seed]
    (if (map? elem)
      (:id elem)
-     ; (str (-> elem element->kind name) "." (uid seed)))))
-     (str (-> elem element->kind name) "." (nano-hash seed)))))
+     (str (-> elem element->kind name) "." (uid seed)))))
+     ; (str (-> elem element->kind name) "." (nano-hash seed)))))
 
 (defn element->uid
   [elem]
@@ -488,12 +489,12 @@
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) steps items)))
 
-; TODO: Remove if we keep provision-steps-2
-(defn provision-event-steps
-  [beats]
-  (map (partial conj [])
-       (provision-play-steps-2 beats)
-       (provision-stop-steps-2 beats)))
+; ; TODO: Remove if we keep provision-steps-2
+; (defn provision-event-steps
+;   [beats]
+;   (map (partial conj [])
+;        (provision-play-steps-2 beats)
+;        (provision-stop-steps-2 beats)))
 
 (defn provision-steps-2
   [tree unit]
@@ -501,7 +502,6 @@
         beat-steps (provision-context-steps tree unit)
         play-steps (provision-play-steps-2 beats)
         stop-steps (provision-stop-steps-2 beats)]
-        ; event-steps (provision-event-steps beats)]
   (map (partial conj []) beat-steps play-steps stop-steps)))
 
 (defn provision-steps

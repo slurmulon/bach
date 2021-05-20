@@ -13,7 +13,10 @@
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
 ; (def next-id! bach.data/nano-hash)
-(def next-id! (memoize #(swap! id-counter + 1)))
+; (def next-id! (memoize #(swap! id-counter inc)))
+; (def next-id! #(swap! id-counter inc))
+(def next-id! (memoize (fn [_] (swap! id-counter inc))))
+; (def next-id! (fn [_] (swap! id-counter inc)))
 (def next-ids! #(take % (repeatedly next-id!)))
 (def clear! #(do (reset! id-counter 0))) ;(compose/clear!)))
 
@@ -732,13 +735,74 @@
 
 (deftest steps-2
   (with-redefs [compose/uid next-id!]
-    (testing "elements"
+    (testing "provisioned elements"
      (clear!)
      (let [;tree (atomize-fixture fixture-a)
-           tree fixture-e
-           actual (compose/provision-element-steps tree 1/2)
-           want false]
+           tree (atomize-fixture fixture-e)
+           actual (bach.tree/cast-tree sequential? vec (compose/provision-element-steps tree 1/2))
+           want [[["stub.3"] ["stub.5"] ["stub.1"]]
+                 [["stub.3"] ["stub.5"] ["stub.1"]]
+                 [["stub.6"] ["stub.3"] ["stub.1"]]
+                 [["stub.6"] ["stub.3"] ["stub.1"]]
+                 [["stub.2"] ["stub.6"] ["stub.3"]]
+                 [["stub.2"] ["stub.6"] ["stub.3"]]
+                 [["stub.4"] ["stub.2"] ["stub.6"]]
+                 [["stub.4"] ["stub.2"] ["stub.6"]]
+                 [["stub.4"] ["stub.2"] ["stub.6"]]
+                 [["stub.4"] ["stub.2"] ["stub.6"]]]]
            ; want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
+       (is (= want actual))))
+    (testing "provisioned beats"
+     (clear!)
+     (let [tree (atomize-fixture fixture-e)
+           actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree 1/2))
+           want [1 1 2 2 3 3 4 4 4 4]]
+       (is (= want actual))))
+    (testing "provisioned states"
+     (clear!)
+     (let [tree (atomize-fixture fixture-e)
+           actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree 1/2))
+           want [[1 ["stub.3"] ["stub.5"] ["stub.1"]]
+                 [1 ["stub.3"] ["stub.5"] ["stub.1"]]
+                 [2 ["stub.6"] ["stub.3"] ["stub.1"]]
+                 [2 ["stub.6"] ["stub.3"] ["stub.1"]]
+                 [3 ["stub.2"] ["stub.6"] ["stub.3"]]
+                 [3 ["stub.2"] ["stub.6"] ["stub.3"]]
+                 [4 ["stub.4"] ["stub.2"] ["stub.6"]]
+                 [4 ["stub.4"] ["stub.2"] ["stub.6"]]
+                 [4 ["stub.4"] ["stub.2"] ["stub.6"]]
+                 [4 ["stub.4"] ["stub.2"] ["stub.6"]]]]
+       ; (clojure.pprint/pprint (compose/normalize-beats-2 tree 1/2))
+       (is (= want actual))))
+    (testing "provisioned plays"
+     (clear!)
+     (let [tree (atomize-fixture fixture-e)
+           actual (bach.tree/cast-tree sequential? vec (-> tree (compose/normalize-beats-2 1/2) (compose/provision-play-steps-2)))
+           want [["stub.1" "stub.5" "stub.3"]
+                 []
+                 ["stub.6"]
+                 []
+                 ["stub.2"]
+                 []
+                 ["stub.4"]
+                 []
+                 []
+                 []]]
+       (is (= want actual))))
+    (testing "provisioned stops"
+     (clear!)
+     (let [tree (atomize-fixture fixture-e)
+           actual (-> tree (compose/normalize-beats-2 1/2) (compose/provision-stop-steps-2))
+           want [["stub.4" "stub.2" "stub.6"]
+                 nil
+                 ["stub.5"]
+                 nil
+                 ["stub.1"]
+                 nil
+                 ["stub.3"]
+                 nil
+                 nil
+                 nil]]
        (is (= want actual))))))
 
 (deftest provision
@@ -855,11 +919,22 @@
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then :a]"))
 
 (println "---- new beat steps")
-; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
+(clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
 ; (clojure.pprint/pprint (-> fixture-e (compose/provision-beat-steps-2 1/2)))
-(let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))
-      elem-steps (-> fixture-e (compose/provision-element-steps 1/2))]
-  (clojure.pprint/pprint
-    (map cons beat-steps elem-steps)))
+; (clojure.pprint/pprint (-> fixture-e (compose/provision-context-steps 1/2)))
+; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/normalize-beats-2 1/2) (compose/provision-play-steps-2)))
+; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/itemize-beats-2 1/2) (compose/provision-stop-steps-2)))
+; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/itemize-beats-2 1/2) (compose/provision-event-steps)))
+; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/provision-steps-2 1/2)))
+; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2) compose/beat-as-items))
+; (let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))
+;       elem-steps (-> fixture-e (compose/provision-element-steps 1/2))]
+;   (clojure.pprint/pprint
+;     (map cons beat-steps elem-steps)))
     ; (map #(cons %1 %2) beat-steps elem-steps)))
 
+; (let [beat-steps (-> fixture-e atomize-fixture (compose/normalize-beats-2 1/2) compose/provision-play-steps-2)
+;       elem-steps (-> fixture-e atomize-fixture (compose/normalize-beats-2 1/2) compose/provision-stop-steps-2)]
+;   (clojure.pprint/pprint
+;     ; (map cons beat-steps elem-steps)))
+;     (map (partial conj []) beat-steps elem-steps)))
