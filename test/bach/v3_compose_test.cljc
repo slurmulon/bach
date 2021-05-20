@@ -113,7 +113,6 @@
       [:beat
         [:number "2"]
         [:identifier :b2]]];]
-   ; [:set
     [:list
      [:beat
       [:number "1"]
@@ -121,7 +120,6 @@
      [:beat
       [:number "4"]
       [:identifier :c2]]]]])
-
 
 (defn atomize-fixture
   [fixture]
@@ -561,7 +559,7 @@
             actual (compose/linearize-collections tree)]
         (is (= want actual))))))
 
-(deftest synchronize-collections
+(deftest quantize-collections
   (testing "set -> list"
     (let [tree fixture-d
           want [#{{:duration 2, :elements '(:identifier :b1)}
@@ -576,16 +574,28 @@
                 nil
                 nil
                 nil]
-          actual (compose/synchronize-collections tree 1/2)]
+          actual (compose/quantize-collections tree 1/2)]
       ; (clojure.pprint/pprint actual)
       (is (= want actual))))
   (testing "list -> set -> list"
     (let [tree fixture-e
-          want :break ;[]
-          actual (compose/synchronize-collections tree 1)] ;1/2)]
-      (println "!!!!!!!!!!!!!! wut")
+          want [#{{:duration 6, :elements [:identifier :b1]}
+                  {:duration 4, :elements [:identifier :a1]}
+                  {:duration 2, :elements [:identifier :c1]}}
+                nil
+                #{{:duration 8, :elements [:identifier :c2]}}
+                nil
+                #{{:duration 6, :elements [:identifier :a2]}}
+                nil
+                #{{:duration 4, :elements [:identifier :b2]}}
+                nil
+                nil
+                nil]
+          actual (compose/quantize-collections tree 1/2)]
       (clojure.pprint/pprint actual)
+      ; (clojure.pprint/pprint (-> actual bach.tree/squash))
       (is (= want actual)))))
+      ; (is (= false actual)))))
 
 ; FIXME: Need to test something like this:
 ; {
@@ -829,3 +839,7 @@
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ], when 2 then { 2 -> :b }]"))
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ]]"))
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then :a]"))
+
+(println "---- new beat steps")
+; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
+(clojure.pprint/pprint (-> fixture-e compose/provision-beat-steps-2))

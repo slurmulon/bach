@@ -390,11 +390,15 @@
          items (mapcat index-beat-items beats)
          ; parts (partition-by nil? beats)
          steps (-> (count beats) (take (repeat nil)) vec)]
+         ; steps (range 0 (count beats))]
     (reduce
       (fn [acc item]
         (let [index (:index item)
-              span (range (:index item) (:duration item))]
+              span (range index (+ index (:duration item)))]
+          ; (prn "---- item" item span (:index item) (:duration item))
           (reduce (fn [a loc]
+                    (println "------- loc" (type loc) loc)
+                    (println "------- a" (type a) a)
                     (assoc a loc (conj (get a loc) (:elements item))))
                   acc span)))
           ; with: if-let [index (:index item)] (else cond)
