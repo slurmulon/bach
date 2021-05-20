@@ -854,6 +854,12 @@
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ]]"))
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then :a]"))
 
-; (println "---- new beat steps")
+(println "---- new beat steps")
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
-; (clojure.pprint/pprint (-> fixture-e compose/provision-beat-steps-2))
+; (clojure.pprint/pprint (-> fixture-e (compose/provision-beat-steps-2 1/2)))
+(let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))
+      elem-steps (-> fixture-e (compose/provision-element-steps 1/2))]
+  (clojure.pprint/pprint
+    (map cons beat-steps elem-steps)))
+    ; (map #(cons %1 %2) beat-steps elem-steps)))
+

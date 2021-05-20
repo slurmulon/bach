@@ -352,13 +352,16 @@
 
 (defn itemize-beats-2
   [tree unit]
-  (let [steps (quantize-collections tree unit)]
+  (let [steps (quantize-collections tree unit)
+        beats (atom 0)]
     ; (map-indexed #(assoc {} :items (-> %2 many set) :index %1) steps)))
     (map-indexed (fn [index beat]
                    (when-not (empty? beat)
                      (assoc {} :items (-> beat many set)
                                :index index
-                               :id (-> beat hash nano-hash))))
+                               ; FIXME: Actually want the index of the beat here, in order to avoid another :elements glossary
+                               ; :id (-> beat hash nano-hash))))
+                               :id (swap! beats inc))))
                  steps)))
   ; (->> (quantize-collections tree)
        ; (map-indexed (fn [step beat]
@@ -396,50 +399,34 @@
   ([tree]
     (provision-element-steps tree (unit-beat tree)))
   ([tree unit]
-   ; (-> tree (quantize-collections unit))))
-   ; (let [path (quantize-collections tree)
-   ;       beats (map-indexed (fn [beat]
-   ;       steps (-> (count path) (take (repeat nil)) vec)]
-   (let [;items (-> tree itemize-beats-2)
-         ; beats (-> items collect)
-         beats (itemize-beats-2 tree unit)
-         ; items (mapcat index-beat-items beats)
-         items (mapcat index-beat-items-2 beats)
-         ; parts (partition-by nil? beats)
-         steps []]
-         ;steps (-> (count beats) (take (repeat nil)) vec)]
-         ; steps (range 0 (count beats))]
-    (prn "BEATS" beats)
-    (prn "ITEMS" items)
+   (let [beats (itemize-beats-2 tree unit)
+         items (mapcat index-beat-items-2 beats)]
     (reduce
       (fn [result item]
         (let [index (:index item)
               span (range index (+ index (:duration item)))]
-          (reduce #(assoc %1 %2 (conj (get %1 %2) (:elements item))) result span)))
-          ; (reduce (fn [acc loc]
-          ;           ; WARN: Won't work since :id can be different for each item (since we iterate by items instead of beats)
-          ;           ; (let [slot (or (get acc loc) (->> item :id (conj [])))]
-          ;             (assoc acc loc (conj (get acc loc) (:elements item))))
-          ;             ; (assoc acc loc (conj slot (:elements item)))))
-          ;         result span)))
-          ; with: if-let [index (:index item)] (else cond)
-          ; (conj acc (last acc))))))
-        steps items))))
-          ; (assoc acc index (last acc)
+          (reduce #(assoc %1 %2 (conj (get %1 %2) (:elements item)))
+                  result span)))
+        [] items))))
 
+(defn provision-beat-steps-2
+  ([tree]
+   (provision-beat-steps-2 tree (unit-beat tree)))
+  ([tree unit]
+   (let [beats (itemize-beats-2 tree unit)]
+         (reduce
+           (fn [acc beat]
+             (conj acc (if (nil? beat) (peek acc) (:id beat))))
+           [] beats))))
 
-      ; (fn [acc item]
-      ;   (let [index (cyclic-index duration (+ (:index item) (:duration item)))
-      ;         item-elems (many (element-as-ids (:elements item)))
-      ;         acc-elems (many (get acc index))
-      ;         elems (concat item-elems acc-elems)]
-      ;     (assoc acc index (distinct elems)))) steps items)))
+(defn provision-context-steps
+  ([tree]
+   (provision-context-steps tree (unit-beat tree)))
+  ([tree unit]
+   (let [beats (provision-beat-steps-2 tree)
+         elems (provision-element-steps tree)]
+     (map cons beats elems))))
 
-
-     ; (reduce (fn [steps beat]
-     ;           (if (empty? beat)
-     ;             steps
-                 
 
 (defn provision-play-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
