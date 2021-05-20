@@ -353,6 +353,7 @@
 (defn itemize-beats-2
   [tree unit]
   (let [steps (quantize-collections tree unit)
+        ; TODO: Try to avoid this if possible, but it makes things much easier in this case
         beats (atom 0)]
     ; (map-indexed #(assoc {} :items (-> %2 many set) :index %1) steps)))
     (map-indexed (fn [index beat]
@@ -385,6 +386,14 @@
       (normalize-beats tree unit)))
   ([tree unit]
    (-> tree (unitize-collections unit) itemize-beats)))
+
+; TODO: Figure out the renaming here
+(def normalize-beats-2 itemize-beats-2)
+; (defn normalize-beats-2
+  ; ([tree]
+  ;  (normalize-beats tree (unit-beat tree)))
+  ; ([tree unit]
+  ;  (-> tree (quantize-collections unit) itemize-beats-2)))
 
 (defn provision-beat-steps
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
@@ -423,8 +432,8 @@
   ([tree]
    (provision-context-steps tree (unit-beat tree)))
   ([tree unit]
-   (let [beats (provision-beat-steps-2 tree)
-         elems (provision-element-steps tree)]
+   (let [beats (provision-beat-steps-2 tree unit)
+         elems (provision-element-steps tree unit)]
      (map cons beats elems))))
 
 
@@ -440,6 +449,10 @@
 (defn provision-play-steps-2
   [beats]
   (map beat-as-element-ids beats))
+  ; WORKS (temp, needs to return element ids instead!)
+  ; (map (fn [beat]
+  ;        (let [items (-> beat :items seq)]
+  ;          (map :elements items))) beats))
 
 (defn provision-stop-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
@@ -452,6 +465,22 @@
       (fn [acc item]
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
               item-elems (many (element-as-ids (:elements item)))
+              acc-elems (many (get acc index))
+              elems (concat item-elems acc-elems)]
+          (assoc acc index (distinct elems)))) steps items)))
+
+(defn provision-stop-steps-2
+  [beats]
+  (let [duration (count beats)
+        items (mapcat index-beat-items beats)
+        steps (-> duration (take (repeat nil)) vec)]
+    (reduce
+      (fn [acc item]
+        (let [index (cyclic-index duration (+ (:index item) (:duration item)))
+              ; FIXME: Returning nulls for some reason (no ids)
+              ; item-elems (many (element-as-ids (:elements item)))
+              ; TEMP
+              item-elems (many (:elements item))
               acc-elems (many (get acc index))
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) steps items)))
