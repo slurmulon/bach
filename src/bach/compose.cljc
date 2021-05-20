@@ -30,7 +30,8 @@
   ([elem seed]
    (if (map? elem)
      (:id elem)
-     (str (-> elem element->kind name) "." (uid seed)))))
+     ; (str (-> elem element->kind name) "." (uid seed)))))
+     (str (-> elem element->kind name) "." (nano-hash seed)))))
 
 (defn element->uid
   [elem]
@@ -405,6 +406,8 @@
 
 ; (defn provision-beat-steps-2
 (defn provision-element-steps
+  "Overlays/joins elements across quantized beats based on the span of their durations.
+  Enables consumers to determine which elements are playing without needing to iterate."
   ([tree]
     (provision-element-steps tree (unit-beat tree)))
   ([tree unit]
@@ -413,8 +416,10 @@
     (reduce
       (fn [result item]
         (let [index (:index item)
+              elems (many (element-as-ids (:elements item)))
               span (range index (+ index (:duration item)))]
-          (reduce #(assoc %1 %2 (conj (get %1 %2) (:elements item)))
+          ; (reduce #(assoc %1 %2 (conj (get %1 %2) (:elements item)))
+          (reduce #(assoc %1 %2 (conj (get %1 %2) elems))
                   result span)))
         [] items))))
 
@@ -435,6 +440,7 @@
    (let [beats (provision-beat-steps-2 tree unit)
          elems (provision-element-steps tree unit)]
      (map cons beats elems))))
+(def provision-state-steps provision-context-steps)
 
 
 (defn provision-play-steps
@@ -446,13 +452,10 @@
                   duration (-> beat :items as-reduced-durations)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
 
+; Beats are already fully quantized here, so all we need to do is map the ids
 (defn provision-play-steps-2
   [beats]
   (map beat-as-element-ids beats))
-  ; WORKS (temp, needs to return element ids instead!)
-  ; (map (fn [beat]
-  ;        (let [items (-> beat :items seq)]
-  ;          (map :elements items))) beats))
 
 (defn provision-stop-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
@@ -478,12 +481,28 @@
       (fn [acc item]
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
               ; FIXME: Returning nulls for some reason (no ids)
-              ; item-elems (many (element-as-ids (:elements item)))
+              item-elems (many (element-as-ids (:elements item)))
               ; TEMP
-              item-elems (many (:elements item))
+              ; item-elems (many (:elements item))
               acc-elems (many (get acc index))
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) steps items)))
+
+; TODO: Remove if we keep provision-steps-2
+(defn provision-event-steps
+  [beats]
+  (map (partial conj [])
+       (provision-play-steps-2 beats)
+       (provision-stop-steps-2 beats)))
+
+(defn provision-steps-2
+  [tree unit]
+  (let [beats (normalize-beats-2 tree unit)
+        beat-steps (provision-context-steps tree unit)
+        play-steps (provision-play-steps-2 beats)
+        stop-steps (provision-stop-steps-2 beats)]
+        ; event-steps (provision-event-steps beats)]
+  (map (partial conj []) beat-steps play-steps stop-steps)))
 
 (defn provision-steps
   "Provisions quantized :beat, :play and :stop sequences that describe what
