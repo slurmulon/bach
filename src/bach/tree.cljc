@@ -3,12 +3,14 @@
 
 (defn cast-tree
   "Walks an iterable N-ary tree (depth-first, pre-order) and applies `as` to each node where `is?` returns true."
-  [is? as tree]
-  (clojure.walk/prewalk #(if (is? %) (as %) %) tree))
+  ([is? as tree]
+    (cast-tree clojure.walk/prewalk is? as tree))
+  ([walk is? as tree]
+    (walk #(if (is? %) (as %) %) tree)))
 
-(defn post-tree
-  [is? as tree]
-  (clojure.walk/postwalk #(if (is? %) (as %) %) tree))
+; (defn post-tree
+;   [is? as tree]
+;   (clojure.walk/postwalk #(if (is? %) (as %) %) tree))
 
 (defn flatten-by
   "Flattens and reduces collection using `by` function."
@@ -66,7 +68,7 @@
   "Provides a 1-ary stepwise projection of a weighted 1-ary coll, where
   each node's value represents its frequency/occurance (in other words, how
   many elements it takes up in the projected linear sequence).
-  Input:  (stretch [1 4 3])
+  Input:  (quantize [1 4 3])
   Output: (0 1 1 1 1 2 2 2)"
   [coll]
   (->> coll (map-indexed #(itemize %2 %1)) flatten))

@@ -9,7 +9,7 @@
             [bach.ast :as ast]
             [bach.track :as tracks]
             [bach.math :refer [inverse-ratio]]
-            [bach.tree :refer [cast-tree post-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
+            [bach.tree :refer [cast-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
             [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
 
@@ -52,7 +52,7 @@
 (defn element-as-ids
   "Transforms normalized beat element(s) into their unique ids."
   [elems]
-  (->> elems many (map :id)))
+  (->> elems collect (map :id)))
 
 (defn beat-as-items
   "Provides all of the items in normalized beat(s) as a vector."
@@ -62,12 +62,12 @@
 (defn beat-as-elements
   "Provides all of the elements in normalized beat(s)."
   [beats]
-  (->> beats many beat-as-items (mapcat :elements)))
+  (->> beats collect beat-as-items (mapcat :elements)))
 
 (defn beat-as-element-ids
   "Provides all of the beat element item ids in normalized beat(s)."
   [beats]
-  (->> beats many beat-as-elements (map :id)))
+  (->> beats collect beat-as-elements (map :id)))
 
 (defn index-beat-items
   "Adds the provided normalized beat's index to each of its items.
@@ -141,6 +141,13 @@
   ([duration] (unitize-duration duration *unit-beat*))
   ([duration unit] (int (/ duration unit))))
 
+(defn unitize-durations
+  [tree unit]
+  (cast-tree
+    #(and (map? %) (:duration %))
+    #(let [duration (unitize-duration (:duration %) unit)]
+       (assoc % :duration duration)) tree))
+
 (defn- normalize-loop-iteration
   "Normalizes :when nodes in :loop AST tree at a given iteration.
   Replaces :when node with iter (as int) if :when expression matches
@@ -203,6 +210,9 @@
        ; :beat #(assoc {} :duration %1 :elements (many %2))})))
        :beat #(assoc {} :duration %1 :elements (vec (many %2)))})))
 
+(def normalized-list?
+  #(and (vector? %) (not (map-entry? %)) (contains? (meta %) :bach-list)))
+
 (defn transpose-sets
   [tree]
   (cast-tree set?
@@ -211,6 +221,20 @@
             aligned-items (->> set-items transpose (mapv #(into #{} %)))]
         (if (next aligned-items) aligned-items (first aligned-items))))
     tree))
+
+; @see: Same problem discussed here, may need to upgrade to Clojure 1.10
+; https://clojure.atlassian.net/browse/CLJ-2031
+(defn transpose-lists
+  [tree]
+  (cast-tree
+    clojure.walk/postwalk
+    normalized-list?
+    #(reduce
+      (fn [acc item]
+        (if-let [duration (:duration item)]
+          (into acc (cons item (take (- duration 1) (repeat nil))))
+          (when (set? item)
+            (into acc (transpose-sets item))))) [] %) tree))
 
 (defn transpose-collections
   "Aligns and transposes parallel collection elements of a parsed AST, enabling linear time-invariant iteration by consumers.
@@ -233,13 +257,6 @@
        ;       (if (next aligned-items) aligned-items (first aligned-items)))))))
 
 
-(defn unitize-durations
-  [tree unit]
-  (cast-tree
-    #(and (map? %) (:duration %))
-    #(let [duration (unitize-duration (:duration %) unit)]
-       (assoc % :duration duration)) tree))
-
 ; (defn synchronize-collections
 ;   [tree unit]
 ;   (->> (unitize-durations (normalize-collections tree) unit)
@@ -248,64 +265,18 @@
 ;           (fn [beat]
 ;             ; (cons beat (take (- (:duration beat) 1) (repeat nil)))))
 ;             (into [beat] (take (- (:duration beat) 1) (repeat nil)))))
-;        ; transpose-sets))
-;        ))
+;        transpose-sets))
 
-
-
-; quantize-collections
+; TODO: Probably rename to linearize-collections if this works out
 (defn synchronize-collections
   [tree unit]
-  ; (-> tree normalize-collections (unitize-durations unit)))
-  (->> (unitize-durations (normalize-collections tree) unit)
-  ; (->> (with-meta (unitize-durations (normalize-collections tree) unit) {:root true})
-       (post-tree
-         #(and (not (map-entry? %)) (contains? (meta %) :bach-list) (vector? %))
-       ; (cast-tree
-         ; #(and (vector? %) (not (map-entry? %)))
-         ; #(and (sequential? %) (not (map-entry? %)))
-         ; sequential?
-         ; #(contains? (meta %) :bach-list)
-         ; @see: Same problem discussed here, may need to upgrade to Clojure 1.10
-         ; https://clojure.atlassian.net/browse/CLJ-2031
-         ; #(and (vector? %) (not (map-entry? %)) (contains? (meta %) :bach-list))
-         ; #(and (vector? %) (not (map-entry? %)) (not (contains? (meta %) :root)))
-         ; #(and (vector? %) (not (map-entry? %)))
-       ; (post-tree sequential?
-       ; (cast-tree vector?
-         (fn [seq-coll]
-           (println "--- COL" (type seq-coll) (meta seq-coll) seq-coll)
-           ; (apply list (reduce
-           (reduce
-             (fn [acc item]
-               (println "---- item" item)
-               ; ORIG
-               ; (into acc (cons item (take (- (:duration item) 1) (repeat nil)))))
-               (if-let [duration (:duration item)]
-               ; (when-let [duration (:duration item)]
-                 (into acc (cons item (take (- (:duration item) 1) (repeat nil))))
-                 ; CLOSE (using if-let)
-                 ; (into acc (transpose-sets item))))
-                 ; (transpose-sets (into acc item))))
-                 (when (set? item)
-                   (into acc (transpose-sets item)))))
-                 ; (transpose-sets 
-                 ; (into #{} item)))
-                 ; )
-               ; (when (set? item)
-               ;   (transpose-sets item)))
-               ; (if (map? item)
-               ;   (into acc (cons item (take (- (:duration item) 1) (repeat nil))))
-               ;   acc))
-
-               ; (into acc (cons item (take (- (:duration item) 1) (repeat #{})))))
-             []
-             seq-coll)))
-             ; (into [] seq-coll))))
-       ; ORIG
-       transpose-sets))
-; ))
-
+  (-> (normalize-collections tree)
+      (unitize-durations unit)
+      transpose-lists
+      transpose-sets
+      ; squash
+      ))
+(def quantize-collections synchronize-collections)
 
 ; defn synchronize-collections
 ;  1. unitize durations
@@ -359,11 +330,26 @@
   [beats]
   ; NOTE: Instead of using max for sets (which inhibits defining parallel beats with different durations that should NOT move the index), consider using min instead
   ;  - We could also consider re-factoring :beats more similar to :elements (in provision)
-  (let [;durations (map as-reduced-durations beats)
-        durations (map as-reduced-durations-2 beats)
+  (let [durations (map as-reduced-durations beats)
+        ;durations (map as-reduced-durations-2 beats)
         indices (linearize-indices durations)]
     ; TODO: Rename :index to :step
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
+
+(defn itemize-beats-2
+  [tree unit]
+  (let [steps (quantize-collections tree unit)]
+    ; (map-indexed #(assoc {} :items (-> %2 many set) :index %1) steps)))
+    (map-indexed (fn [index beat]
+                   (when-not (empty? beat)
+                     (assoc {} :items (-> beat many set)
+                               :index index)))
+                 steps)))
+  ; (->> (quantize-collections tree)
+       ; (map-indexed (fn [step beat]
+       ;                (when (not (empty? beat))
+       ;                  ; (assoc beat :step step))))))
+       ;                  (assoc beat :index step))))))
 
 ; TODO: synthesize-beats
 
@@ -390,15 +376,58 @@
   ([tree unit]
    (-> tree (unitize-collections unit) quantize-durations)))
 
+(defn provision-beat-steps-2
+  ([tree]
+    (provision-beat-steps-2 tree (unit-beat tree)))
+  ([tree unit]
+   ; (-> tree (quantize-collections unit))))
+   ; (let [path (quantize-collections tree)
+   ;       beats (map-indexed (fn [beat]
+   ;       steps (-> (count path) (take (repeat nil)) vec)]
+   (let [;items (-> tree itemize-beats-2)
+         ; beats (-> items collect)
+         beats (itemize-beats-2 tree 1/2)
+         items (mapcat index-beat-items beats)
+         ; parts (partition-by nil? beats)
+         steps (-> (count beats) (take (repeat nil)) vec)]
+    (reduce
+      (fn [acc item]
+        (let [index (:index item)
+              span (range (:index item) (:duration item))]
+          (reduce (fn [a loc]
+                    (assoc a loc (conj (get a loc) (:elements item))))
+                  acc span)))
+          ; with: if-let [index (:index item)] (else cond)
+          ; (conj acc (last acc))))))
+        steps items))))
+          ; (assoc acc index (last acc)
+
+
+      ; (fn [acc item]
+      ;   (let [index (cyclic-index duration (+ (:index item) (:duration item)))
+      ;         item-elems (many (element-as-ids (:elements item)))
+      ;         acc-elems (many (get acc index))
+      ;         elems (concat item-elems acc-elems)]
+      ;     (assoc acc index (distinct elems)))) steps items)))
+
+
+     ; (reduce (fn [steps beat]
+     ;           (if (empty? beat)
+     ;             steps
+                 
+
 (defn provision-play-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be played at its index."
   [beats]
   (mapcat (fn [beat]
             (let [elems (beat-as-element-ids beat)
-                  ; TEST (using max durations here instead of min durations during linearize-beats
                   duration (-> beat :items as-reduced-durations)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
+
+(defn provision-play-steps-2
+  [beats]
+  (map beat-as-element-ids beats))
 
 (defn provision-stop-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
