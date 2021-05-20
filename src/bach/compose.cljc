@@ -77,6 +77,20 @@
        (map #(assoc % :index (:index beat)))
        (sort-by :duration)))
 
+(defn index-beat-items-2
+  [beat]
+  ; (when-not (empty? b)
+  ;   (let [beat (assoc b :id (nano-hash (gensym b)))]
+      (->> ;(assoc beat :id (uid beat))
+          ; (assoc beat :id (nano-hash (gensym beat)))
+          ; #(assoc % :id (uid beat))
+          beat
+          :items
+          ; (map #(assoc % :index (:index beat))))))
+          (map #(merge % (select-keys beat [:index :id])))))
+          ; (sort-by :duration))))
+
+
 (defn unit-beat
   "Establishes the unit (in whole notes) to standardize all beat durations as."
   ([] *unit-beat*)
@@ -343,7 +357,8 @@
     (map-indexed (fn [index beat]
                    (when-not (empty? beat)
                      (assoc {} :items (-> beat many set)
-                               :index index)))
+                               :index index
+                               :id (-> beat hash nano-hash))))
                  steps)))
   ; (->> (quantize-collections tree)
        ; (map-indexed (fn [step beat]
@@ -376,9 +391,10 @@
   ([tree unit]
    (-> tree (unitize-collections unit) quantize-durations)))
 
-(defn provision-beat-steps-2
+; (defn provision-beat-steps-2
+(defn provision-element-steps
   ([tree]
-    (provision-beat-steps-2 tree (unit-beat tree)))
+    (provision-element-steps tree (unit-beat tree)))
   ([tree unit]
    ; (-> tree (quantize-collections unit))))
    ; (let [path (quantize-collections tree)
@@ -386,21 +402,26 @@
    ;       steps (-> (count path) (take (repeat nil)) vec)]
    (let [;items (-> tree itemize-beats-2)
          ; beats (-> items collect)
-         beats (itemize-beats-2 tree 1/2)
-         items (mapcat index-beat-items beats)
+         beats (itemize-beats-2 tree unit)
+         ; items (mapcat index-beat-items beats)
+         items (mapcat index-beat-items-2 beats)
          ; parts (partition-by nil? beats)
-         steps (-> (count beats) (take (repeat nil)) vec)]
+         steps []]
+         ;steps (-> (count beats) (take (repeat nil)) vec)]
          ; steps (range 0 (count beats))]
+    (prn "BEATS" beats)
+    (prn "ITEMS" items)
     (reduce
-      (fn [acc item]
+      (fn [result item]
         (let [index (:index item)
               span (range index (+ index (:duration item)))]
-          ; (prn "---- item" item span (:index item) (:duration item))
-          (reduce (fn [a loc]
-                    (println "------- loc" (type loc) loc)
-                    (println "------- a" (type a) a)
-                    (assoc a loc (conj (get a loc) (:elements item))))
-                  acc span)))
+          (reduce #(assoc %1 %2 (conj (get %1 %2) (:elements item))) result span)))
+          ; (reduce (fn [acc loc]
+          ;           ; WARN: Won't work since :id can be different for each item (since we iterate by items instead of beats)
+          ;           ; (let [slot (or (get acc loc) (->> item :id (conj [])))]
+          ;             (assoc acc loc (conj (get acc loc) (:elements item))))
+          ;             ; (assoc acc loc (conj slot (:elements item)))))
+          ;         result span)))
           ; with: if-let [index (:index item)] (else cond)
           ; (conj acc (last acc))))))
         steps items))))

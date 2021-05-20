@@ -121,6 +121,9 @@
       [:number "4"]
       [:identifier :c2]]]]])
 
+; contains gaps between notes that mostly overlap
+; def fixture-g
+
 (defn atomize-fixture
   [fixture]
   (insta/transform
@@ -727,6 +730,17 @@
            want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
        (is (= want actual))))))
 
+(deftest steps-2
+  (with-redefs [compose/uid next-id!]
+    (testing "elements"
+     (clear!)
+     (let [;tree (atomize-fixture fixture-a)
+           tree fixture-e
+           actual (compose/provision-element-steps tree 1/2)
+           want false]
+           ; want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
+       (is (= want actual))))))
+
 (deftest provision
   (with-redefs [compose/uid next-id!]
     (testing "elements"
@@ -840,6 +854,6 @@
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ]]"))
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then :a]"))
 
-(println "---- new beat steps")
+; (println "---- new beat steps")
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
-(clojure.pprint/pprint (-> fixture-e compose/provision-beat-steps-2))
+; (clojure.pprint/pprint (-> fixture-e compose/provision-beat-steps-2))
