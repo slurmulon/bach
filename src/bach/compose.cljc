@@ -233,8 +233,6 @@
 
 (defn transpose-sets
   [tree]
-  ; TODO: Try this with postwalk
-  ;  - doing this in transpose-sets-2
   (cast-tree set?
     (fn [set-coll]
       (let [set-items (->> set-coll collect (map #(if (sequential? %) (vec %) [%])))
@@ -242,6 +240,7 @@
         (if (next aligned-items) aligned-items (first aligned-items))))
     tree))
 
+; ABANDON
 (defn transpose-sets-2
   [tree]
   (cast-tree
@@ -254,9 +253,6 @@
     tree))
 
 
-; @see: Same problem discussed here, may need to upgrade to Clojure 1.10
-; https://clojure.atlassian.net/browse/CLJ-2031
-; FIXME: Does not work using bach.v3-compose-test/fixture-bach-a!
 (defn transpose-lists
   [tree]
   (cast-tree
@@ -264,29 +260,12 @@
     normalized-list?
     #(reduce
       (fn [acc item]
-        ; (println "----- ITEM")
-        ; (clojure.pprint/pprint item)
         (if-let [duration (:duration item)]
-          ; TODO: use dec instead of - 1
-          ; (into acc (cons item (take (dec duration) (repeat nil))))
           (into acc (expand item duration))
           (cond
-            ; FIX
-            ;  - TODO: Consider moving this to transpose-sets
-            ;  - TODO: Test, when every? is true, mapping each beat elem in set as a seq, then just call `transpose-sets`
-            ;    - #{:elem-1 :elem-2} => #{[:elem-1] [:elem-2]}
-            (set? item) ;(if (every? :duration (filter map? item))
+            (set? item)
             (if (every? (fn [x] (and (map? x) (:duration x))) item)
-              ; FIX
-              ; (conj acc (cons item (take (->> item as-reduced-durations-2 dec) (repeat nil))))
               (conj acc (expand item (as-reduced-durations-2 item)))
-              ; FAIL
-              ; (conj acc (transpose-sets (into #{} (map many item))))
-              ; SAME
-              ; (conj acc (transpose-lists (into #{} (map many item))))
-              ; TODO: NEED TO ADD bach-list META TO EACH
-              ; (conj acc (into #{} (map (comp transpose-lists many) item)))
-              ; (conj acc (into #{} (map (fn [x] (transpose-lists (with-meta (many x) {:bach-list true}))) item)))
               (conj acc item))
             (sequential? item) (into acc item)
             :else (conj acc item)))) [] %) tree))
@@ -410,7 +389,7 @@
                                :index index
                                ; FIXME: Actually want the index of the beat here, in order to avoid another :elements glossary
                                ; :id (-> beat hash nano-hash))))
-                               :id (swap! beats inc))))
+                               :id (dec (swap! beats inc)))))
                  steps)))
 
 ; TODO: Probably just remove and rename position-beats to this

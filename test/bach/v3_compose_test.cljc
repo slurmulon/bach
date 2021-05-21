@@ -127,18 +127,18 @@
 ; TODO!!!
 ;  - Need this for fixing (compose/normalize-beats-2 (atomize-fixture fixture-bach-a))
 ; list -> set -> beat
-; (def fixture-e
-;   [:list
-;    [:set
-;     [:beat
-;      [:number "2"]
-;      [:identifier :a1]]
-;     [:beat
-;      [:number "3"]
-;      [:identifier :a2]]]
-;    [:beat
-;     [:number "4"]
-;     [:identifier :b1]]]
+(def fixture-f
+  [:list
+   [:set
+    [:beat
+     [:number "2"]
+     [:identifier :a1]]
+    [:beat
+     [:number "3"]
+     [:identifier :a2]]]
+   [:beat
+    [:number "4"]
+    [:identifier :b1]]])
 
 ; contains gaps between notes that mostly overlap
 ; def fixture-g
@@ -542,6 +542,29 @@
           actual (compose/transpose-collections tree)]
       (is (= want actual)))))
 
+; (deftest quantize
+(deftest transpose
+  (with-redefs [compose/uid next-id!]
+    (testing "list -> set -> beats"
+      (clear!)
+      (let [tree (-> fixture-f
+                     atomize-fixture
+                     compose/normalize-collections
+                     (compose/unitize-durations 1))
+            actual (compose/transpose-lists tree)
+            want [[#{{:duration 2,
+                      :elements [{:id "stub.1", :kind :stub, :props [], :value "a1"}]}
+                     {:duration 3,
+                      :elements [{:id "stub.2", :kind :stub, :props [], :value "a2"}]}}
+                      nil]
+                     {:duration 4,
+                      :elements [{:id "stub.3", :kind :stub, :props [], :value "b1"}]}
+                     nil
+                     nil
+                     nil]]
+        (is (= want actual))))
+    (testing "sets")))
+
 (deftest linearize-tree
   (testing "collections"
     (testing "set -> list"
@@ -616,7 +639,8 @@
           actual (compose/quantize-collections tree 1/2)]
       (clojure.pprint/pprint actual)
       ; (clojure.pprint/pprint (-> actual bach.tree/squash))
-      (is (= want actual)))))
+      (is (= want actual))))
+  (testing "list -> set -> beat"))
       ; (is (= false actual)))))
 
 ; FIXME: Need to test something like this:
@@ -749,6 +773,7 @@
            want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
        (is (= want actual))))))
 
+; FOCUS
 (deftest steps-2
   (with-redefs [compose/uid next-id!]
     (testing "provisioned elements"
@@ -772,22 +797,22 @@
      (clear!)
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree 1/2))
-           want [1 1 2 2 3 3 4 4 4 4]]
+           want [0 0 1 1 2 2 3 3 3 3]]
        (is (= want actual))))
     (testing "provisioned states"
      (clear!)
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree 1/2))
-           want [[1 ["stub.3"] ["stub.5"] ["stub.1"]]
-                 [1 ["stub.3"] ["stub.5"] ["stub.1"]]
-                 [2 ["stub.6"] ["stub.3"] ["stub.1"]]
-                 [2 ["stub.6"] ["stub.3"] ["stub.1"]]
-                 [3 ["stub.2"] ["stub.6"] ["stub.3"]]
-                 [3 ["stub.2"] ["stub.6"] ["stub.3"]]
-                 [4 ["stub.4"] ["stub.2"] ["stub.6"]]
-                 [4 ["stub.4"] ["stub.2"] ["stub.6"]]
-                 [4 ["stub.4"] ["stub.2"] ["stub.6"]]
-                 [4 ["stub.4"] ["stub.2"] ["stub.6"]]]]
+           want [[0 ["stub.3"] ["stub.5"] ["stub.1"]]
+                 [0 ["stub.3"] ["stub.5"] ["stub.1"]]
+                 [1 ["stub.6"] ["stub.3"] ["stub.1"]]
+                 [1 ["stub.6"] ["stub.3"] ["stub.1"]]
+                 [2 ["stub.2"] ["stub.6"] ["stub.3"]]
+                 [2 ["stub.2"] ["stub.6"] ["stub.3"]]
+                 [3 ["stub.4"] ["stub.2"] ["stub.6"]]
+                 [3 ["stub.4"] ["stub.2"] ["stub.6"]]
+                 [3 ["stub.4"] ["stub.2"] ["stub.6"]]
+                 [3 ["stub.4"] ["stub.2"] ["stub.6"]]]]
        ; (clojure.pprint/pprint (compose/normalize-beats-2 tree 1/2))
        (is (= want actual))))
     (testing "provisioned plays"
