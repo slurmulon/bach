@@ -130,8 +130,9 @@
   [tree]
   (clojure.walk/postwalk
     #(cond
-       (set? %) (flatten-by min (seq %))
-       (sequential? %) (flatten-by + %)
+       (set? %) (flatten-by min (collect %))
+       (sequential? %) (flatten-by + (collect %))
+       ; (sequential? %) (do (println "reduce-durations-2" (collect %)) (flatten-by + (collect %)))
        :else %)
     tree))
 
@@ -233,12 +234,25 @@
 (defn transpose-sets
   [tree]
   ; TODO: Try this with postwalk
+  ;  - doing this in transpose-sets-2
   (cast-tree set?
     (fn [set-coll]
       (let [set-items (->> set-coll collect (map #(if (sequential? %) (vec %) [%])))
             aligned-items (->> set-items transpose (mapv #(into #{} %)))]
         (if (next aligned-items) aligned-items (first aligned-items))))
     tree))
+
+(defn transpose-sets-2
+  [tree]
+  (cast-tree
+    clojure.walk/postwalk
+    set?
+    (fn [set-coll]
+      (let [set-items (->> set-coll collect (map #(if (sequential? %) (vec %) [%])))
+            aligned-items (->> set-items transpose (mapv #(into #{} %)))]
+        (if (next aligned-items) aligned-items (first aligned-items))))
+    tree))
+
 
 ; @see: Same problem discussed here, may need to upgrade to Clojure 1.10
 ; https://clojure.atlassian.net/browse/CLJ-2031
@@ -250,29 +264,54 @@
     normalized-list?
     #(reduce
       (fn [acc item]
-        ; (println "\n\ntranspose-list item:" (type item) item)
-        ; (clojure.pprint/pprint acc)
+        ; (println "----- ITEM")
+        ; (clojure.pprint/pprint item)
         (if-let [duration (:duration item)]
+          ; TODO: use dec instead of - 1
           (into acc (cons item (take (- duration 1) (repeat nil))))
-          ; (into acc item))) [] %) tree))
           (cond
-            ; ORIG (FIXME: breaks using fixture-bach-a, because we convert set to a seq)
-            ; (set? item) (into acc (transpose-sets item))
-            ; (set? item) (do (println "\n!!!!!!! SET!!!!!" item) (clojure.pprint/pprint acc) (clojure.pprint/pprint (transpose-sets item)) (into acc (transpose-sets item)))
-            ; (set? item) (transpose-sets item)
-            ; (set? item) (transpose-sets (conj acc item))
-            ; (set? item) (conj acc (transpose-sets item))
-            ; (coll? item) (conj acc (transpose-sets item)))))
-      ; [] %) tree))
-            ; (set? item) item
-            (set? item) (conj acc item)
-            ; (sequential? item) item))) [] %) tree))
-            ; (sequential? item) (into acc (transpose-lists item))))) [] %) tree))
-            ; LAST
-            (sequential? item) (into acc item)))) [] %) tree))
-            
-          ; (when (set? item)
-          ;   (into acc (transpose-sets item))))) [] %) tree))
+            ; ORIG
+            ; (set? item) (conj acc item)
+            ; ALSO WORKS (but doesn't solve issue with sets of multiple elements not spanning full duration
+            ; (set? item) (transpose-sets-2 (conj acc item))
+            ; TODO: Try calling this before calling postwalk on bach-list
+            ; (set? item) (transpose-sets-2 (conj acc (conj #{} (with-meta (seq item) {:bach-list true}))))
+            ; (set? item) (conj acc (transpose-lists item))
+            (set? item) ;(if (every? :duration (filter map? item))
+                         (if (every? (fn [i] (and (map? i) (:duration i))) item)
+                          (conj acc
+                                (cons item
+                                      (take (->> item as-reduced-durations-2 dec)
+                                            (repeat nil))))
+                          (conj acc item))
+            ; NOTE: max may not always be what we want, sometimes min (depends on how you're wring the notation). Something to think about.
+            ;  - Seems like we mostly want to use `min` though since it avoids internal fragmentation and allows longer beats to overlap
+            ; (set? item) (do (println "xxxxxxxxx" item) (let [wut (do (println "---- set item???" item (as-reduced-durations-2 item)) item)
+            ;                   res (cons item
+            ;                         (take (->> item
+            ;                                    ; (map as-reduced-durations-2)
+            ;                                    as-reduced-durations-2
+            ;                                    ; (map :duration)
+            ;                                    ; (fn [d] (do (println " - - d" d) d))
+            ;                                    ; (filter (complement nil?))
+            ;                                    ; (apply min) dec)
+            ;                                    dec)
+            ;                                    ; (transduce (comp dec min) 0))
+            ;                                    ; (map :duration)
+            ;                                    ; collect
+            ;                                    ; (apply min) dec)
+            ;                               (repeat nil)))]
+            ;               (println "----- set result")
+            ;               (clojure.pprint/pprint res)
+            ;               ; (into acc res))
+            ;               ; (conj acc item))
+            ;               (conj acc item))
+            ;                 )
+            ; ORIG
+            (sequential? item) (into acc item)
+            ; TEST
+            ; (coll? item) (into acc item)
+            :else (conj acc item)))) [] %) tree))
 
 (defn transpose-collections
   "Aligns and transposes parallel collection elements of a parsed AST, enabling linear time-invariant iteration by consumers.
@@ -310,8 +349,16 @@
   [tree unit]
   (-> (normalize-collections tree)
       (unitize-durations unit)
+      ; LAST (almost working)
       transpose-lists
       transpose-sets
+
+      ; transpose-sets-2
+      ; transpose-lists
+
+      ; transpose-lists
+      ; transpose-sets-2
+
       squash
       ))
 (def quantize-collections synchronize-collections)
@@ -379,23 +426,14 @@
   (let [steps (quantize-collections tree unit)
         ; TODO: Try to avoid this if possible, but it makes things much easier in this case
         beats (atom 0)]
-    ; (map-indexed #(assoc {} :items (-> %2 many set) :index %1) steps)))
     (map-indexed (fn [index beat]
                    (when-not (empty? beat)
-                     (println "&&&&&&&& itemize beat?" beat)
                      (assoc {} :items (-> beat collect set)
                                :index index
                                ; FIXME: Actually want the index of the beat here, in order to avoid another :elements glossary
                                ; :id (-> beat hash nano-hash))))
                                :id (swap! beats inc))))
                  steps)))
-  ; (->> (quantize-collections tree)
-       ; (map-indexed (fn [step beat]
-       ;                (when (not (empty? beat))
-       ;                  ; (assoc beat :step step))))))
-       ;                  (assoc beat :index step))))))
-
-; TODO: synthesize-beats
 
 ; TODO: Probably just remove and rename position-beats to this
 (defn linearize-beats

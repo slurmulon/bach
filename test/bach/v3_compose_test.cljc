@@ -124,6 +124,22 @@
       [:number "4"]
       [:identifier :c2]]]]])
 
+; TODO!!!
+;  - Need this for fixing (compose/normalize-beats-2 (atomize-fixture fixture-bach-a))
+; list -> set -> beat
+; (def fixture-e
+;   [:list
+;    [:set
+;     [:beat
+;      [:number "2"]
+;      [:identifier :a1]]
+;     [:beat
+;      [:number "3"]
+;      [:identifier :a2]]]
+;    [:beat
+;     [:number "4"]
+;     [:identifier :b1]]]
+
 ; contains gaps between notes that mostly overlap
 ; def fixture-g
 
@@ -890,7 +906,7 @@
   :part-b = 2 of [
     when 1 do {
       2 -> :a
-      1 -> chord('Z')
+      2 -> chord('Z')
     }
     1 -> :f
     1 -> :e
@@ -951,11 +967,13 @@
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets compose/transpose-lists))
 ; NOTE: Using transpose-sets (and not transpose-lists) looks more like what we want
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets)) ;compose/transpose-sets))
-(clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats 1))) ;compose/transpose-sets))
+
+; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1))) ;compose/transpose-sets))
+
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/itemize-beats-2 1))) ;compose/transpose-sets))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1)))
+(clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1)))
 
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2) compose/beat-as-items))
 ; (let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))
