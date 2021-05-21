@@ -87,6 +87,7 @@
           ; (assoc beat :id (nano-hash (gensym beat)))
           ; #(assoc % :id (uid beat))
           beat
+          ; collect
           :items
           ; (map #(assoc % :index (:index beat))))))
           (map #(merge % (select-keys beat [:index :id])))))
@@ -231,6 +232,7 @@
 
 (defn transpose-sets
   [tree]
+  ; TODO: Try this with postwalk
   (cast-tree set?
     (fn [set-coll]
       (let [set-items (->> set-coll collect (map #(if (sequential? %) (vec %) [%])))
@@ -248,14 +250,27 @@
     normalized-list?
     #(reduce
       (fn [acc item]
-        ; (prn "\ntranspose-list item:" (type item) item)
+        ; (println "\n\ntranspose-list item:" (type item) item)
         ; (clojure.pprint/pprint acc)
         (if-let [duration (:duration item)]
           (into acc (cons item (take (- duration 1) (repeat nil))))
+          ; (into acc item))) [] %) tree))
           (cond
-            (set? item) (into acc (transpose-sets item))
+            ; ORIG (FIXME: breaks using fixture-bach-a, because we convert set to a seq)
+            ; (set? item) (into acc (transpose-sets item))
+            ; (set? item) (do (println "\n!!!!!!! SET!!!!!" item) (clojure.pprint/pprint acc) (clojure.pprint/pprint (transpose-sets item)) (into acc (transpose-sets item)))
+            ; (set? item) (transpose-sets item)
+            ; (set? item) (transpose-sets (conj acc item))
+            ; (set? item) (conj acc (transpose-sets item))
+            ; (coll? item) (conj acc (transpose-sets item)))))
+      ; [] %) tree))
+            ; (set? item) item
+            (set? item) (conj acc item)
             ; (sequential? item) item))) [] %) tree))
-            (sequential? item) (into acc (transpose-lists item))))) [] %) tree))
+            ; (sequential? item) (into acc (transpose-lists item))))) [] %) tree))
+            ; LAST
+            (sequential? item) (into acc item)))) [] %) tree))
+            
           ; (when (set? item)
           ;   (into acc (transpose-sets item))))) [] %) tree))
 
@@ -297,7 +312,7 @@
       (unitize-durations unit)
       transpose-lists
       transpose-sets
-      ; squash
+      squash
       ))
 (def quantize-collections synchronize-collections)
 
@@ -367,7 +382,8 @@
     ; (map-indexed #(assoc {} :items (-> %2 many set) :index %1) steps)))
     (map-indexed (fn [index beat]
                    (when-not (empty? beat)
-                     (assoc {} :items (-> beat many set)
+                     (println "&&&&&&&& itemize beat?" beat)
+                     (assoc {} :items (-> beat collect set)
                                :index index
                                ; FIXME: Actually want the index of the beat here, in order to avoid another :elements glossary
                                ; :id (-> beat hash nano-hash))))
@@ -420,9 +436,13 @@
     (provision-element-steps tree (unit-beat tree)))
   ([tree unit]
    (let [beats (itemize-beats-2 tree unit)
+         ;beats (collect (itemize-beats-2 tree unit))
          items (mapcat index-beat-items-2 beats)]
+     (println "===== provision elem beats" beats)
+     (println "===== provision elem items" items)
     (reduce
       (fn [result item]
+        (println "------------------------- provision-elem item" item)
         (let [index (:index item)
               elems (many (element-as-ids (:elements item)))
               span (range index (+ index (:duration item)))]
