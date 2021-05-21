@@ -697,6 +697,7 @@
           actual (compose/normalize-beats tree (/ 1 2))]
       (is (= want actual)))))
 
+; TODO: Remove or refactor based on new concurrent beat work
 (deftest steps
   (with-redefs [compose/uid next-id!]
     (testing "play"
@@ -791,7 +792,6 @@
                  [["stub.4"] ["stub.2"] ["stub.6"]]
                  [["stub.4"] ["stub.2"] ["stub.6"]]
                  [["stub.4"] ["stub.2"] ["stub.6"]]]]
-           ; want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
        (is (= want actual))))
     (testing "provisioned beats"
      (clear!)
@@ -998,7 +998,8 @@
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/itemize-beats-2 1))) ;compose/transpose-sets))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets))
-(clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1)))
+; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1)))
+(clojure.pprint/pprint (-> fixture-bach-a compose/compose))
 
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2) compose/beat-as-items))
 ; (let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))

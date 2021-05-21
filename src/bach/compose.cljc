@@ -240,19 +240,6 @@
         (if (next aligned-items) aligned-items (first aligned-items))))
     tree))
 
-; ABANDON
-(defn transpose-sets-2
-  [tree]
-  (cast-tree
-    clojure.walk/postwalk
-    set?
-    (fn [set-coll]
-      (let [set-items (->> set-coll collect (map #(if (sequential? %) (vec %) [%])))
-            aligned-items (->> set-items transpose (mapv #(into #{} %)))]
-        (if (next aligned-items) aligned-items (first aligned-items))))
-    tree))
-
-
 (defn transpose-lists
   [tree]
   (cast-tree
@@ -270,6 +257,7 @@
             (sequential? item) (into acc item)
             :else (conj acc item)))) [] %) tree))
 
+; TODO: Replace w/ synchronize-collections
 (defn transpose-collections
   "Aligns and transposes parallel collection elements of a parsed AST, enabling linear time-invariant iteration by consumers.
    Each item of the resulting sequence is a set containing all of the elements occuring at its time/column-index, across all parallel/sibling vectors.
@@ -280,69 +268,17 @@
   (->> tree
        normalize-collections
        transpose-sets))
-       ; (cast-tree set?
-       ;   (fn [set-coll]
-       ;     ; (let [set-items (map #(if (sequential? %) (vec %) [%]) set-coll)
-       ;           ; aligned-coll (if (next aligned-items) aligned-items (first aligned-items))]
-       ;     (let [set-items (->> set-coll
-       ;                          (filter (complement nil?))
-       ;                          (map #(if (sequential? %) (vec %) [%])))
-       ;           aligned-items (->> set-items transpose (mapv #(into #{} %)))]
-       ;       (if (next aligned-items) aligned-items (first aligned-items)))))))
-
-
-; (defn synchronize-collections
-;   [tree unit]
-;   (->> (unitize-durations (normalize-collections tree) unit)
-;        (post-tree
-;          #(and (map? %) (:duration %))
-;           (fn [beat]
-;             ; (cons beat (take (- (:duration beat) 1) (repeat nil)))))
-;             (into [beat] (take (- (:duration beat) 1) (repeat nil)))))
-;        transpose-sets))
 
 ; TODO: Probably rename to linearize-collections if this works out
 (defn synchronize-collections
   [tree unit]
   (-> (normalize-collections tree)
       (unitize-durations unit)
-      ; LAST (almost working)
       transpose-lists
       transpose-sets
-
-      ; transpose-sets-2
-      ; transpose-lists
-
-      ; transpose-lists
-      ; transpose-sets-2
-
       squash
       ))
 (def quantize-collections synchronize-collections)
-
-; defn synchronize-collections
-;  1. unitize durations
-;      TODO: Move this to `unitize-durations`
-;      (cast-tree
-;          #(and (map? %) (:duration %))
-;          #(let [duration (unitize-duration (:duration %) unit)]
-;             (assoc % :duration duration))))))
-;  2. quantize each sequential (via cast-tree, based on unit)
-;      (cast-tree sequential?
-;        (let [;duration (-> seq-coll as-reduced-durations)
-;              durations (->> seq-coll (map as-reduced-durations))
-;              duration (apply max durations)
-;              indices (linearize-indices durations)
-;              items (reduce (fn [acc item]
-;                              (into acc (cons item (take (:duration item) (repeat nil))))) [] seq-coll)
-;              ;items (take duration (repeat nil))]
-;  3. calculate start index of each item based on its duration (so, linearize-indices)
-;  4. upsert each item at its starting index into reduced quantized list
-;  5. (maybe -> NO) filter out nil (but probably keep since it reduces complexity and redundancy in provision-*-steps stuff)
-;    - 6. If we retain quantization and keep the nils, then call transpose-collections
-;       - Shows we MUST keep nils if we want to utilize current transpose-collections as-is,
-;         otherwise we have the exact same problem of using positional array alignment instead of time-plane alignment
-;       - Retaining quantization also enables recursive transposition
 
 (defn linearize-collections
   "Linearly transposes and flattens all collections in the parsed AST into a 1-ary sequence."
@@ -381,16 +317,15 @@
 (defn itemize-beats-2
   [tree unit]
   (let [steps (quantize-collections tree unit)
-        ; TODO: Try to avoid this if possible, but it makes things much easier in this case
         beats (atom 0)]
-    (map-indexed (fn [index beat]
-                   (when-not (empty? beat)
-                     (assoc {} :items (-> beat collect set)
-                               :index index
-                               ; FIXME: Actually want the index of the beat here, in order to avoid another :elements glossary
-                               ; :id (-> beat hash nano-hash))))
-                               :id (dec (swap! beats inc)))))
-                 steps)))
+    (map-indexed
+      (fn [index beat]
+        (when-not (empty? beat)
+          (assoc {} :items (-> beat collect set)
+                    :id (dec (swap! beats inc))
+                    ; TODO: Rename to :step
+                    :index index)))
+      steps)))
 
 ; TODO: Probably just remove and rename position-beats to this
 (defn linearize-beats
@@ -425,23 +360,21 @@
 
 ; (defn provision-beat-steps-2
 (defn provision-element-steps
-  "Overlays/joins elements across quantized beats based on the span of their durations.
-  Enables consumers to determine which elements are playing without needing to iterate."
+  "Overlays/joins elements across quantized beats using the range of their durations.
+  Enables consumers to determine which elements are playing on any step without needing
+  to iterate or perform repetitive state calculations."
   ([tree]
     (provision-element-steps tree (unit-beat tree)))
   ([tree unit]
+   ; TODO: Hoist out itemize-beats-2 and instead expect pre-itemized beats
    (let [beats (itemize-beats-2 tree unit)
          ;beats (collect (itemize-beats-2 tree unit))
          items (mapcat index-beat-items-2 beats)]
-     (println "===== provision elem beats" beats)
-     (println "===== provision elem items" items)
     (reduce
       (fn [result item]
-        (println "------------------------- provision-elem item" item)
         (let [index (:index item)
               elems (many (element-as-ids (:elements item)))
               span (range index (+ index (:duration item)))]
-          ; (reduce #(assoc %1 %2 (conj (get %1 %2) (:elements item)))
           (reduce #(assoc %1 %2 (conj (get %1 %2) elems))
                   result span)))
         [] items))))
@@ -450,6 +383,7 @@
   ([tree]
    (provision-beat-steps-2 tree (unit-beat tree)))
   ([tree unit]
+   ; TODO: Hoist out itemize-beats-2 and instead expect pre-itemized beats
    (let [beats (itemize-beats-2 tree unit)]
          (reduce
            (fn [acc beat]
@@ -503,10 +437,7 @@
     (reduce
       (fn [acc item]
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
-              ; FIXME: Returning nulls for some reason (no ids)
               item-elems (many (element-as-ids (:elements item)))
-              ; TEMP
-              ; item-elems (many (:elements item))
               acc-elems (many (get acc index))
               elems (concat item-elems acc-elems)]
           (assoc acc index (distinct elems)))) steps items)))
@@ -619,11 +550,12 @@
 
 (defn provision-metrics-2
   "Provisions basic metric values of step beats in a track that are useful for playback."
-  [beats]
-  (let [durations (-> beats as-durations flatten)]
-    {:min (apply min durations)
-     :max (apply max durations)
-     :total (count beats)}))
+    [beats]
+    (let [steps (map as-reduced-durations (mapcat :items beats))
+          durations (collect steps)]
+      {:min (apply min durations)
+       :max (apply max durations)
+       :total (count beats)}))
 
 (defn provision-headers
   "Provisions essential and user-provided headers of a track for serialization and playback."
