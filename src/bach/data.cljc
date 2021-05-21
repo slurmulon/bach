@@ -22,6 +22,10 @@
   [x]
   (->> x many (filter (complement nil?))))
 
+(defn expand
+  [x n]
+  (cons x (take (dec n) (repeat nil))))
+
 (defn compare-items
   "Zipmaps source sequence of values (in) against comparison (values),
   specifying which elements of (in) are equal to those in (values)."

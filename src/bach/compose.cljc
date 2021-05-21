@@ -10,7 +10,7 @@
             [bach.track :as tracks]
             [bach.math :refer [inverse-ratio]]
             [bach.tree :refer [cast-tree flatten-by flatten-one squash itemize quantize transpose linearize-indices hiccup-query]]
-            [bach.data :refer [many collect compare-items assoc-if cyclic-index nano-hash to-json problem]]))
+            [bach.data :refer [many collect expand compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
 
 ; (def uid #(nano-hash %))
@@ -268,49 +268,27 @@
         ; (clojure.pprint/pprint item)
         (if-let [duration (:duration item)]
           ; TODO: use dec instead of - 1
-          (into acc (cons item (take (- duration 1) (repeat nil))))
+          ; (into acc (cons item (take (dec duration) (repeat nil))))
+          (into acc (expand item duration))
           (cond
-            ; ORIG
-            ; (set? item) (conj acc item)
-            ; ALSO WORKS (but doesn't solve issue with sets of multiple elements not spanning full duration
-            ; (set? item) (transpose-sets-2 (conj acc item))
-            ; TODO: Try calling this before calling postwalk on bach-list
-            ; (set? item) (transpose-sets-2 (conj acc (conj #{} (with-meta (seq item) {:bach-list true}))))
-            ; (set? item) (conj acc (transpose-lists item))
+            ; FIX
+            ;  - TODO: Consider moving this to transpose-sets
+            ;  - TODO: Test, when every? is true, mapping each beat elem in set as a seq, then just call `transpose-sets`
+            ;    - #{:elem-1 :elem-2} => #{[:elem-1] [:elem-2]}
             (set? item) ;(if (every? :duration (filter map? item))
-                         (if (every? (fn [i] (and (map? i) (:duration i))) item)
-                          (conj acc
-                                (cons item
-                                      (take (->> item as-reduced-durations-2 dec)
-                                            (repeat nil))))
-                          (conj acc item))
-            ; NOTE: max may not always be what we want, sometimes min (depends on how you're wring the notation). Something to think about.
-            ;  - Seems like we mostly want to use `min` though since it avoids internal fragmentation and allows longer beats to overlap
-            ; (set? item) (do (println "xxxxxxxxx" item) (let [wut (do (println "---- set item???" item (as-reduced-durations-2 item)) item)
-            ;                   res (cons item
-            ;                         (take (->> item
-            ;                                    ; (map as-reduced-durations-2)
-            ;                                    as-reduced-durations-2
-            ;                                    ; (map :duration)
-            ;                                    ; (fn [d] (do (println " - - d" d) d))
-            ;                                    ; (filter (complement nil?))
-            ;                                    ; (apply min) dec)
-            ;                                    dec)
-            ;                                    ; (transduce (comp dec min) 0))
-            ;                                    ; (map :duration)
-            ;                                    ; collect
-            ;                                    ; (apply min) dec)
-            ;                               (repeat nil)))]
-            ;               (println "----- set result")
-            ;               (clojure.pprint/pprint res)
-            ;               ; (into acc res))
-            ;               ; (conj acc item))
-            ;               (conj acc item))
-            ;                 )
-            ; ORIG
+            (if (every? (fn [x] (and (map? x) (:duration x))) item)
+              ; FIX
+              ; (conj acc (cons item (take (->> item as-reduced-durations-2 dec) (repeat nil))))
+              (conj acc (expand item (as-reduced-durations-2 item)))
+              ; FAIL
+              ; (conj acc (transpose-sets (into #{} (map many item))))
+              ; SAME
+              ; (conj acc (transpose-lists (into #{} (map many item))))
+              ; TODO: NEED TO ADD bach-list META TO EACH
+              ; (conj acc (into #{} (map (comp transpose-lists many) item)))
+              ; (conj acc (into #{} (map (fn [x] (transpose-lists (with-meta (many x) {:bach-list true}))) item)))
+              (conj acc item))
             (sequential? item) (into acc item)
-            ; TEST
-            ; (coll? item) (into acc item)
             :else (conj acc item)))) [] %) tree))
 
 (defn transpose-collections
