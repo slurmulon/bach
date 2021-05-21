@@ -240,6 +240,7 @@
 
 ; @see: Same problem discussed here, may need to upgrade to Clojure 1.10
 ; https://clojure.atlassian.net/browse/CLJ-2031
+; FIXME: Does not work using bach.v3-compose-test/fixture-bach-a!
 (defn transpose-lists
   [tree]
   (cast-tree
@@ -247,10 +248,16 @@
     normalized-list?
     #(reduce
       (fn [acc item]
+        ; (prn "\ntranspose-list item:" (type item) item)
+        ; (clojure.pprint/pprint acc)
         (if-let [duration (:duration item)]
           (into acc (cons item (take (- duration 1) (repeat nil))))
-          (when (set? item)
-            (into acc (transpose-sets item))))) [] %) tree))
+          (cond
+            (set? item) (into acc (transpose-sets item))
+            ; (sequential? item) item))) [] %) tree))
+            (sequential? item) (into acc (transpose-lists item))))) [] %) tree))
+          ; (when (set? item)
+          ;   (into acc (transpose-sets item))))) [] %) tree))
 
 (defn transpose-collections
   "Aligns and transposes parallel collection elements of a parsed AST, enabling linear time-invariant iteration by consumers.
@@ -392,10 +399,10 @@
 ; TODO: Figure out the renaming here
 (def normalize-beats-2 itemize-beats-2)
 ; (defn normalize-beats-2
-  ; ([tree]
-  ;  (normalize-beats tree (unit-beat tree)))
-  ; ([tree unit]
-  ;  (-> tree (quantize-collections unit) itemize-beats-2)))
+;   ([tree]
+;    (normalize-beats tree (unit-beat tree)))
+;   ([tree unit]
+;    (-> tree itemize-beats-2)))
 
 (defn provision-beat-steps
   "Transforms a parsed AST into a quantized sequence (in q-steps) where each step beat contains
@@ -540,6 +547,8 @@
   [beats]
   (->>
     beats
+    ; NEW
+    collect
     beat-as-elements
     (reduce
       (fn [acc element]
@@ -567,7 +576,8 @@
   "Provisions normalized beat(s) for serialization and playback, replacing each
   beat element with its identifier string."
   [beats]
-  (map provision-beat (many beats)))
+  ; (map provision-beat (many beats)))
+  (map provision-beat (collect beats)))
 
 ; WARN: Migrate to `get-pulse-beat` once ready!
 (defn provision-units
@@ -591,6 +601,14 @@
     {:min (apply min durations)
      :max (apply max durations)
      :total (as-reduced-durations beats)}))
+
+(defn provision-metrics-2
+  "Provisions basic metric values of step beats in a track that are useful for playback."
+  [beats]
+  (let [durations (-> beats as-durations flatten)]
+    {:min (apply min durations)
+     :max (apply max durations)
+     :total (count beats)}))
 
 (defn provision-headers
   "Provisions essential and user-provided headers of a track for serialization and playback."
@@ -616,7 +634,33 @@
      :steps (provision-steps track unit)
      :beats (provision-beats beats)}))
 
+(defn provision-2
+  "Provisions a track AST for high-level interpretation and playback."
+  [data]
+  (let [tree (tracks/parse data)
+        track (tracks/playable identity tree)
+        unit (unit-beat tree)
+        beats (normalize-beats-2 track unit)]
+    {:iterations (tracks/get-iterations tree)
+     :headers (provision-headers tree)
+     :units (provision-units tree)
+     :metrics (provision-metrics-2 beats)
+     :elements (provision-elements beats)
+     :steps (provision-steps-2 track unit)
+     :beats (provision-beats beats)}))
+
 (defn compose
+  "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
+   Playable tracks are formatted so that they are easily and efficiently iterated over by a
+  high-level bach engine (such as gig, for JS)."
+  [data]
+  (let [track (tracks/consume data)]
+    (serialize
+      (if (ast/parsed? track)
+        (provision-2 track)
+        (into {:fail true} track)))))
+; ORIG
+(defn compose-0
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
    Playable tracks are formatted so that they are easily and efficiently iterated over by a
   high-level bach engine (such as gig, for JS)."

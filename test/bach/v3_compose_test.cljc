@@ -803,7 +803,16 @@
                  nil
                  nil
                  nil]]
-       (is (= want actual))))))
+       (is (= want actual))))
+    ; INPROG
+    ; (testing "provisioned unified steps"
+    ;   (clear!)
+    ;   (let [tree (atomize-fixture fixture-e)
+    ;         actual (-> tree (compose/provision-steps-2 1/2))
+    ;         want []]
+    ;     (is (= want actual))
+    ;         ))))
+    ))
 
 (deftest provision
   (with-redefs [compose/uid next-id!]
@@ -889,7 +898,8 @@
 
   ## Look a comment
 
-  play! 2 of [:part-a :part-b]
+  play! [:part-a :part-b]
+  ## play! 2 of [:part-a :part-b]
   ")
 
 (println "@@@@@@")
@@ -918,14 +928,29 @@
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ]]"))
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then :a]"))
 
-(println "---- new beat steps")
-(clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
+; (println "---- new beat steps")
+; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
 ; (clojure.pprint/pprint (-> fixture-e (compose/provision-beat-steps-2 1/2)))
 ; (clojure.pprint/pprint (-> fixture-e (compose/provision-context-steps 1/2)))
 ; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/normalize-beats-2 1/2) (compose/provision-play-steps-2)))
 ; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/itemize-beats-2 1/2) (compose/provision-stop-steps-2)))
 ; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/itemize-beats-2 1/2) (compose/provision-event-steps)))
 ; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/provision-steps-2 1/2)))
+
+; BORKED
+; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1/2)))
+; BORKED
+; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/quantize-collections 1/2)))
+; WORKS
+; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections))
+; WORKS
+; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1/2)))
+; BREAKS (issue is with tranpose-lists)
+;  - FIXED: After calling recursive transpose-lists for sequential items
+(println "\n\n-=-=-=-=-=-=-=-=-=\n\n")
+; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-lists))
+(clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-lists compose/transpose-sets))
+
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2) compose/beat-as-items))
 ; (let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))
 ;       elem-steps (-> fixture-e (compose/provision-element-steps 1/2))]
