@@ -323,6 +323,7 @@
         (when-not (empty? beat)
           (assoc {} :items (-> beat collect set)
                     :id (dec (swap! beats inc))
+                    :duration  (-> beat as-reduced-durations-2)
                     ; TODO: Rename to :step
                     :index index)))
       steps)))
@@ -408,6 +409,7 @@
             (let [elems (beat-as-element-ids beat)
                   duration (-> beat :items as-reduced-durations)]
               (cons elems (take (- (:duration beat) 1) (repeat nil))))) beats))
+              ; (cons true (take (- (:duration beat) 1) (repeat nil))))) beats))
 
 ; Beats are already fully quantized here, so all we need to do is map the ids
 (defn provision-play-steps-2
@@ -551,7 +553,7 @@
 (defn provision-metrics-2
   "Provisions basic metric values of step beats in a track that are useful for playback."
     [beats]
-    (let [steps (map as-reduced-durations (mapcat :items beats))
+    (let [steps (map as-reduced-durations-2 (mapcat :items beats))
           durations (collect steps)]
       {:min (apply min durations)
        :max (apply max durations)
@@ -596,7 +598,7 @@
      :steps (provision-steps-2 track unit)
      :beats (provision-beats beats)}))
 
-(defn compose
+(defn ^:export compose
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
    Playable tracks are formatted so that they are easily and efficiently iterated over by a
   high-level bach engine (such as gig, for JS)."

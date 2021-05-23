@@ -15,18 +15,22 @@
            ; :exports {compose bach.compose/compose,
            ;           hashy bach.data/nano-hash}}
           ; TODO: Update package.json:main, package.json:module
-          :esm
-          {:target :esm
-           ; :output-dir "dist"
-           :output-to "dist/bach.esm.js"
-           :modules {:lib {:exports {compose bach.compose/compose}}}}
+          ; :esm
+          ; {:target :esm
+          ;  :output-dir "dist"
+          ;  :output-to "dist/bach.esm.js"
+          ;  :modules {:lib {:exports {compose bach.compose/compose}}}}
           :umd
           {:target :browser
            :output-dir "dist"
-           :js-options {:entry-keys ["module" "browser" "main"]
-                        :js-provider :shadow}
+           ; :js-options {:entry-keys ["module" "browser" "main"]
+           ;              :js-provider :shadow}
            ; :output-to "dist/bach.umd.js"
-           :modules {:main {:entries [bach.compose/compose]}}}
+           :js-options {:entry-keys ["module" "browser" "main"]}
+           ; :release {:compiler-options {:optimizations :simple}}
+           ; LAST
+           ; :modules {:main {:entries [bach.compose]}}}
+           :modules {:bach.umd {:entries [bach.compose]}}}
            ; :modules {:man {:
           :npm
           {:target :npm-module

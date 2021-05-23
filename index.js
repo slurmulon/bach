@@ -1,4 +1,4 @@
-const bach = require('./dist/lib')
+const bach = require('./dist/bach.cjs')
 
 module.exports = {
   bach,
