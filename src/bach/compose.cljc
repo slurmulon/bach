@@ -225,6 +225,7 @@
       {:list (fn [& [:as all]] (with-meta (-> all collect vec) {:bach-list true}))
        :set (fn [& [:as all]] (->> all collect (into #{})))
        :atom (fn [[_ kind] [_ & args]] (make-element kind args))
+       :rest #(make-element :rest [])
        ; :beat #(assoc {} :duration %1 :elements (many %2))})))
        :beat #(assoc {} :duration %1 :elements (vec (many %2)))})))
 

@@ -517,3 +517,13 @@
                       [:kind [:name "Chord"]]
                       [:arguments [:string "'B'"]]]]]]]]
         (is (= want (parse code)))))))
+
+(deftest rests
+  (testing "in beat"
+    (let [code "1 -> _"
+          want [:track
+                [:statement
+                 [:beat
+                  [:int "1"]
+                  [:rest]]]]]
+      (is (= want (parse code))))))

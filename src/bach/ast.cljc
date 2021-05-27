@@ -17,7 +17,7 @@
 
     <token>    = elem | assign | header | play | <comment> | <empty>
     <expr>     = term | add | sub
-    <entity>   = atom | coll | beat | identifier
+    <entity>   = atom | rest | coll | beat | identifier
     <elem>     = entity | prim | expr
     <item>     = [<empty>] entity | when | <comment> [<empty>]
     <seq>      = list | loop
@@ -25,6 +25,7 @@
     <prim>     = string | number | meter
     <init>     = <'('> arguments <')'>
     atom       = [<empty>] kind [<empty>] init [<empty>]
+    rest       = [<empty>] <'_'> [<empty>]
 
     set        = [<empty>] <'{'> [item (<','|empty> item)* [<','>]] <'}'> [<empty>]
     list       = [<empty>] <'['> [item (<','|empty> item)* [<','>]] <']'> [<empty>]
@@ -40,14 +41,15 @@
     when-not   = <'!'> (when-all | when-any)
     <when-expr> = [<'('>] when-all | when-any | when-not | when-cond [<')'>]
 
-    beat       = expr <'->'> (atom | set | identifier) [<empty>,<empty>]
+    beat       = expr <'->'> (atom | rest | set | identifier) [<empty>,<empty>]
     assign     = identifier [<empty>] <'='> [<empty>] elem
     header     = meta [<empty>] <'='> [<empty>] (prim | expr)
     attribute  = name [<empty>] <':'> [<empty>] prim
     identifier = [<empty>] <':'> name [<empty>]
     arguments  = ((identifier | string | attribute | expr) [<empty> <','> <empty>])*
     meta       = <'@'> name
-    kind       = [<empty>] <'~'> | name [<empty>]
+    (* kind       = [<empty>] <'~'> | name [<empty>] *)
+    kind       = [<empty>] name [<empty>]
     play       = <#'(?i)play!'> [<empty>] elem
     meter      = [<empty>] int <'|'> int [<empty>]
     bool       = #'(true|false)'
