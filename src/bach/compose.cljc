@@ -105,34 +105,26 @@
   [tree]
   (cast-tree map? :duration tree))
 
+; TODO: Remove and replace with reduce-durations-2
 (defn reduce-durations
   "Transforms a tree of numeric duration nodes into a single total duration
   according to bach's nesting rules (max of sets, sum of seqentials)."
   [tree]
   (clojure.walk/postwalk
     #(cond
-       ; FIXME: Doesn't work as expected for following:
-       ; play! {
-       ;   [1 -> scale('E lydian') 1 -> scale('E lydian')]
-       ;   [1 -> chord('E') 1/2 -> chord('G#min') 1/2 -> chord('B')]
-       ; }
-       ; ORIG
        (set? %) (flatten-by max (seq %))
-       ; TEST
-       ; (set? %) (flatten-by min (seq %))
        (sequential? %) (flatten-by + %)
        :else %)
     tree))
 
 (defn reduce-durations-2
   "Transforms a tree of numeric duration nodes into a single total duration
-  according to bach's nesting rules (max of sets, sum of seqentials)."
+  according to bach's nesting rules (min of sets, sum of seqentials)."
   [tree]
   (clojure.walk/postwalk
     #(cond
        (set? %) (flatten-by min (collect %))
        (sequential? %) (flatten-by + (collect %))
-       ; (sequential? %) (do (println "reduce-durations-2" (collect %)) (flatten-by + (collect %)))
        :else %)
     tree))
 
@@ -221,17 +213,20 @@
     tracks/resolve-values
     normalize-loops
     (insta/transform
-      ; {:list (fn [& [:as all]] (-> all collect vec))
-      {:list (fn [& [:as all]] (with-meta (-> all collect vec) {:bach-list true}))
-       :set (fn [& [:as all]] (->> all collect (into #{})))
+      {:list (fn [& [:as all]] (with-meta (-> all collect vec) {:bach true}))
+       ; :set (fn [& [:as all]] (->> all collect (into #{})))
+       :set (fn [& [:as all]] (with-meta (->> all collect (into #{})) {:bach true}))
        :atom (fn [[_ kind] [_ & args]] (make-element kind args))
        :rest #(make-element :rest [])
-       ; :beat #(assoc {} :duration %1 :elements (many %2))})))
        :beat #(assoc {} :duration %1 :elements (vec (many %2)))})))
 
 (def normalized-list?
-  #(and (vector? %) (not (map-entry? %)) (contains? (meta %) :bach-list)))
+  #(and (vector? %) (not (map-entry? %)) (contains? (meta %) :bach)))
 
+(def normalized-set?
+  #(and (set? %) (contains? (meta %) :bach)))
+
+; TODO: Use normalized-set? here instead of set? (and test)
 (defn transpose-sets
   [tree]
   (cast-tree set?
@@ -323,6 +318,7 @@
       (fn [index beat]
         (when-not (empty? beat)
           (assoc {} :items (-> beat collect set)
+                    ; TODO: Rename to :index
                     :id (dec (swap! beats inc))
                     :duration  (-> beat as-reduced-durations-2)
                     ; TODO: Rename to :step
