@@ -13,14 +13,14 @@
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
-(def found-elems (atom {}))
+; (def found-elems (atom {}))
 ; (def next-id! bach.data/nano-hash)
 ; (def next-id! (memoize #(swap! id-counter inc)))
 ; (def next-id! #(swap! id-counter inc))
 (def next-id! (fn [_] (swap! id-counter inc)))
 ; (def next-id! (memoize (fn [_] (swap! id-counter inc))))
-(def next-ids! #(take % (repeatedly next-id!)))
-(def clear! #(do (reset! id-counter 0) (reset! found-elems {})))
+; (def next-ids! #(take % (repeatedly next-id!)))
+(def clear! #(reset! id-counter 0))
 
 (def norm #?(:clj identity :cljs clj->js))
 
@@ -546,7 +546,8 @@
 
 ; (deftest quantize
 (deftest transpose
-  (with-redefs [compose/uid next-id!]
+  ; (with-redefs [compose/uid (memoize next-id!)]
+  (with-redefs [compose/uid (memoize next-id!)]
     (testing "list -> set -> beats"
       (clear!)
       (let [tree (-> fixture-f
@@ -700,89 +701,89 @@
       (is (= want actual)))))
 
 ; TODO: Remove or refactor based on new concurrent beat work
-(deftest steps
-  (with-redefs [compose/uid next-id!]
-    (testing "play"
-      (clear!)
-      (let [tree (atomize-fixture fixture-a)
-            actual (-> tree compose/normalize-beats compose/provision-play-steps)
-            want [["stub.6OzHc6"]
-                  ["stub.6mbq6m" "stub.z0Ntrz"]
-                  nil
-                  nil
-                  ["stub.UO6vk1" "stub.0U44U0"]
-                  nil
-                  nil
-                  nil
-                  nil
-                  nil
-                  ["stub.cbw1Cc" "stub.Cubbb1" "stub.PzwAN0"]
-                  nil
-                  nil
-                  nil
-                  nil
-                  nil
-                  nil
-                  nil]]
-        ; (clojure.pprint/pprint actual)
-        (is (= want actual))))
-   (testing "stop"
-     (testing "separate occurence"
-       (clear!)
-       (let [tree (atomize-fixture fixture-a)
-             actual (-> tree compose/normalize-beats compose/provision-stop-steps)
-             want [["stub.PzwAN0"]
-                   ["stub.6OzHc6"]
-                   nil
-                   ["stub.6mbq6m"]
-                   ["stub.z0Ntrz"]
-                   nil
-                   nil
-                   nil
-                   ["stub.UO6vk1"]
-                   nil
-                   ["stub.0U44U0"]
-                   nil
-                   nil
-                   nil
-                   nil
-                   ["stub.Cubbb1"]
-                   nil
-                   ["stub.cbw1Cc"]]]
-         (is (= want actual))))
-     (testing "simultaneous occurence"
-       (clear!)
-       (let [tree (atomize-fixture fixture-b)
-             actual (-> tree compose/normalize-beats compose/provision-stop-steps)
-             want [["stub.cbw1Cc"]
-                   ["stub.6OzHc6"]
-                   nil
-                   ["stub.6mbq6m"]
-                   ["stub.z0Ntrz"]
-                   nil
-                   nil
-                   nil
-                   ["stub.UO6vk1" "stub.0U44U0"]
-                   nil
-                   nil
-                   nil
-                   nil
-                   ["stub.Cubbb1"]]]
-         (is (= want actual)))))
-   (testing "step beats"
-     (clear!)
-     (let [tree (atomize-fixture fixture-a)
-           actual (compose/provision-beat-steps tree)
-           want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
-       (is (= want actual))))))
+; (deftest steps
+;   (with-redefs [compose/uid next-id!]
+;     (testing "play"
+;       (clear!)
+;       (let [tree (atomize-fixture fixture-a)
+;             actual (-> tree compose/normalize-beats compose/provision-play-steps)
+;             want [["stub.6OzHc6"]
+;                   ["stub.6mbq6m" "stub.z0Ntrz"]
+;                   nil
+;                   nil
+;                   ["stub.UO6vk1" "stub.0U44U0"]
+;                   nil
+;                   nil
+;                   nil
+;                   nil
+;                   nil
+;                   ["stub.cbw1Cc" "stub.Cubbb1" "stub.PzwAN0"]
+;                   nil
+;                   nil
+;                   nil
+;                   nil
+;                   nil
+;                   nil
+;                   nil]]
+;         ; (clojure.pprint/pprint actual)
+;         (is (= want actual))))
+;    (testing "stop"
+;      (testing "separate occurence"
+;        (clear!)
+;        (let [tree (atomize-fixture fixture-a)
+;              actual (-> tree compose/normalize-beats compose/provision-stop-steps)
+;              want [["stub.PzwAN0"]
+;                    ["stub.6OzHc6"]
+;                    nil
+;                    ["stub.6mbq6m"]
+;                    ["stub.z0Ntrz"]
+;                    nil
+;                    nil
+;                    nil
+;                    ["stub.UO6vk1"]
+;                    nil
+;                    ["stub.0U44U0"]
+;                    nil
+;                    nil
+;                    nil
+;                    nil
+;                    ["stub.Cubbb1"]
+;                    nil
+;                    ["stub.cbw1Cc"]]]
+;          (is (= want actual))))
+;      (testing "simultaneous occurence"
+;        (clear!)
+;        (let [tree (atomize-fixture fixture-b)
+;              actual (-> tree compose/normalize-beats compose/provision-stop-steps)
+;              want [["stub.cbw1Cc"]
+;                    ["stub.6OzHc6"]
+;                    nil
+;                    ["stub.6mbq6m"]
+;                    ["stub.z0Ntrz"]
+;                    nil
+;                    nil
+;                    nil
+;                    ["stub.UO6vk1" "stub.0U44U0"]
+;                    nil
+;                    nil
+;                    nil
+;                    nil
+;                    ["stub.Cubbb1"]]]
+;          (is (= want actual)))))
+;    (testing "step beats"
+;      (clear!)
+;      (let [tree (atomize-fixture fixture-a)
+;            actual (compose/provision-beat-steps tree)
+;            want [0 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3 3 3]]
+;        (is (= want actual))))))
 
 ; FOCUS
 (deftest steps-2
-  (with-redefs [compose/uid (memoize next-id!)]
+  (clear!)
   ; (with-ids
-    (testing "provisioned elements"
+  (testing "provisioned elements"
+    (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
-     (println "!!!!!! counter" @id-counter)
      (let [;tree (atomize-fixture fixture-a)
            tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-element-steps tree 1/2))
@@ -796,19 +797,22 @@
                  [["stub.4"] ["stub.2"] ["stub.6"]]
                  [["stub.4"] ["stub.2"] ["stub.6"]]
                  [["stub.4"] ["stub.2"] ["stub.6"]]]]
-       (is (= want actual))))
+       (is (= want actual)))))
     (testing "provisioned beats"
+     (clear!)
+     (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree 1/2))
            want [0 0 1 1 2 2 3 3 3 3]]
        (println "DONE provision beats")
-       (is (= want actual))))
+       (is (= want actual)))))
     ; FIXME: Breaks if we remove memoize from next-id!
     (testing "provisioned states"
-     ; (println "provision states clear???" @id-counter (next-id! nil))
+    (with-redefs [compose/uid (memoize next-id!)]
+     (println "provision states clear???" @id-counter)
      (clear!)
-     (println " after clear???" @id-counter)
+     ; (println " \n\n\n******** after clear???" @id-counter (next-id! :foo))
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree 1/2))
            want [[0 ["stub.3"] ["stub.5"] ["stub.1"]]
@@ -821,10 +825,10 @@
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]]]
-       (clear!)
        (clojure.pprint/pprint actual)
-       (is (= want actual))))
+       (is (= want actual)))))
     (testing "provisioned plays"
+    (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (-> tree (compose/normalize-beats-2 1/2) (compose/provision-play-steps-2)))
@@ -838,8 +842,9 @@
                  []
                  []
                  []]]
-       (is (= want actual))))
+       (is (= want actual)))))
     (testing "provisioned stops"
+     (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
      (let [tree (atomize-fixture fixture-e)
            actual (-> tree (compose/normalize-beats-2 1/2) (compose/provision-stop-steps-2))
@@ -853,7 +858,7 @@
                  nil
                  nil
                  nil]]
-       (is (= want actual))))
+       (is (= want actual)))))
     ; INPROG
     ; (testing "provisioned unified steps"
     ;   (clear!)
@@ -862,54 +867,59 @@
     ;         want []]
     ;     (is (= want actual))
     ;         ))))
-    ))
+    );)
 
-(deftest provision
-  (with-redefs [compose/uid next-id!]
-    (testing "elements"
-      (testing "all unique"
-        (clear!)
-        (let [tree (atomize-fixture fixture-a)
-              actual (-> tree compose/normalize-beats compose/provision-elements)
-              want {:stub
-                    {"6OzHc6" {:value "a", :props ()},
-                     "6mbq6m" {:value "b", :props ()},
-                     "z0Ntrz" {:value "c", :props ()},
-                     "0U44U0" {:value "f", :props ()},
-                     "UO6vk1" {:value "d", :props ()},
-                     "PzwAN0" {:value "h", :props ()},
-                     "Cubbb1" {:value "e", :props ()},
-                     "cbw1Cc" {:value "g", :props ()}}}]
-          (is (= want actual))))
+(deftest ^:eftest/synchronized provision
+  (testing "elements"
+    (testing "all unique"
+      (with-redefs [compose/uid next-id!]
+      ; (with-redefs [compose/uid (memoize next-id!)]
+      (clear!)
+      (let [tree (atomize-fixture fixture-a)
+            actual (-> tree compose/normalize-beats compose/provision-elements)
+            want {:stub
+                  {"1" {:value "a", :props ()},
+                    "2" {:value "b", :props ()},
+                    "3" {:value "c", :props ()},
+                    "4" {:value "d", :props ()},
+                    "5" {:value "e", :props ()},
+                    "6" {:value "f", :props ()},
+                    "7" {:value "g", :props ()},
+                    "8" {:value "h", :props ()}}}]
+        (is (= want actual)))))
       (testing "some identical"
+        (with-redefs [compose/uid (memoize next-id!)]
         (clear!)
+        (println "============ some identical =============")
         (let [tree (atomize-fixture fixture-c)
               actual (-> tree compose/normalize-beats compose/provision-elements)
               want {:stub
-                    {"6OzHc6" {:value "a", :props ()},
-                     "6mbq6m" {:value "b", :props ()}}}]
-          (is (= want actual)))))
+                    {"1" {:value "a", :props ()},
+                     "2" {:value "b", :props ()}}}]
+          (println "--------- end some identical ---------")
+          (is (= want actual))))))
    (testing "beats"
       (clear!)
+      (with-redefs [compose/uid (memoize next-id!)]
       (let [tree (atomize-fixture fixture-a)
             actual (-> tree compose/normalize-beats compose/provision-beats)
-            want [{:items [{:duration 1, :elements ["stub.6OzHc6"]}],
+            want [{:items [{:duration 1, :elements ["stub.1"]}],
                    :duration 1,
                    :index 0}
                   {:items
-                   [{:duration 2, :elements ["stub.6mbq6m"]}
-                    {:duration 3, :elements ["stub.z0Ntrz"]}],
+                   [{:duration 2, :elements ["stub.2"]}
+                    {:duration 3, :elements ["stub.3"]}],
                    :duration 3,
                    :index 1}
                   {:items
-                   [{:duration 4, :elements ["stub.UO6vk1"]}
-                    {:duration 6, :elements ["stub.0U44U0"]}],
+                   [{:duration 4, :elements ["stub.4"]}
+                    {:duration 6, :elements ["stub.6"]}],
                    :duration 6,
                    :index 4}
                   {:items
-                   [{:duration 5, :elements ["stub.Cubbb1"]}
-                    {:duration 7, :elements ["stub.cbw1Cc"]}
-                    {:duration 8, :elements ["stub.PzwAN0"]}],
+                   [{:duration 5, :elements ["stub.5"]}
+                    {:duration 7, :elements ["stub.7"]}
+                    {:duration 8, :elements ["stub.8"]}],
                    :duration 8,
                    :index 10}]]
         (is (= (norm want) actual))))))
