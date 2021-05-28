@@ -186,8 +186,8 @@
                (cond
                  (> duration valid-max-duration)
                    (problem (str "Beat durations must be between 0 and " valid-max-duration))
-                 (compare-items not-every? [:atom :set] tag)
-                   (problem (str "Beat values can only be an atom or set but found: " tag))))
+                 (compare-items not-every? [:atom :rest :set] tag)
+                   (problem (str "Beat values can only be an atom, rest, or set but found: " tag))))
        :div (fn [_ [& div]]
               (when (not (some #{div} valid-divisors))
                 (problem (str "All divisors must be even and no greater than " (last valid-divisors)))))
