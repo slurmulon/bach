@@ -171,7 +171,7 @@
 
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
 ; (deftest ^:v3 normalization
-(deftest normalize-tree
+(deftest ^:eftest/synchronized normalize-tree
   (testing "collections"
     (testing "sets"
       (let [tree [:list
@@ -194,7 +194,7 @@
     (testing "lists" nil)))
 
 ; normalize-loops
-(deftest loops
+(deftest ^:eftest/synchronized loops
   (testing "basic"
     (let [tree [:loop
                   [:number "2"]
@@ -428,7 +428,7 @@
           (is (= want actual))))
       )))
 
-(deftest durations
+(deftest ^:eftest/synchronized durations
   (testing "reduction"
     (testing "set -> lists"
       (let [tree #{[2 2] [2 1 1]}
@@ -505,7 +505,7 @@
 ;       ; (is (= want actual))))))
 ;       (is (= want false))))))
 
-(deftest transpose-tree
+(deftest ^:eftest/synchronized transpose-tree
   (testing "collections"
     ; (testing "list nested in sets"
     ; (let [tree [:list
@@ -545,7 +545,7 @@
       (is (= want actual)))))
 
 ; (deftest quantize
-(deftest transpose
+(deftest ^:eftest/synchronized transpose
   ; (with-redefs [compose/uid (memoize next-id!)]
   (with-redefs [compose/uid (memoize next-id!)]
     (testing "list -> set -> beats"
@@ -568,7 +568,7 @@
         (is (= want actual))))
     (testing "sets")))
 
-(deftest linearize-tree
+(deftest ^:eftest/synchronized linearize-tree
   (testing "collections"
     (testing "set -> list"
       (let [tree [:list
@@ -607,7 +607,7 @@
             actual (compose/linearize-collections tree)]
         (is (= want actual))))))
 
-(deftest quantize-collections
+(deftest ^:eftest/synchronized quantize-collections
   (testing "set -> list"
     (let [tree fixture-d
           want [#{{:duration 2, :elements '(:identifier :b1)}
@@ -651,7 +651,7 @@
 ;   [1 -> scale('E lydian') 1 -> scale('E lydian')]
 ;   [1 -> chord('E') 1/2 -> chord('G#min') 1/2 -> chord('B')]
 ; }
-(deftest beats
+(deftest ^:eftest/synchronized beats
   (testing "linearize"
     (let [tree fixture-a
           want [{:items #{{:duration 1, :elements [:identifier :a]}},
@@ -778,7 +778,7 @@
 ;        (is (= want actual))))))
 
 ; FOCUS
-(deftest steps-2
+(deftest ^:eftest/synchronized steps-2
   (clear!)
   ; (with-ids
   (testing "provisioned elements"
@@ -805,14 +805,11 @@
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree 1/2))
            want [0 0 1 1 2 2 3 3 3 3]]
-       (println "DONE provision beats")
        (is (= want actual)))))
     ; FIXME: Breaks if we remove memoize from next-id!
     (testing "provisioned states"
     (with-redefs [compose/uid (memoize next-id!)]
-     (println "provision states clear???" @id-counter)
      (clear!)
-     ; (println " \n\n\n******** after clear???" @id-counter (next-id! :foo))
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree 1/2))
            want [[0 ["stub.3"] ["stub.5"] ["stub.1"]]
@@ -890,13 +887,11 @@
       (testing "some identical"
         (with-redefs [compose/uid (memoize next-id!)]
         (clear!)
-        (println "============ some identical =============")
         (let [tree (atomize-fixture fixture-c)
               actual (-> tree compose/normalize-beats compose/provision-elements)
               want {:stub
                     {"1" {:value "a", :props ()},
                      "2" {:value "b", :props ()}}}]
-          (println "--------- end some identical ---------")
           (is (= want actual))))))
    (testing "beats"
       (clear!)
@@ -931,7 +926,6 @@
 ; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
 ; (clojure.pprint/pprint (-> [:loop [:number "2"] [:list [:string "'a'"] [:string "'z'"]]] track/reduce-values compose/normalize-loops))
 
-; (println "@@@@@@@@@@@")
 ; (clojure.pprint/pprint (-> [:list [:play [:a 1]] [:play [:b 2]]] (compose/get-play)))
 
 (def fixture-bach-a
