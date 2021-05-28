@@ -7,18 +7,20 @@
                       [goog.string.format]])
             [instaparse.core :as insta]
             [bach.compose :as compose]
-            [bach.track :as track]))
+            [bach.track :as track]
+            [bach.data :as data]))
 
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
+(def found-elems (atom {}))
 ; (def next-id! bach.data/nano-hash)
 ; (def next-id! (memoize #(swap! id-counter inc)))
 ; (def next-id! #(swap! id-counter inc))
-(def next-id! (memoize (fn [_] (swap! id-counter inc))))
-; (def next-id! (fn [_] (swap! id-counter inc)))
+(def next-id! (fn [_] (swap! id-counter inc)))
+; (def next-id! (memoize (fn [_] (swap! id-counter inc))))
 (def next-ids! #(take % (repeatedly next-id!)))
-(def clear! #(do (reset! id-counter 0))) ;(compose/clear!)))
+(def clear! #(do (reset! id-counter 0) (reset! found-elems {})))
 
 (def norm #?(:clj identity :cljs clj->js))
 
@@ -150,7 +152,7 @@
              [:beat
                duration
                [:atom
-                 [:keyword [:name "stub"]]
+                 [:kind [:name "stub"]]
                  ; WARN: Fixes all cljc tests, borks cljs
                  ; [:arguments [:string (->> beat last name (#?(:clj format :cljs gstring/format) "'%s'"))]]]])}
                  [:arguments [:string (->> beat
@@ -776,9 +778,11 @@
 
 ; FOCUS
 (deftest steps-2
-  (with-redefs [compose/uid next-id!]
+  (with-redefs [compose/uid (memoize next-id!)]
+  ; (with-ids
     (testing "provisioned elements"
      (clear!)
+     (println "!!!!!! counter" @id-counter)
      (let [;tree (atomize-fixture fixture-a)
            tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-element-steps tree 1/2))
@@ -798,9 +802,13 @@
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree 1/2))
            want [0 0 1 1 2 2 3 3 3 3]]
+       (println "DONE provision beats")
        (is (= want actual))))
+    ; FIXME: Breaks if we remove memoize from next-id!
     (testing "provisioned states"
+     ; (println "provision states clear???" @id-counter (next-id! nil))
      (clear!)
+     (println " after clear???" @id-counter)
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree 1/2))
            want [[0 ["stub.3"] ["stub.5"] ["stub.1"]]
@@ -813,7 +821,8 @@
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]]]
-       ; (clojure.pprint/pprint (compose/normalize-beats-2 tree 1/2))
+       (clear!)
+       (clojure.pprint/pprint actual)
        (is (= want actual))))
     (testing "provisioned plays"
      (clear!)
@@ -923,7 +932,7 @@
   :f = chord('F#')
 
   :part-a = 3 of [
-    3 -> { :a, scale('A dorian') }
+    3 -> { :a, scale('A dorian'), _ }
     2 -> :e
     when 3 do { 1 -> :g }
   ]
@@ -999,7 +1008,8 @@
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/itemize-beats-2 1))) ;compose/transpose-sets))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1)))
-(clojure.pprint/pprint (-> fixture-bach-a compose/compose))
+; LAST
+; (clojure.pprint/pprint (-> fixture-bach-a compose/compose))
 
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2) compose/beat-as-items))
 ; (let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))
