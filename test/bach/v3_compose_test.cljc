@@ -13,15 +13,8 @@
 ; For more idiomatic solution
 ; @see: https://clojuredocs.org/clojure.spec.alpha/map-of#example-5cd31663e4b0ca44402ef71c
 (def id-counter (atom 0))
-; (def found-elems (atom {}))
-; (def next-id! bach.data/nano-hash)
-; (def next-id! (memoize #(swap! id-counter inc)))
-; (def next-id! #(swap! id-counter inc))
 (def next-id! (fn [_] (swap! id-counter inc)))
-; (def next-id! (memoize (fn [_] (swap! id-counter inc))))
-; (def next-ids! #(take % (repeatedly next-id!)))
 (def clear! #(reset! id-counter 0))
-
 (def norm #?(:clj identity :cljs clj->js))
 
 ; Nested collections
@@ -622,7 +615,7 @@
                 nil
                 nil
                 nil]
-          actual (compose/quantize-collections tree 1/2)]
+          actual (compose/quantize-collections tree (/ 1 2))]
       ; (clojure.pprint/pprint actual)
       (is (= want actual))))
   (testing "list -> set -> list"
@@ -639,8 +632,8 @@
                 nil
                 nil
                 nil]
-          actual (compose/quantize-collections tree 1/2)]
-      (clojure.pprint/pprint actual)
+          actual (compose/quantize-collections tree (/ 1 2))]
+      ; (clojure.pprint/pprint actual)
       ; (clojure.pprint/pprint (-> actual bach.tree/squash))
       (is (= want actual))))
   (testing "list -> set -> beat"))
@@ -674,7 +667,7 @@
                  :duration 8,
                  :index 10}]
           actual (compose/linearize-beats tree)]
-      (clojure.pprint/pprint actual)
+      ; (clojure.pprint/pprint actual)
       (is (= want actual))))
   (testing "normalize"
     (let [tree fixture-a
@@ -779,14 +772,14 @@
 
 ; FOCUS
 (deftest ^:eftest/synchronized steps-2
-  (clear!)
+  ; (clear!)
   ; (with-ids
   (testing "provisioned elements"
     (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
      (let [;tree (atomize-fixture fixture-a)
            tree (atomize-fixture fixture-e)
-           actual (bach.tree/cast-tree sequential? vec (compose/provision-element-steps tree 1/2))
+           actual (bach.tree/cast-tree sequential? vec (compose/provision-element-steps tree (/ 1 2)))
            want [[["stub.3"] ["stub.5"] ["stub.1"]]
                  [["stub.3"] ["stub.5"] ["stub.1"]]
                  [["stub.6"] ["stub.3"] ["stub.1"]]
@@ -803,7 +796,7 @@
      (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
      (let [tree (atomize-fixture fixture-e)
-           actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree 1/2))
+           actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree (/ 1 2)))
            want [0 0 1 1 2 2 3 3 3 3]]
        (is (= want actual)))))
     ; FIXME: Breaks if we remove memoize from next-id!
@@ -811,7 +804,7 @@
     (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
      (let [tree (atomize-fixture fixture-e)
-           actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree 1/2))
+           actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree (/ 1 2)))
            want [[0 ["stub.3"] ["stub.5"] ["stub.1"]]
                  [0 ["stub.3"] ["stub.5"] ["stub.1"]]
                  [1 ["stub.6"] ["stub.3"] ["stub.1"]]
@@ -822,13 +815,13 @@
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]
                  [3 ["stub.4"] ["stub.2"] ["stub.6"]]]]
-       (clojure.pprint/pprint actual)
+       ; (clojure.pprint/pprint actual)
        (is (= want actual)))))
     (testing "provisioned plays"
     (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
      (let [tree (atomize-fixture fixture-e)
-           actual (bach.tree/cast-tree sequential? vec (-> tree (compose/normalize-beats-2 1/2) (compose/provision-play-steps-2)))
+           actual (bach.tree/cast-tree sequential? vec (-> tree (compose/normalize-beats-2 (/ 1 2)) (compose/provision-play-steps-2)))
            want [["stub.1" "stub.5" "stub.3"]
                  []
                  ["stub.6"]
@@ -844,7 +837,7 @@
      (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
      (let [tree (atomize-fixture fixture-e)
-           actual (-> tree (compose/normalize-beats-2 1/2) (compose/provision-stop-steps-2))
+           actual (-> tree (compose/normalize-beats-2 (/ 1 2)) (compose/provision-stop-steps-2))
            want [["stub.4" "stub.2" "stub.6"]
                  nil
                  ["stub.5"]
