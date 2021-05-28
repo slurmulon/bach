@@ -19,4 +19,5 @@
             [lein-eftest "0.5.9"]]
   :deploy-repositories [["releases" :clojars]
                          ["snapshots" :clojars]]
+  :eftest {:multithread? false}
   :profiles {:uberjar {:aot :all}})

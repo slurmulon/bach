@@ -1,4 +1,4 @@
-(ns bach.v3-integration-test
+(ns ^:eftest/synchronized bach.v3-integration-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
                :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]])
             [instaparse.core :as insta]
@@ -165,9 +165,10 @@
     ]
   ]")
 
-(deftest compose
+(deftest ^:eftest/synchronized compose
   (testing "basic"
     (with-redefs [compose/uid (memoize next-id!)]
+      (clear!)
     (let [actual (compose/provision fixture-bach-a)
           want {:iterations 2,
                 :headers {:tempo 150, :meter [4 4]},
