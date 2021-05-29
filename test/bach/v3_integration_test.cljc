@@ -174,104 +174,90 @@
           want {:iterations 2,
                 :headers {:tempo 150, :meter [4 4]},
                 :units
-                {:beat {:step 1, :pulse (/ 1 4)},
+                {:beat {:step 1, :pulse 1/4},
                   :bar {:step 1, :pulse 4},
                   :time {:step 1600.0, :pulse 400.0, :bar 1600.0}},
-                :metrics {:min 1, :max 3, :total 22},
+                :metrics {:min 1, :max 3, :total 21},
                 :elements
                 {:scale {"2" {:value "A dorian", :props []}},
                   :chord
                   {"1" {:value "A7", :props []},
-                    "3" {:value "E6", :props []},
-                    "4" {:value "Gm", :props []},
-                    "5" {:value "Z", :props []},
-                    "6" {:value "F#", :props []}}},
+                  "3" {:value "E6", :props []},
+                  "4" {:value "Gm", :props []},
+                  "5" {:value "Z", :props []},
+                  "6" {:value "F#", :props []}}},
                 :steps
-                {:beat [0 0 0 1 1 2 2 2 3 3 4 4 4 5 5 6 7 7 8 9 10 11],
-                  :play
-                  [["scale.2" "chord.1"]
-                    nil
-                    nil
-                    ["chord.3"]
-                    nil
-                    ["scale.2" "chord.1"]
-                    nil
-                    nil
-                    ["chord.3"]
-                    nil
-                    ["scale.2" "chord.1"]
-                    nil
-                    nil
-                    ["chord.3"]
-                    nil
-                    ["chord.4"]
-                    ["chord.5" "chord.1"]
-                    nil
-                    ["chord.6"]
-                    ["chord.3"]
-                    ["chord.6"]
-                    ["chord.3"]],
-                  :stop
-                  [["chord.3"]
-                    nil
-                    nil
-                    ["scale.2" "chord.1"]
-                    nil
-                    ["chord.3"]
-                    nil
-                    nil
-                    ["scale.2" "chord.1"]
-                    nil
-                    ["chord.3"]
-                    nil
-                    nil
-                    ["scale.2" "chord.1"]
-                    nil
-                    ["chord.3"]
-                    ["chord.4"]
-                    ["chord.5"]
-                    ["chord.1"]
-                    ["chord.6"]
-                    ["chord.3"]
-                    ["chord.6"]]},
+                [[[0 ["scale.2" "chord.1"]] ["scale.2" "chord.1"] ["chord.3"]]
+                  [[0 ["scale.2" "chord.1"]] [] nil]
+                  [[0 ["scale.2" "chord.1"]] [] nil]
+                  [[1 ["chord.3"]] ["chord.3"] ["scale.2" "chord.1"]]
+                  [[1 ["chord.3"]] [] nil]
+                  [[2 ["scale.2" "chord.1"]] ["scale.2" "chord.1"] ["chord.3"]]
+                  [[2 ["scale.2" "chord.1"]] [] nil]
+                  [[2 ["scale.2" "chord.1"]] [] nil]
+                  [[3 ["chord.3"]] ["chord.3"] ["scale.2" "chord.1"]]
+                  [[3 ["chord.3"]] [] nil]
+                  [[4 ["scale.2" "chord.1"]] ["scale.2" "chord.1"] ["chord.3"]]
+                  [[4 ["scale.2" "chord.1"]] [] nil]
+                  [[4 ["scale.2" "chord.1"]] [] nil]
+                  [[5 ["chord.3"]] ["chord.3"] ["scale.2" "chord.1"]]
+                  [[5 ["chord.3"]] [] nil]
+                  [[6 ["chord.4"]] ["chord.4"] ["chord.3"]]
+                  [[7 ["chord.1"] ["chord.5"]] ["chord.5" "chord.1"] ["chord.4"]]
+                  [[8 ["chord.6"] ["chord.1"]] ["chord.6"] ["chord.5"]]
+                  [[9 ["chord.3"]] ["chord.3"] ["chord.6" "chord.1"]]
+                  [[10 ["chord.6"]] ["chord.6"] ["chord.3"]]
+                  [[11 ["chord.3"]] ["chord.3"] ["chord.6"]]],
                 :beats
                 [{:items [{:duration 3, :elements ["scale.2" "chord.1"]}],
+                  :id 0,
                   :duration 3,
                   :index 0}
                   {:items [{:duration 2, :elements ["chord.3"]}],
+                  :id 1,
                   :duration 2,
                   :index 3}
                   {:items [{:duration 3, :elements ["scale.2" "chord.1"]}],
+                  :id 2,
                   :duration 3,
                   :index 5}
                   {:items [{:duration 2, :elements ["chord.3"]}],
+                  :id 3,
                   :duration 2,
                   :index 8}
                   {:items [{:duration 3, :elements ["scale.2" "chord.1"]}],
+                  :id 4,
                   :duration 3,
                   :index 10}
                   {:items [{:duration 2, :elements ["chord.3"]}],
+                  :id 5,
                   :duration 2,
                   :index 13}
                   {:items [{:duration 1, :elements ["chord.4"]}],
+                  :id 6,
                   :duration 1,
                   :index 15}
                   {:items
                   [{:duration 1, :elements ["chord.5"]}
                     {:duration 2, :elements ["chord.1"]}],
-                  :duration 2,
+                  :id 7,
+                  :duration 1,
                   :index 16}
                   {:items [{:duration 1, :elements ["chord.6"]}],
+                  :id 8,
+                  :duration 1,
+                  :index 17}
+                  {:items [{:duration 1, :elements ["chord.3"]}],
+                  :id 9,
                   :duration 1,
                   :index 18}
-                  {:items [{:duration 1, :elements ["chord.3"]}],
+                  {:items [{:duration 1, :elements ["chord.6"]}],
+                  :id 10,
                   :duration 1,
                   :index 19}
-                  {:items [{:duration 1, :elements ["chord.6"]}],
-                  :duration 1,
-                  :index 20}
                   {:items [{:duration 1, :elements ["chord.3"]}],
+                  :id 11,
                   :duration 1,
-                  :index 21}]}]
+                  :index 20}]}]
       (is (= want actual))))))
 

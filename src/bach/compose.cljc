@@ -352,7 +352,6 @@
   ([tree unit]
    (-> tree (unitize-collections unit) quantize-durations)))
 
-; (defn provision-beat-steps-2
 (defn provision-element-steps
   "Overlays/joins elements across quantized beats using the range of their durations.
   Enables consumers to determine which elements are playing on any step without needing
@@ -369,7 +368,6 @@
         (let [index (:index item)
               elems (many (element-as-ids (:elements item)))
               span (range index (+ index (:duration item)))]
-          (println "element-steps item" item)
           (reduce #(assoc %1 %2 (conj (get %1 %2) elems))
                   result span)))
         [] items))))
@@ -561,23 +559,9 @@
     (assoc headers :meter meter)))
 
 ; TODO: Use keyword args to allow custom flexibile provisioning
-;  - Also consider proposed setting flags, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
+;  - Consider setting flags, which would be used to control what gets provisioned and to inform engine so it can adapt its interpretation.
+;  - Consider accept map of variables to allow composition against custom domains
 (defn provision
-  "Provisions a track AST for high-level interpretation and playback."
-  [data]
-  (let [tree (tracks/parse data)
-        track (tracks/playable identity tree)
-        unit (unit-beat tree)
-        beats (normalize-beats track unit)]
-    {:iterations (tracks/get-iterations tree)
-     :headers (provision-headers tree)
-     :units (provision-units tree)
-     :metrics (provision-metrics beats)
-     :elements (provision-elements beats)
-     :steps (provision-steps track unit)
-     :beats (provision-beats beats)}))
-
-(defn provision-2
   "Provisions a track AST for high-level interpretation and playback."
   [data]
   (let [tree (tracks/parse data)
@@ -593,17 +577,6 @@
      :beats (provision-beats beats)}))
 
 (defn ^:export compose
-  "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
-   Playable tracks are formatted so that they are easily and efficiently iterated over by a
-  high-level bach engine (such as gig, for JS)."
-  [data]
-  (let [track (tracks/consume data)]
-    (serialize
-      (if (ast/parsed? track)
-        (provision-2 track)
-        (into {:fail true} track)))))
-; ORIG
-(defn compose-0
   "Creates a normalized playable track from either a parsed AST or a UTF-8 string of bach data.
    Playable tracks are formatted so that they are easily and efficiently iterated over by a
   high-level bach engine (such as gig, for JS)."
