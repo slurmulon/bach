@@ -41,12 +41,13 @@
            :output-to "target/js/node-tests.js"
            :ns-regexp "-test$"
            :autorun   true
+           ; :main bach.core-test/-main
            ; :js-options
-           ; {;:js-provider :shadow
-           ;  :resolve {"crypto" {:target :file
-           ;                      :file "test/bach/runtime.js"}}}
-            ; :resolve {"crypto" {:target :node
-            ;                     :require "crypto"}}}
-            ; :resolve {"crypto" {:target :global
-            ;                     :require "crypto"}}}
+           ; {
+           ; ;  :resolve {"crypto" {:target :file
+           ; ;                      :file "test/bach/runtime.js"}}}
+           ;  ; :resolve {"crypto" {:target :node
+           ;  ;                     :require "crypto"}}}
+           ;  :resolve {"crypto" {:target :global
+           ;                      :require "crypto"}}}
            }}}

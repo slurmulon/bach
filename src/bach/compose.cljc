@@ -32,7 +32,6 @@
    (if (map? elem)
      (:id elem)
      (str (-> elem element->kind name) "." (uid seed)))))
-     ; (str (-> elem element->kind name) "." (nano-hash seed)))))
 
 (defn element->uid
   [elem]
@@ -205,7 +204,7 @@
 ;  - Should do this more generically in `reduce-values` or the like, instead of here
 (defn normalize-collections
   "Normalizes all bach collections in parsed AST as native Clojure structures.
-  Enables pragmatic handling of trees and colls in subsequent functions.
+  Enables pragmatic handling of trees, colls and items in subsequent functions.
   Input: [:list :a [:set :b :c] [:set :d [:list :e :f]]]
   Ouput: [:a #{:b :c} #{:d [:e :f]}]"
   [tree]
@@ -214,7 +213,6 @@
     normalize-loops
     (insta/transform
       {:list (fn [& [:as all]] (with-meta (-> all collect vec) {:bach true}))
-       ; :set (fn [& [:as all]] (->> all collect (into #{})))
        :set (fn [& [:as all]] (with-meta (->> all collect (into #{})) {:bach true}))
        :atom (fn [[_ kind] [_ & args]] (make-element kind args))
        :rest #(make-element :rest [])
@@ -272,8 +270,7 @@
       (unitize-durations unit)
       transpose-lists
       transpose-sets
-      squash
-      ))
+      squash))
 (def quantize-collections synchronize-collections)
 
 (defn linearize-collections
@@ -305,7 +302,6 @@
   ; NOTE: Instead of using max for sets (which inhibits defining parallel beats with different durations that should NOT move the index), consider using min instead
   ;  - We could also consider re-factoring :beats more similar to :elements (in provision)
   (let [durations (map as-reduced-durations beats)
-        ;durations (map as-reduced-durations-2 beats)
         indices (linearize-indices durations)]
     ; TODO: Rename :index to :step
     (map #(assoc {} :items (-> %1 many set) :duration %2 :index %3) beats durations indices)))
@@ -320,7 +316,7 @@
           (assoc {} :items (-> beat collect set)
                     ; TODO: Rename to :index
                     :id (dec (swap! beats inc))
-                    :duration  (-> beat as-reduced-durations-2)
+                    :duration  (as-reduced-durations-2 beat)
                     ; TODO: Rename to :step
                     :index index)))
       steps)))
@@ -373,6 +369,7 @@
         (let [index (:index item)
               elems (many (element-as-ids (:elements item)))
               span (range index (+ index (:duration item)))]
+          (println "element-steps item" item)
           (reduce #(assoc %1 %2 (conj (get %1 %2) elems))
                   result span)))
         [] items))))

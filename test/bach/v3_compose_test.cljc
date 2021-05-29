@@ -1,4 +1,4 @@
-(ns bach.v3-compose-test
+(ns ^:eftest/synchronized bach.v3-compose-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
                :cljs [[bach.crypto]
                       [cljs.test :refer-macros [deftest is testing run-tests]]

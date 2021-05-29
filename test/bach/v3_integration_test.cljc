@@ -1,6 +1,7 @@
 (ns ^:eftest/synchronized bach.v3-integration-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
-               :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]])
+               :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
+                      [bach.crypto]])
             [instaparse.core :as insta]
             [hiccup-find.core :refer [hiccup-find]]
             [bach.compose :as compose]
