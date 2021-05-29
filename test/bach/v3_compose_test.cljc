@@ -822,7 +822,7 @@
      (clear!)
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (-> tree (compose/normalize-beats-2 (/ 1 2)) (compose/provision-play-steps-2)))
-           want [["stub.1" "stub.5" "stub.3"]
+           want [["stub.1" "stub.3" "stub.5"]
                  []
                  ["stub.6"]
                  []

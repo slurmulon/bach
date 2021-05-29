@@ -53,7 +53,7 @@
 (defn element-as-ids
   "Transforms normalized beat element(s) into their unique ids."
   [elems]
-  (->> elems collect (map :id)))
+  (->> elems collect (map :id) sort))
 
 (defn beat-as-items
   "Provides all of the items in normalized beat(s) as a vector."
@@ -68,7 +68,7 @@
 (defn beat-as-element-ids
   "Provides all of the beat element item ids in normalized beat(s)."
   [beats]
-  (->> beats collect beat-as-elements (map :id)))
+  (->> beats collect beat-as-elements (map :id) sort))
 
 (defn index-beat-items
   "Adds the provided normalized beat's index to each of its items.

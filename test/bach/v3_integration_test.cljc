@@ -170,94 +170,95 @@
   (testing "basic"
     (with-redefs [compose/uid (memoize next-id!)]
       (clear!)
-    (let [actual (compose/provision fixture-bach-a)
+    (let [actual (bach.tree/cast-tree sequential? vec (compose/provision fixture-bach-a))
           want {:iterations 2,
                 :headers {:tempo 150, :meter [4 4]},
                 :units
-                {:beat {:step 1, :pulse 1/4},
-                  :bar {:step 1, :pulse 4},
-                  :time {:step 1600.0, :pulse 400.0, :bar 1600.0}},
+                {:beat {:step 1, :pulse (/ 1 4)},
+                 :bar {:step 1, :pulse 4},
+                 :time {:step 1600.0, :pulse 400.0, :bar 1600.0}},
                 :metrics {:min 1, :max 3, :total 21},
                 :elements
                 {:scale {"2" {:value "A dorian", :props []}},
-                  :chord
+                 :chord
                   {"1" {:value "A7", :props []},
                   "3" {:value "E6", :props []},
                   "4" {:value "Gm", :props []},
                   "5" {:value "Z", :props []},
                   "6" {:value "F#", :props []}}},
                 :steps
-                [[[0 ["scale.2" "chord.1"]] ["scale.2" "chord.1"] ["chord.3"]]
-                  [[0 ["scale.2" "chord.1"]] [] nil]
-                  [[0 ["scale.2" "chord.1"]] [] nil]
-                  [[1 ["chord.3"]] ["chord.3"] ["scale.2" "chord.1"]]
+                [[[0 ["chord.1" "scale.2"]] ["chord.1" "scale.2"] ["chord.3"]]
+                  [[0 ["chord.1" "scale.2"]] [] nil]
+                  [[0 ["chord.1" "scale.2"]] [] nil]
+                  [[1 ["chord.3"]] ["chord.3"] ["chord.1" "scale.2"]]
                   [[1 ["chord.3"]] [] nil]
-                  [[2 ["scale.2" "chord.1"]] ["scale.2" "chord.1"] ["chord.3"]]
-                  [[2 ["scale.2" "chord.1"]] [] nil]
-                  [[2 ["scale.2" "chord.1"]] [] nil]
-                  [[3 ["chord.3"]] ["chord.3"] ["scale.2" "chord.1"]]
+                  [[2 ["chord.1" "scale.2"]] ["chord.1" "scale.2"] ["chord.3"]]
+                  [[2 ["chord.1" "scale.2"]] [] nil]
+                  [[2 ["chord.1" "scale.2"]] [] nil]
+                  [[3 ["chord.3"]] ["chord.3"] ["chord.1" "scale.2"]]
                   [[3 ["chord.3"]] [] nil]
-                  [[4 ["scale.2" "chord.1"]] ["scale.2" "chord.1"] ["chord.3"]]
-                  [[4 ["scale.2" "chord.1"]] [] nil]
-                  [[4 ["scale.2" "chord.1"]] [] nil]
-                  [[5 ["chord.3"]] ["chord.3"] ["scale.2" "chord.1"]]
+                  [[4 ["chord.1" "scale.2"]] ["chord.1" "scale.2"] ["chord.3"]]
+                  [[4 ["chord.1" "scale.2"]] [] nil]
+                  [[4 ["chord.1" "scale.2"]] [] nil]
+                  [[5 ["chord.3"]] ["chord.3"] ["chord.1" "scale.2"]]
                   [[5 ["chord.3"]] [] nil]
                   [[6 ["chord.4"]] ["chord.4"] ["chord.3"]]
-                  [[7 ["chord.1"] ["chord.5"]] ["chord.5" "chord.1"] ["chord.4"]]
+                  [[7 ["chord.1"] ["chord.5"]] ["chord.1" "chord.5"] ["chord.4"]]
                   [[8 ["chord.6"] ["chord.1"]] ["chord.6"] ["chord.5"]]
                   [[9 ["chord.3"]] ["chord.3"] ["chord.6" "chord.1"]]
                   [[10 ["chord.6"]] ["chord.6"] ["chord.3"]]
                   [[11 ["chord.3"]] ["chord.3"] ["chord.6"]]],
                 :beats
-                [{:items [{:duration 3, :elements ["scale.2" "chord.1"]}],
+                [{:items [{:duration 3, :elements ["chord.1" "scale.2"]}],
                   :id 0,
                   :duration 3,
                   :index 0}
-                  {:items [{:duration 2, :elements ["chord.3"]}],
+                 {:items [{:duration 2, :elements ["chord.3"]}],
                   :id 1,
                   :duration 2,
                   :index 3}
-                  {:items [{:duration 3, :elements ["scale.2" "chord.1"]}],
+                 {:items [{:duration 3, :elements ["chord.1" "scale.2"]}],
                   :id 2,
                   :duration 3,
                   :index 5}
-                  {:items [{:duration 2, :elements ["chord.3"]}],
+                 {:items [{:duration 2, :elements ["chord.3"]}],
                   :id 3,
                   :duration 2,
                   :index 8}
-                  {:items [{:duration 3, :elements ["scale.2" "chord.1"]}],
+                 {:items [{:duration 3, :elements ["chord.1" "scale.2"]}],
                   :id 4,
                   :duration 3,
                   :index 10}
-                  {:items [{:duration 2, :elements ["chord.3"]}],
+                 {:items [{:duration 2, :elements ["chord.3"]}],
                   :id 5,
                   :duration 2,
                   :index 13}
-                  {:items [{:duration 1, :elements ["chord.4"]}],
+                 {:items [{:duration 1, :elements ["chord.4"]}],
                   :id 6,
                   :duration 1,
                   :index 15}
-                  {:items
+                 {:items
                   [{:duration 1, :elements ["chord.5"]}
-                    {:duration 2, :elements ["chord.1"]}],
+                   {:duration 2, :elements ["chord.1"]}],
                   :id 7,
                   :duration 1,
                   :index 16}
-                  {:items [{:duration 1, :elements ["chord.6"]}],
+                 {:items [{:duration 1, :elements ["chord.6"]}],
                   :id 8,
                   :duration 1,
                   :index 17}
-                  {:items [{:duration 1, :elements ["chord.3"]}],
+                 {:items [{:duration 1, :elements ["chord.3"]}],
                   :id 9,
                   :duration 1,
                   :index 18}
-                  {:items [{:duration 1, :elements ["chord.6"]}],
+                 {:items [{:duration 1, :elements ["chord.6"]}],
                   :id 10,
                   :duration 1,
                   :index 19}
-                  {:items [{:duration 1, :elements ["chord.3"]}],
+                 {:items [{:duration 1, :elements ["chord.3"]}],
                   :id 11,
                   :duration 1,
                   :index 20}]}]
+      ; (clojure.pprint/pprint (bach.tree/cast-tree sequential? vec actual))
       (is (= want actual))))))
 
