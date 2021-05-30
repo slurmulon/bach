@@ -839,15 +839,15 @@
      (let [tree (atomize-fixture fixture-e)
            actual (-> tree (compose/normalize-beats-2 (/ 1 2)) (compose/provision-stop-steps-2))
            want [["stub.4" "stub.2" "stub.6"]
-                 nil
+                 []
                  ["stub.5"]
-                 nil
+                 []
                  ["stub.1"]
-                 nil
+                 []
                  ["stub.3"]
-                 nil
-                 nil
-                 nil]]
+                 []
+                 []
+                 []]]
        (is (= want actual)))))
     ; INPROG
     ; (testing "provisioned unified steps"
@@ -937,7 +937,7 @@
   :part-b = 2 of [
     when 1 do {
       2 -> :a
-      2 -> chord('Z')
+      2 -> thing('Z')
     }
     1 -> :f
     1 -> :e
@@ -1006,7 +1006,7 @@
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1)))
 ; LAST
-; (clojure.pprint/pprint (-> fixture-bach-a compose/compose))
+(clojure.pprint/pprint (-> fixture-bach-a compose/compose))
 
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2) compose/beat-as-items))
 ; (let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))

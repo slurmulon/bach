@@ -48,6 +48,8 @@
    :value (-> args first str)
    :props (rest args)})
 
+(def ^:export elementize (comp serialize make-element))
+
 ; (def as-element! (memo as-element))
 
 (defn element-as-ids
@@ -427,7 +429,7 @@
   [beats]
   (let [duration (count beats)
         items (mapcat index-beat-items beats)
-        steps (-> duration (take (repeat nil)) vec)]
+        steps (-> duration (take (repeat '())) vec)]
     (reduce
       (fn [acc item]
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
