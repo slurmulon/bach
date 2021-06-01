@@ -138,6 +138,22 @@
 ; contains gaps between notes that mostly overlap
 ; def fixture-g
 
+(def fixture-h
+  [:list
+    [:beat
+      [:number "1"]
+      [:identifier :a]]
+    [:set
+      [:beat [:number "2"] [:identifier :b]]
+      [:beat [:number "3"] [:identifier :c]]]
+    [:set
+      [:list
+        [:beat [:number "4"] [:identifier :d]]
+        [:beat [:number "5"] [:identifier :e]]]
+      [:list
+        [:beat [:number "6"] [:identifier :f]]
+        [:beat [:number "7"] [:identifier :g]]]]])
+
 (defn atomize-fixture
   [fixture]
   (insta/transform
@@ -537,29 +553,51 @@
           actual (compose/transpose-collections tree)]
       (is (= want actual)))))
 
-; (deftest quantize
-(deftest ^:eftest/synchronized transpose
-  ; (with-redefs [compose/uid (memoize next-id!)]
+(deftest ^:eftest/synchronized transpose-list
   (with-redefs [compose/uid (memoize next-id!)]
     (testing "list -> set -> beats"
       (clear!)
       (let [tree (-> fixture-f
-                     atomize-fixture
-                     compose/normalize-collections
-                     (compose/unitize-durations 1))
+                    atomize-fixture
+                    compose/normalize-collections
+                    (compose/unitize-durations 1))
             actual (compose/transpose-lists tree)
             want [[#{{:duration 2,
                       :elements [{:id "stub.1", :kind :stub, :props [], :value "a1"}]}
-                     {:duration 3,
+                    {:duration 3,
                       :elements [{:id "stub.2", :kind :stub, :props [], :value "a2"}]}}
                       nil]
-                     {:duration 4,
+                    {:duration 4,
                       :elements [{:id "stub.3", :kind :stub, :props [], :value "b1"}]}
-                     nil
-                     nil
-                     nil]]
-        (is (= want actual))))
-    (testing "sets")))
+                    nil
+                    nil
+                    nil]]
+        (is (= want actual))))))
+
+(deftest ^:eftest/synchronized transpose-set
+  (with-redefs [compose/uid (memoize next-id!)]
+    (testing "list -> set -> list"
+      (clear!)
+      (let [tree (-> fixture-h
+                    atomize-fixture
+                    compose/normalize-collections
+                    (compose/unitize-durations 1))
+            actual (compose/transpose-sets tree)
+            want [{:duration 1,
+                   :elements [{:id "stub.1", :kind :stub, :value "a", :props '()}]}
+                  #{{:duration 2,
+                     :elements [{:id "stub.2", :kind :stub, :value "b", :props '()}]}
+                    {:duration 3,
+                      :elements [{:id "stub.3", :kind :stub, :value "c", :props '()}]}}
+                  [#{{:duration 4,
+                      :elements [{:id "stub.4", :kind :stub, :value "d", :props '()}]}
+                     {:duration 6,
+                      :elements [{:id "stub.6", :kind :stub, :value "f", :props '()}]}}
+                   #{{:duration 5,
+                      :elements [{:id "stub.5", :kind :stub, :value "e", :props '()}]}
+                     {:duration 7,
+                      :elements [{:id "stub.7", :kind :stub, :value "g", :props '()}]}}]]]
+        (is (= want actual))))))
 
 (deftest ^:eftest/synchronized linearize-tree
   (testing "collections"
