@@ -368,9 +368,13 @@
     (reduce
       (fn [result item]
         (let [index (:index item)
+              ; FIXME: This will return a multi-dimensional structure (instead of flat struct) when you have 2 beats within a set w/ diff durations
+              ;  - consider doing into instead of conj in reduce
               elems (many (element-as-ids (:elements item)))
               span (range index (+ index (:duration item)))]
-          (reduce #(assoc %1 %2 (conj (get %1 %2) elems))
+          ; (reduce #(assoc %1 %2 (conj (get %1 %2) elems))
+          ; (reduce #(assoc %1 %2 (into (get %1 %2) elems))
+          (reduce #(assoc %1 %2 (sort-by str (into (get %1 %2) elems)))
                   result span)))
         [] items))))
 
@@ -394,7 +398,7 @@
      (map cons beats elems))))
 (def provision-state-steps provision-context-steps)
 
-
+; REPLACE
 (defn provision-play-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be played at its index."
@@ -410,6 +414,7 @@
   [beats]
   (map beat-as-element-ids beats))
 
+; REPLACE
 (defn provision-stop-steps
   "Provides a quantized sequence (in q-steps) of normalized beats where each step beat contains
   the id of every element that should be stopped at its index."
@@ -435,7 +440,7 @@
         (let [index (cyclic-index duration (+ (:index item) (:duration item)))
               item-elems (many (element-as-ids (:elements item)))
               acc-elems (many (get acc index))
-              elems (concat item-elems acc-elems)]
+              elems (sort (into item-elems acc-elems))]
           (assoc acc index (distinct elems)))) steps items)))
 
 ; ; TODO: Remove if we keep provision-steps-2

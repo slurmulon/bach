@@ -182,32 +182,32 @@
                 {:scale {"2" {:value "A dorian", :props []}},
                  :chord
                   {"1" {:value "A7", :props []},
-                  "3" {:value "E6", :props []},
-                  "4" {:value "Gm", :props []},
-                  "5" {:value "Z", :props []},
-                  "6" {:value "F#", :props []}}},
+                   "3" {:value "E6", :props []},
+                   "4" {:value "Gm", :props []},
+                   "5" {:value "Z", :props []},
+                   "6" {:value "F#", :props []}}},
                 :steps
-                [[[0 ["chord.1" "scale.2"]] ["chord.1" "scale.2"] ["chord.3"]]
-                  [[0 ["chord.1" "scale.2"]] [] []]
-                  [[0 ["chord.1" "scale.2"]] [] []]
-                  [[1 ["chord.3"]] ["chord.3"] ["chord.1" "scale.2"]]
-                  [[1 ["chord.3"]] [] []]
-                  [[2 ["chord.1" "scale.2"]] ["chord.1" "scale.2"] ["chord.3"]]
-                  [[2 ["chord.1" "scale.2"]] [] []]
-                  [[2 ["chord.1" "scale.2"]] [] []]
-                  [[3 ["chord.3"]] ["chord.3"] ["chord.1" "scale.2"]]
-                  [[3 ["chord.3"]] [] []]
-                  [[4 ["chord.1" "scale.2"]] ["chord.1" "scale.2"] ["chord.3"]]
-                  [[4 ["chord.1" "scale.2"]] [] []]
-                  [[4 ["chord.1" "scale.2"]] [] []]
-                  [[5 ["chord.3"]] ["chord.3"] ["chord.1" "scale.2"]]
-                  [[5 ["chord.3"]] [] []]
-                  [[6 ["chord.4"]] ["chord.4"] ["chord.3"]]
-                  [[7 ["chord.1"] ["chord.5"]] ["chord.1" "chord.5"] ["chord.4"]]
-                  [[8 ["chord.6"] ["chord.1"]] ["chord.6"] ["chord.5"]]
-                  [[9 ["chord.3"]] ["chord.3"] ["chord.6" "chord.1"]]
-                  [[10 ["chord.6"]] ["chord.6"] ["chord.3"]]
-                  [[11 ["chord.3"]] ["chord.3"] ["chord.6"]]],
+                 [[[0 "chord.1" "scale.2"] ["chord.1" "scale.2"] ["chord.3"]]
+                  [[0 "chord.1" "scale.2"] [] []]
+                  [[0 "chord.1" "scale.2"] [] []]
+                  [[1 "chord.3"] ["chord.3"] ["chord.1" "scale.2"]]
+                  [[1 "chord.3"] [] []]
+                  [[2 "chord.1" "scale.2"] ["chord.1" "scale.2"] ["chord.3"]]
+                  [[2 "chord.1" "scale.2"] [] []]
+                  [[2 "chord.1" "scale.2"] [] []]
+                  [[3 "chord.3"] ["chord.3"] ["chord.1" "scale.2"]]
+                  [[3 "chord.3"] [] []]
+                  [[4 "chord.1" "scale.2"] ["chord.1" "scale.2"] ["chord.3"]]
+                  [[4 "chord.1" "scale.2"] [] []]
+                  [[4 "chord.1" "scale.2"] [] []]
+                  [[5 "chord.3"] ["chord.3"] ["chord.1" "scale.2"]]
+                  [[5 "chord.3"] [] []]
+                  [[6 "chord.4"] ["chord.4"] ["chord.3"]]
+                  [[7 "chord.1" "chord.5"] ["chord.1" "chord.5"] ["chord.4"]]
+                  [[8 "chord.1" "chord.6"] ["chord.6"] ["chord.5"]]
+                  [[9 "chord.3"] ["chord.3"] ["chord.1" "chord.6"]]
+                  [[10 "chord.6"] ["chord.6"] ["chord.3"]]
+                  [[11 "chord.3"] ["chord.3"] ["chord.6"]]],
                 :beats
                 [{:items [{:duration 3, :elements ["chord.1" "scale.2"]}],
                   :id 0,

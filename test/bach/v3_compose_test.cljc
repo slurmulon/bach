@@ -780,16 +780,16 @@
      (let [;tree (atomize-fixture fixture-a)
            tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-element-steps tree (/ 1 2)))
-           want [[["stub.3"] ["stub.5"] ["stub.1"]]
-                 [["stub.3"] ["stub.5"] ["stub.1"]]
-                 [["stub.6"] ["stub.3"] ["stub.1"]]
-                 [["stub.6"] ["stub.3"] ["stub.1"]]
-                 [["stub.2"] ["stub.6"] ["stub.3"]]
-                 [["stub.2"] ["stub.6"] ["stub.3"]]
-                 [["stub.4"] ["stub.2"] ["stub.6"]]
-                 [["stub.4"] ["stub.2"] ["stub.6"]]
-                 [["stub.4"] ["stub.2"] ["stub.6"]]
-                 [["stub.4"] ["stub.2"] ["stub.6"]]]]
+           want [["stub.1" "stub.3" "stub.5"]
+                 ["stub.1" "stub.3" "stub.5"]
+                 ["stub.1" "stub.3" "stub.6"]
+                 ["stub.1" "stub.3" "stub.6"]
+                 ["stub.2" "stub.3" "stub.6"]
+                 ["stub.2" "stub.3" "stub.6"]
+                 ["stub.2" "stub.4" "stub.6"]
+                 ["stub.2" "stub.4" "stub.6"]
+                 ["stub.2" "stub.4" "stub.6"]
+                 ["stub.2" "stub.4" "stub.6"]]]
        (is (= want actual)))))
     (testing "provisioned beats"
      (clear!)
@@ -805,17 +805,17 @@
      (clear!)
      (let [tree (atomize-fixture fixture-e)
            actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree (/ 1 2)))
-           want [[0 ["stub.3"] ["stub.5"] ["stub.1"]]
-                 [0 ["stub.3"] ["stub.5"] ["stub.1"]]
-                 [1 ["stub.6"] ["stub.3"] ["stub.1"]]
-                 [1 ["stub.6"] ["stub.3"] ["stub.1"]]
-                 [2 ["stub.2"] ["stub.6"] ["stub.3"]]
-                 [2 ["stub.2"] ["stub.6"] ["stub.3"]]
-                 [3 ["stub.4"] ["stub.2"] ["stub.6"]]
-                 [3 ["stub.4"] ["stub.2"] ["stub.6"]]
-                 [3 ["stub.4"] ["stub.2"] ["stub.6"]]
-                 [3 ["stub.4"] ["stub.2"] ["stub.6"]]]]
-       ; (clojure.pprint/pprint actual)
+           want [[0 "stub.1" "stub.3" "stub.5"]
+                 [0 "stub.1" "stub.3" "stub.5"]
+                 [1 "stub.1" "stub.3" "stub.6"]
+                 [1 "stub.1" "stub.3" "stub.6"]
+                 [2 "stub.2" "stub.3" "stub.6"]
+                 [2 "stub.2" "stub.3" "stub.6"]
+                 [3 "stub.2" "stub.4" "stub.6"]
+                 [3 "stub.2" "stub.4" "stub.6"]
+                 [3 "stub.2" "stub.4" "stub.6"]
+                 [3 "stub.2" "stub.4" "stub.6"]]]
+       (clojure.pprint/pprint actual)
        (is (= want actual)))))
     (testing "provisioned plays"
     (with-redefs [compose/uid (memoize next-id!)]
@@ -838,7 +838,7 @@
      (clear!)
      (let [tree (atomize-fixture fixture-e)
            actual (-> tree (compose/normalize-beats-2 (/ 1 2)) (compose/provision-stop-steps-2))
-           want [["stub.4" "stub.2" "stub.6"]
+           want [["stub.2" "stub.4" "stub.6"]
                  []
                  ["stub.5"]
                  []
