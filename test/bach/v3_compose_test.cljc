@@ -20,6 +20,7 @@
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
 ;  - Simultaneous play signals, separate stop signals
+;  - Different durations between concurrent beats (i.e. in set) on same list index
 (def fixture-a
   [:list
     [:beat
@@ -33,7 +34,30 @@
         [:beat [:number "4"] [:identifier :d]]
         [:beat [:number "5"] [:identifier :e]]]
       [:list
+        ; TODO: Make version of fixture using 4 here instead (same duration vs. diff duration)
         [:beat [:number "6"] [:identifier :f]]
+        [:set
+          [:beat [:number "7"] [:identifier :g]]
+          [:beat [:number "8"] [:identifier :h]]]]]])
+
+; Nested collections
+;  - Ordered (lists) within unordered (sets)
+;  - Simultaneous play signals, separate stop signals
+;  - Same durations between concurrent beats (i.e. in set) on same list index (4, :d :f)
+(def fixture-a2
+  [:list
+    [:beat
+      [:number "1"]
+      [:identifier :a]]
+    [:set
+      [:beat [:number "2"] [:identifier :b]]
+      [:beat [:number "3"] [:identifier :c]]]
+    [:set
+      [:list
+        [:beat [:number "4"] [:identifier :d]]
+        [:beat [:number "5"] [:identifier :e]]]
+      [:list
+        [:beat [:number "4"] [:identifier :f]]
         [:set
           [:beat [:number "7"] [:identifier :g]]
           [:beat [:number "8"] [:identifier :h]]]]]])
@@ -572,7 +596,18 @@
                     nil
                     nil
                     nil]]
-        (is (= want actual))))))
+        (is (= want actual)))))
+  )
+  ; (with-redefs [compose/uid (memoize next-id!)]
+  ;   (testing "list -> set -> list -> set"
+  ;     (clear!)
+  ;     (let [tree (-> fixture-a
+  ;                   atomize-fixture
+  ;                   compose/normalize-collections
+  ;                   (compose/unitize-durations 1))
+  ;           actual (compose/transpose-lists tree)
+  ;           want []]
+  ;       (is (= want actual))))))
 
 (deftest ^:eftest/synchronized transpose-set
   (with-redefs [compose/uid (memoize next-id!)]
@@ -674,6 +709,58 @@
       ; (clojure.pprint/pprint actual)
       ; (clojure.pprint/pprint (-> actual bach.tree/squash))
       (is (= want actual))))
+  (testing "list -> set -> list -> set (mis-aligned durations)"
+    (let [tree fixture-a
+          want [{:duration 1, :elements [:identifier :a]}
+                #{{:duration 2, :elements [:identifier :b]}
+                  {:duration 3, :elements [:identifier :c]}}
+                nil
+                #{{:duration 4, :elements [:identifier :d]}
+                  {:duration 6, :elements [:identifier :f]}}
+                nil
+                nil
+                nil
+                #{{:duration 5, :elements [:identifier :e]}}
+                nil
+                #{{:duration 7, :elements [:identifier :g]}
+                  {:duration 8, :elements [:identifier :h]}}
+                nil
+                nil
+                nil
+                nil
+                nil
+                nil
+                nil
+                nil]
+          actual (compose/quantize-collections tree 1)]
+      (is (= want actual))))
+  (testing "list -> set -> list -> set (aligned durations)"
+    (let [tree fixture-a2
+          want [{:duration 1, :elements [:identifier :a]}
+                #{{:duration 2, :elements [:identifier :b]}
+                  {:duration 3, :elements [:identifier :c]}}
+                nil
+                #{{:duration 4, :elements [:identifier :d]}
+                  {:duration 4, :elements [:identifier :f]}}
+                nil
+                nil
+                nil
+                #{{:duration 5, :elements [:identifier :e]}
+                  {:duration 7, :elements [:identifier :g]}
+                  {:duration 8, :elements [:identifier :h]}}
+                nil
+                nil
+                nil
+                nil
+                nil
+                nil
+                nil
+                nil
+                nil
+                nil]
+          ; actual (compose/quantize-collections tree (/ 1 2))]
+          actual (compose/quantize-collections tree 1)]
+      (is (= want actual))))
   (testing "list -> set -> beat"))
       ; (is (= false actual)))))
 
@@ -707,28 +794,37 @@
           actual (compose/linearize-beats tree)]
       ; (clojure.pprint/pprint actual)
       (is (= want actual))))
-  (testing "normalize"
-    (let [tree fixture-a
-          want [{:items #{{:duration 2, :elements [:identifier :a]}},
-                 :duration 2,
-                 :index 0}
-                {:items
-                 #{{:duration 6, :elements [:identifier :c]}
-                   {:duration 4, :elements [:identifier :b]}},
-                 :duration 6,
-                 :index 2}
-                {:items
-                 #{{:duration 12, :elements [:identifier :f]}
-                   {:duration 8, :elements [:identifier :d]}},
-                 :duration 12,
-                 :index 8}
-                {:items
-                 #{{:duration 16, :elements [:identifier :h]}
-                   {:duration 10, :elements [:identifier :e]}
-                   {:duration 14, :elements [:identifier :g]}},
-                 :duration 16,
-                 :index 20}]
-          actual (compose/normalize-beats tree (/ 1 2))]
+  ; (testing "normalize"
+  ; FIXME: :e ends up on its own beat!
+  ;  - Switching order of transpose-lists and tranpose-sets in quantize-collections fixes, but braeks others
+  (testing "provision"
+    (let [;tree fixture-a
+          beats (-> fixture-a atomize-fixture (compose/normalize-beats-2 1/2))
+          want [{:duration 2,
+                 :id 0,
+                 :index 0,
+                 :items [{:duration 2, :elements ["stub.cHzO6c"]}]}
+                {:duration 4,
+                  :id 1,
+                  :index 2,
+                  :items [{:duration 4, :elements ["stub.qbm6qb"]}
+                          {:duration 6, :elements ["stub.rtN0zr"]}]}
+                {:duration 8,
+                  :id 2,
+                  :index 6,
+                  :items [{:duration 8, :elements ["stub.01kv6O"]}
+                          {:duration 12, :elements ["stub.U44U0U"]}]}
+                {:duration 10,
+                  :id 3,
+                  :index 14,
+                  :items [{:duration 10, :elements ["stub.01bbbu"]}]}
+                {:duration 14,
+                  :id 4,
+                  :index 18,
+                  :items [{:duration 14, :elements ["stub.C1wbcC"]}
+                          {:duration 16, :elements ["stub.00NAwz"]}]}]
+          ; actual (compose/normalize-beats tree (/ 1 2))]
+          actual (compose/provision-beats beats)]
       (is (= want actual)))))
 
 ; TODO: Remove or refactor based on new concurrent beat work
