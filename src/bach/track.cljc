@@ -101,7 +101,7 @@
   (let [track (resolve-values tree)
         meter (get-meter-ratio track)
         durations (get-durations track)]
-    (reduce #(gcd %1 %2) meter durations)))
+    (reduce gcd meter durations)))
 
 (defn get-pulse-beats-per-bar
   "Determines how many beats are in a bar/measure, based on the time signature."
@@ -201,7 +201,6 @@
 
 ; TODO
 ; validate-no-cycles
-; validate-no-negative-durations
 
 (defn validate
   "Determines if a parsed track passes all validation rules."
@@ -211,7 +210,6 @@
       (every? true?)))
 
 (def valid? validate)
-; (def validate! (memo validate))
 
 (defn resolve-variables
   "Dereferences and resolves any variables found in the parsed track.

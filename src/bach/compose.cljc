@@ -1,7 +1,6 @@
 ; TODO: Also use multi-methods
 ;  - @see: https://www.braveclojure.com/multimethods-records-protocols/
 ; TODO: Refactor modules and functions based on protocols, so we don't rely on naming consistencies to fully express intent
-; TODO: Use clojure.core.reducers as well (if compatiable with cljs): https://clojure.org/reference/reducers
 
 (ns bach.compose
   (:require [instaparse.core :as insta]
@@ -13,7 +12,6 @@
             [bach.data :refer [many collect expand compare-items assoc-if cyclic-index nano-hash to-json problem]]))
 
 
-; (def uid #(nano-hash %))
 (def uid nano-hash)
 
 (def serialize #?(:clj identity :cljs to-json))
@@ -50,8 +48,6 @@
 
 (def ^:export elementize (comp serialize make-element))
 
-; (def as-element! (memo as-element))
-
 (defn element-as-ids
   "Transforms normalized beat element(s) into their unique ids."
   [elems]
@@ -72,6 +68,7 @@
   [beats]
   (->> beats collect beat-as-elements (map :id) sort))
 
+; REPLACE
 (defn index-beat-items
   "Adds the provided normalized beat's index to each of its items.
   Allows beat items to be handled independently of their parent beat."
@@ -82,18 +79,8 @@
 
 (defn index-beat-items-2
   [beat]
-  ; (when-not (empty? b)
-  ;   (let [beat (assoc b :id (nano-hash (gensym b)))]
-      (->> ;(assoc beat :id (uid beat))
-          ; (assoc beat :id (nano-hash (gensym beat)))
-          ; #(assoc % :id (uid beat))
-          beat
-          ; collect
-          :items
-          ; (map #(assoc % :index (:index beat))))))
-          (map #(merge % (select-keys beat [:index :id])))))
-          ; (sort-by :duration))))
-
+  (->> beat :items
+       (map #(merge % (select-keys beat [:index :id])))))
 
 (defn unit-beat
   "Establishes the unit (in whole notes) to standardize all beat durations as."
@@ -106,7 +93,7 @@
   [tree]
   (cast-tree map? :duration tree))
 
-; TODO: Remove and replace with reduce-durations-2
+; REPLACE
 (defn reduce-durations
   "Transforms a tree of numeric duration nodes into a single total duration
   according to bach's nesting rules (max of sets, sum of seqentials)."
@@ -129,6 +116,7 @@
        :else %)
     tree))
 
+; REPLACE
 (defn as-reduced-durations
   "Transforms a parsed AST into a homogenous duration tree, then reduces it."
   [tree]
@@ -166,7 +154,7 @@
   Nilifies :when nodes that do not match the target iteration."
   [total iter tree]
   (insta/transform
-    {:range #(when (some #{iter} (range %1 (+ 1 %2))) iter)
+    {:range #(when (some #{iter} (range %1 (inc %2))) iter)
      :when-all (fn [& [:as all]]
                  (when (every? #{iter} (many all)) iter))
      :when-any (fn [& [:as all]]
@@ -191,7 +179,7 @@
   of iterations/loops and processing :when nodes."
   [iters tree]
   (->> (range iters)
-       (mapcat #(normalize-loop-iteration iters (+ 1 %) (rest tree)))
+       (mapcat #(normalize-loop-iteration iters (inc %) (rest tree)))
        (filter (complement nil?))))
 
 (defn normalize-loops
@@ -328,6 +316,7 @@
   [tree]
   (-> tree linearize-collections itemize-beats))
 
+; REPLACE
 (defn normalize-beats
   "Normalizes beats in parsed AST for linear uniform iteration by decorating them
   with durations and indices based on a :unit (q-step by default) within a :meter.
@@ -523,7 +512,6 @@
   "Provisions normalized beat(s) for serialization and playback, replacing each
   beat element with its identifier string."
   [beats]
-  ; (map provision-beat (many beats)))
   (map provision-beat (collect beats)))
 
 ; WARN: Migrate to `get-pulse-beat` once ready!
