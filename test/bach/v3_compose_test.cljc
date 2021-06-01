@@ -987,7 +987,6 @@
   ## play! 2 of [:part-a :part-b]
   ")
 
-(println "@@@@@@")
 ; (clojure.pprint/pprint (compose/compose fixture-bach-a))
 ; (clojure.pprint/pprint (-> fixture-bach-a compose/get-play compose/reduce-track))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse))
@@ -1013,7 +1012,6 @@
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ]]"))
 ; (clojure.pprint/pprint (bach.ast/parse "[when 1 then :a]"))
 
-; (println "---- new beat steps")
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
 ; (clojure.pprint/pprint (-> fixture-e (compose/provision-beat-steps-2 1/2)))
 ; (clojure.pprint/pprint (-> fixture-e (compose/provision-context-steps 1/2)))

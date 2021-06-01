@@ -474,10 +474,50 @@
                           [:identifier [:name "x"]]]]]]]]
             (is (= want (parse code)))))))
     (testing "matches"
-      (testing "even")
-      (testing "odd")
-      (testing "last")
-      (testing "first"))))
+      (testing "even"
+        (let [code "10 of [ when even? do :x ]"
+              want [:track
+                    [:statement
+                     [:loop
+                      [:int "10"]
+                      [:list
+                       [:when
+                        [:when-match "even"]
+                        [:identifier [:name "x"]]]]]]]]
+            (is (= want (parse code)))))
+      (testing "odd"
+        (let [code "10 of [ when odd? do :x ]"
+              want [:track
+                    [:statement
+                     [:loop
+                      [:int "10"]
+                      [:list
+                       [:when
+                        [:when-match "odd"]
+                        [:identifier [:name "x"]]]]]]]]
+            (is (= want (parse code)))))
+      (testing "last"
+        (let [code "10 of [ when last? do :x ]"
+              want [:track
+                    [:statement
+                     [:loop
+                      [:int "10"]
+                      [:list
+                       [:when
+                        [:when-match "last"]
+                        [:identifier [:name "x"]]]]]]]]
+            (is (= want (parse code)))))
+      (testing "first"
+        (let [code "10 of [ when first? do :x ]"
+              want [:track
+                    [:statement
+                     [:loop
+                      [:int "10"]
+                      [:list
+                       [:when
+                        [:when-match "first"]
+                        [:identifier [:name "x"]]]]]]]]
+            (is (= want (parse code))))))))
 
 (deftest comments
   (testing "basic"
@@ -526,4 +566,13 @@
                  [:beat
                   [:int "1"]
                   [:rest]]]]]
+      (is (= want (parse code)))))
+  (testing "in set"
+    (let [code "1 -> { _ }"
+          want [:track
+                [:statement
+                 [:beat
+                  [:int "1"]
+                  [:set
+                   [:rest]]]]]]
       (is (= want (parse code))))))
