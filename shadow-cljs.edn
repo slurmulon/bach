@@ -8,12 +8,13 @@
  :dev-http {8080 "target/"}
  :builds {:lib
           {:target :node-library
-           ; :output-to "dist/lib.js"
            :output-to "dist/bach.cjs.js"
-           :exports-var bach.compose/compose}
+           ; ORIG
+           ; :exports-var bach.compose/compose}
            ; :exports-var bach.data/nano-hash}
-           ; :exports {compose bach.compose/compose,
-           ;           hashy bach.data/nano-hash}}
+           :exports {:compose bach.compose/compose,
+                     :elementize bach.compose/elementize}}
+                     ;id bach.compose/uid}}
           ; TODO: Update package.json:main, package.json:module
           ; :esm
           ; {:target :esm
@@ -31,7 +32,6 @@
            ; LAST
            ; :modules {:main {:entries [bach.compose]}}}
            :modules {:bach.umd {:entries [bach.compose]}}}
-           ; :modules {:man {:
           :npm
           {:target :npm-module
            :output-dir "dist"
