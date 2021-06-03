@@ -3,30 +3,31 @@
  :dependencies [[instaparse "1.4.10"]
                 [nano-id "1.0.0"]
                 [hiccup-find "1.0.0"]
-                ;[org.clojure/core.memoize "1.0.236"]
                 [org.clojure/tools.cli "1.0.194"]]
  :dev-http {8080 "target/"}
  :builds {:lib
           {:target :node-library
            :output-to "dist/bach.cjs.js"
+           :js-options {:entry-keys ["main" "browser"]}
            ; ORIG
            ; :exports-var bach.compose/compose}
-           ; :exports-var bach.data/nano-hash}
            :exports {:compose bach.compose/compose,
-                     :elementize bach.compose/elementize}}
-                     ;id bach.compose/uid}}
+                     :elementize bach.compose/elementize}
+           :exports-fn bach.exports/generate}
           ; TODO: Update package.json:main, package.json:module
           ; :esm
           ; {:target :esm
           ;  :output-dir "dist"
           ;  :output-to "dist/bach.esm.js"
-          ;  :modules {:lib {:exports {compose bach.compose/compose}}}}
+          ;  :modules {:lib
+          ;            {:exports {:compose bach.compose/compose
+          ;                       :elementize bach.compose/elementize}}}}
           :umd
           {:target :browser
            :output-dir "dist"
+           ; :output-to "dist/bach.umd.js"
            ; :js-options {:entry-keys ["module" "browser" "main"]
            ;              :js-provider :shadow}
-           ; :output-to "dist/bach.umd.js"
            :js-options {:entry-keys ["module" "browser" "main"]}
            ; :release {:compiler-options {:optimizations :simple}}
            ; LAST
@@ -41,7 +42,7 @@
            :output-to "target/js/node-tests.js"
            :ns-regexp "-test$"
            :autorun   true
-           ; :main bach.core-test/-main
+           ; :main bach.test/-main
            ; :js-options
            ; {
            ; ;  :resolve {"crypto" {:target :file
