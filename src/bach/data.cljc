@@ -1,6 +1,6 @@
 (ns bach.data
   (:require #?@(:clj [[clojure.data.json :as json]]
-                :cljs [[bach.crypto]
+                :cljs [;[bach.crypto]
                        [goog.crypt :as c]
                        [cljs.reader :as reader]])
             [instaparse.core :as insta]
