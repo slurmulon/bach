@@ -798,34 +798,35 @@
   ; FIXME: :e ends up on its own beat!
   ;  - Switching order of transpose-lists and tranpose-sets in quantize-collections fixes, but braeks others
   (testing "provision"
-    (let [;tree fixture-a
-          beats (-> fixture-a atomize-fixture (compose/normalize-beats-2 1/2))
-          want [{:duration 2,
-                 :id 0,
-                 :index 0,
-                 :items [{:duration 2, :elements ["stub.cHzO6c"]}]}
-                {:duration 4,
-                  :id 1,
-                  :index 2,
-                  :items [{:duration 4, :elements ["stub.qbm6qb"]}
-                          {:duration 6, :elements ["stub.rtN0zr"]}]}
-                {:duration 8,
-                  :id 2,
-                  :index 6,
-                  :items [{:duration 8, :elements ["stub.01kv6O"]}
-                          {:duration 12, :elements ["stub.U44U0U"]}]}
-                {:duration 10,
-                  :id 3,
-                  :index 14,
-                  :items [{:duration 10, :elements ["stub.01bbbu"]}]}
-                {:duration 14,
-                  :id 4,
-                  :index 18,
-                  :items [{:duration 14, :elements ["stub.C1wbcC"]}
-                          {:duration 16, :elements ["stub.00NAwz"]}]}]
-          ; actual (compose/normalize-beats tree (/ 1 2))]
-          actual (compose/provision-beats beats)]
-      (is (= want actual)))))
+    (with-redefs [compose/uid (memoize next-id!)]
+      (clear!)
+      (let [;tree fixture-a
+            beats (-> fixture-a atomize-fixture (compose/normalize-beats-2 (/ 1 2)))
+            want [{:duration 2,
+                   :id 0,
+                   :index 0,
+                   :items [{:duration 2, :elements ["stub.1"]}]}
+                  {:duration 4,
+                   :id 1,
+                   :index 2,
+                   :items [{:duration 4, :elements ["stub.2"]}
+                           {:duration 6, :elements ["stub.3"]}]}
+                  {:duration 8,
+                   :id 2,
+                   :index 6,
+                   :items [{:duration 8, :elements ["stub.4"]}
+                           {:duration 12, :elements ["stub.6"]}]}
+                  {:duration 10,
+                   :id 3,
+                   :index 14,
+                   :items [{:duration 10, :elements ["stub.5"]}]}
+                  {:duration 14,
+                   :id 4,
+                   :index 18,
+                   :items [{:duration 14, :elements ["stub.7"]}
+                           {:duration 16, :elements ["stub.8"]}]}]
+            actual (bach.tree/cast-tree sequential? vec (compose/provision-beats beats))]
+        (is (= want actual))))))
 
 ; TODO: Remove or refactor based on new concurrent beat work
 ; (deftest steps
@@ -949,7 +950,7 @@
                  [3 "stub.2" "stub.4" "stub.6"]
                  [3 "stub.2" "stub.4" "stub.6"]
                  [3 "stub.2" "stub.4" "stub.6"]]]
-       (clojure.pprint/pprint actual)
+       ; (clojure.pprint/pprint actual)
        (is (= want actual)))))
     (testing "provisioned plays"
     (with-redefs [compose/uid (memoize next-id!)]
@@ -1138,7 +1139,7 @@
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets))
 ; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1)))
 ; LAST
-(clojure.pprint/pprint (-> fixture-bach-a compose/compose))
+; (clojure.pprint/pprint (-> fixture-bach-a compose/compose))
 
 ; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2) compose/beat-as-items))
 ; (let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))
