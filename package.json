@@ -26,8 +26,8 @@
     "repl": "npx shadow-cljs node-repl lib",
     "cljs-repl": "npx shadow-cljs cljs-repl lib",
     "clj-repl": "npx shadow-cljs clj-repl lib",
-    "docs": "npx docsify serve docs",
-    "test": "npx shadow-cljs compile test"
+    "docs": "docsify serve docs",
+    "test": "npx shadow-cljs compile test && node target/js/node-tests.js"
   },
   "repository": {
     "type": "git",
