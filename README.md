@@ -18,31 +18,60 @@ Although its primary domain is music, `bach` enables the synchronization of rhyt
 
 ## Documentation
 
- - **Home**: https://slurmulon.github.io/bach
- - **Guide**: https://slurmulon.github.io/bach/#/guide
- - **Development**: https://slurmulon.github.io/bach/#/dev
- - **Examples**: https://slurmulon.github.io/bach/#/examples
- - **Contribute**: https://slurmulon.github.io/bach/#/contribute
+ - **Home**: https://codebach.tech
+ - **Guide**: https://codebach.tech/bach/#/guide
+ - **Examples**: https://codebach.tech/#/examples
+ - **Syntax**: https://codebach.tech/bach/#/syntax
+ - **Development**: https://codebach.tech/#/dev
+ - **Contribute**: https://codebach.tech/#/contribute
 
-Before diving into the docs, please note that `bach` is a new data format, so naturally there is almost no tooling or integration support for it today.
+Before diving into the docs, please note that `bach` is a new data format, so naturally there is limited [tooling](http://codebach.tech/#/dev?id=tools) and integration support for it today.
 
 But whether you're an adventerous musician or a developer exploring `bach` for their project, we advise that you read our [Guide](https://slurmulon.github.io/bach/#/guide) page since it provides the most comphrensive overview of `bach` available.
 
 ## Example
 
-The following `bach` data represents the loopable progression of a rock backing track:
+The following `bach` data represents the loopable progression of a rock backing track.
+
+> :musical_keyboard: Try running it in the [bach editor](https://editor.codebach.tech)!
 
 ```bach
-@Meter = 4|4
-@Tempo = 65
+@meter = 4|4
+@tempo = 83
 
-!Play [
-  1 -> {
-    Scale('E lydian')
-    Chord('E')
+:A = [
+  3/8 -> {
+    scale('E aeolian')
+    chord('Em9')
   }
-  1/2 -> Chord('G#min')
-  1/2 -> Chord('B')
+  5/8 -> chord('C')
+  3/8 -> chord('Em9')
+  4/8 -> chord('C')
+  9/8 -> chord('C/D')
+]
+
+:B = [
+  3/8 -> chord('B')
+  5/8 -> chord('Em9')
+  1 -> chord('Em9')
+]
+
+:C = [
+  3/8 -> chord('B')
+  5/8 -> chord('G')
+  1 -> chord('G')
+]
+
+play! [
+  7 of :A
+  2 of :B
+  3 of [
+    :C
+    when !{ last? } do { :B }
+  ]
+  3/8 -> chord('B')
+  5/8 -> chord('Em9')
+  1 -> chord('B7b13')
 ]
 ```
 
