@@ -10,11 +10,11 @@
 
 (deftest defaults
   (testing "tempo"
-    (= track/default-tempo 120))
+    (is (= track/default-tempo 120)))
   (testing "meter"
-    (= track/default-meter [4 4]))
+    (is (= track/default-meter [4 4])))
   (testing "headers"
-    (= track/default-headers {:tempo 120 :meter [4 4]})))
+    (is (= track/default-headers {:tempo 120 :meter [4 4]}))))
 
 (deftest headers
   (testing "get-headers"
@@ -26,15 +26,18 @@
                     [:header [:meta [:name "meter"]] [:meter [:int "3"] [:int "4"]]]]]
             want {:tempo 90 :meter [3 4]}
             actual (track/get-headers tree)]
-        (= want actual)))
+        (is (= want actual))))
     (testing "custom"
       (let [tree [:track
                    [:statement
                     [:header [:meta [:name "title"]] [:number "90"]]
                     [:header [:meta [:name "octave"]] [:number "2"]]]]
-            want {:title 90 :octave 2}
+            want {:meter [4 4]
+                  :tempo 120
+                  :title 90
+                  :octave 2}
             actual (track/get-headers tree)]
-        (= want actual)))))
+        (is (= want actual))))))
 
 (deftest tempo
   (testing "get-tempo"
@@ -44,17 +47,18 @@
                    [:header [:meta [:name "tempo"]] [:number "90"]]]]
             want 90
             actual (track/get-tempo tree)]
+        (is (= want actual))))
     (testing "case insensitive"
       (let [tree [:track
                   [:statement
                    [:header [:meta [:name "tEmPo"]] [:number "90"]]]]
             want 90
             actual (track/get-tempo tree)]
-        (= want actual)))
+        (is (= want actual))))
     (testing "returns default if none provided"
       (let [want 120
             actual (track/get-tempo [])]
-        (= want actual)))))))
+        (is (= want actual))))))
 
 (deftest meter
   (testing "get-meter"
@@ -63,43 +67,99 @@
                   [:statement
                    [:header [:meta [:name "meter"]] [:meter [:int "3"] [:int "4"]]]]]
             want [3 4]
-            actual (track/get-tempo tree)]
+            actual (track/get-meter tree)]
+        (is (= want actual))))
     (testing "case insensitive"
       (let [tree [:track
                   [:statement
                    [:header [:meta [:name "MeTeR"]] [:meter [:int "3"] [:int "4"]]]]]
             want [3 4]
-            actual (track/get-tempo tree)]
-        (= want actual)))
+            actual (track/get-meter tree)]
+        (is (= want actual))))
     (testing "returns default if none provided"
       (let [want [4 4]
-            actual (track/get-tempo [])]
-        (= want actual))))))
+            actual (track/get-meter [])]
+        (is (= want actual)))))
   (testing "meter-as-ratio"
-    (= 1 (track/meter-as-ratio [4 4]))
-    (= (/ 1 2) (track/meter-as-ratio [2 4]))
-    (= (/ 3 4) (track/meter-as-ratio [6 8]))
-    (= (/ 5 8) (track/meter-as-ratio [5 8]))
-    (= (/ 12 8) (track/meter-as-ratio [12 8])))
+    (is (= 1 (track/meter-as-ratio [4 4])))
+    (is (= (/ 1 2) (track/meter-as-ratio [2 4])))
+    (is (= (/ 3 4) (track/meter-as-ratio [6 8])))
+    (is (= (/ 5 8) (track/meter-as-ratio [5 8])))
+    (is (= (/ 12 8) (track/meter-as-ratio [12 8]))))
   (testing "get-meter-ratio"
     (testing "basic ratio"
       (let [tree [:track
                   [:statement
-                    [:header [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]]]]
-        (= (/ 3 4) (track/get-meter-ratio tree))))
+                   [:header [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]]]]
+        (is (= (/ 3 4) (track/get-meter-ratio tree)))))
     (testing "irrational ratio"
       (let [tree [:track
                   [:statement
-                    [:header [:meta [:name "meter"]] [:meter [:int "0"] [:int "1"]]]]]]
-        (= 1 (track/get-meter-ratio tree))))))
+                   [:header [:meta [:name "meter"]] [:meter [:int "0"] [:int "1"]]]]]]
+        (is (= 0 (track/get-meter-ratio tree)))))))
 
 (deftest variables
   (testing "resolve-variables"
-    (testing "assign")
+    (testing "assign"
+      (testing "binds value to name"
+        (let [tree [:track
+                    [:statement
+                     [:assign
+                      [:identifier :a]
+                      [:string "'foo'"]]
+                     [:assign
+                      [:identifier :b]
+                      [:identifier :a]]]]
+              want [:track
+                    [:statement
+                     [:assign
+                      [:identifier :a]
+                      [:string "'foo'"]]
+                     [:assign
+                      [:identifier :b]
+                      [:string "'foo'"]]]]]
+          (is (= want (track/resolve-variables tree))))))
     (testing "identifier")
     (testing "play")))
 
-(deftest resolution)
+(deftest resolution
+  (testing "values"
+    (testing "number"
+      (is (= 4 (track/resolve-values [:number "4"])))
+      (is (= 5.25 (track/resolve-values [:number "5.25"]))))
+    (testing "int"
+      (is (= 8 (track/resolve-values [:number "8"]))))
+    (testing "float"
+      (is (= 12.34567890 (track/resolve-values [:number "12.34567890"]))))
+    (testing "+"
+      (is (= 9 (track/resolve-values [:add [:number "1"] [:number "8"]]))))
+    (testing "-")
+      (is (= 3 (track/resolve-values [:sub [:number "7"] [:number "4"]]))))
+    (testing "*"
+      (is (= 12 (track/resolve-values [:mul [:number "3"] [:number "4"]]))))
+    (testing "/"
+      (is (= 5 (track/resolve-values [:div [:number "10"] [:number "2"]]))))
+    (testing "expr"
+      (is (= (/ 3 4) (track/resolve-values
+                       [:add
+                        [:div [:number "1"] [:number "2"]]
+                        [:div [:number "1"] [:number "4"]]]))))
+    (testing "meter"
+      (is (= [5 8] (track/resolve-values [:meter [:int "5"] [:int "8"]]))))
+    (testing "name"
+      (is (= 'foo (track/resolve-values [:name "foo"]))))
+    (testing "string"
+      (is (= "hello bach" (track/resolve-values [:string "'hello bach'"]))))
+    (testing "durations"
+      (testing "dynamic"
+        (testing "beat")
+        (testing "bar"))
+      (testing "static")))
+
 (deftest validation)
 (deftest pulse-beat)
 (deftest step-beat)
+
+(deftest consume)
+(deftest digest)
+(deftest parse)
