@@ -66,7 +66,7 @@
     range = [<empty>] (int <'..'> int) [<empty>]
     <duration> = duration-dynamic | duration-static
     duration-dynamic = #'(beat|bar)'
-    duration-static = #'(2|4|8|16|32|64|128|256)' <'n'>
+    duration-static = #'(1|2|4|8|16|32|64|128|256)' <'n'>
   ")
 
 (def parsed? (comp not insta/failure?))
