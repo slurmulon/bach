@@ -8,10 +8,6 @@
   ([walk is? as tree]
     (walk #(if (is? %) (as %) %) tree)))
 
-; (defn post-tree
-;   [is? as tree]
-;   (clojure.walk/postwalk #(if (is? %) (as %) %) tree))
-
 (defn flatten-by
   "Flattens and reduces collection using `by` function."
   [by coll]

@@ -1,7 +1,6 @@
 (ns bach.data
   (:require #?@(:clj [[clojure.data.json :as json]]
-                :cljs [;[bach.crypto]
-                       [goog.crypt :as c]
+                :cljs [[goog.crypt :as c]
                        [cljs.reader :as reader]])
             [instaparse.core :as insta]
             [nano-id.core :refer [custom]]))
@@ -51,11 +50,9 @@
         hash-gen (fn [n]
                    (->> x
                       hash
-                      ; .toHashCode
                       (iterate #(unsigned-bit-shift-right % 6))
                       (take n)
                       reverse
-                      ; #?(:cljs reverse)
                       #?(:clj byte-array)))
         hash-id (custom alphabet 6 hash-gen)]
   (hash-id)))
