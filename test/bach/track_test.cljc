@@ -164,7 +164,6 @@
                       [:arguments [:string "'C'"]]]]]]]
             want [:track
                    [:statement
-                     ; [:header [:meta 'meter] [6 8]]
                      [:header
                       [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]
                      [:beat
@@ -178,7 +177,8 @@
       (let [tree [:track
                   [:statement
                    [:header
-                    [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]
+                    [:meta [:name "meter"]]
+                    [:meter [:int "6"] [:int "8"]]]
                    [:beat
                     [:duration-dynamic "bar"]
                     [:atom
@@ -188,7 +188,8 @@
             want [:track
                    [:statement
                      [:header
-                      [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]
+                      [:meta [:name "meter"]]
+                      [:meter [:int "6"] [:int "8"]]]
                      [:beat
                       (/ 6 8)
                       [:atom
@@ -197,15 +198,15 @@
                         [:arguments [:string "'C'"]]]]]]]]
         (is (= want (track/resolve-durations tree))))))
   (testing "static"
-    (for [duration track/valid-divisors]
+    (doseq [duration track/valid-divisors]
       (let [tree [:beat
-                  [:duration-static (str duration "n")]
+                  [:duration-static (str duration)]
                   [:atom
                    [:kind
                     [:name "note"]
                     [:arguments [:string "'C'"]]]]]
               want [:beat
-                    duration
+                    (/ 1 duration)
                     [:atom
                      [:kind
                       [:name "note"]
@@ -217,6 +218,30 @@
   (testing "beat")
   (testing "div")
   (testing "loop"))
+
+(deftest valid-tempo?
+  (testing "returns true when between 0 and max tempo"
+    (is (= true (track/valid-tempo? [:header [:meta [:name "tempo"]] [:number "1"]])))
+    (is (= true (track/valid-tempo? [:header [:meta [:name "tempo"]] [:number "120"]])))
+    (is (= true (track/valid-tempo? [:header [:meta [:name "tempo"]] [:number (str track/valid-max-tempo)]]))))
+  (testing "throws problem when outside of 0 and max tempo"
+    (doseq [tempo (list 0 -1 (inc track/valid-max-tempo))]
+      (let [tree [:header [:meta [:name "tempo"]] [:number (str tempo)]]]
+        (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Tempos must be between" (track/valid-tempo? tree)))))))
+
+(deftest valid-meter?
+  (testing "returns true when pulse beat divisor is valid"
+    (doseq [divisor (rest track/valid-divisors)]
+      (is (= true (track/valid-meter? [:header [:meta [:name "meter"]] [:meter [:number "1"] [:number (str divisor)]]])))
+      )))
+      ; (is (= true (track/valid-meter? [:header [:meta [:name "tempo"]] [:number "120"]])))
+      ; (is (= true (track/valid-meter? [:header [:meta [:name "tempo"]] [:number (str track/valid-max-tempo)]])))
+
+
+(deftest valid-play?
+  (testing "returns true when track has a single play! export")
+  (testing "throws problem when track has no play! export")
+  (testing "throws problem when track has multiple play! exports"))
 
 (deftest pulse-beat
   (testing "provides the beat unit of the meter"
