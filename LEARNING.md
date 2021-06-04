@@ -28,6 +28,11 @@
  - http://math.pnw.edu/~rlkraft/cs31600-2012/chapter03/syntax-examples.html
  - https://pdfs.semanticscholar.org/cb7d/10a91a436888b91bc930e3305b3ec99ff92e.pdf
  - https://athena.ecs.csus.edu/~gordonvs/135/resources/04bnfParseTrees.pdf
+ - http://gigasquidsoftware.com/blog/2013/05/01/growing-a-language-with-clojure-and-instaparse/
+ - https://gist.github.com/stathissideris/1397681b9c63f09c6992
+ - https://rmulhol.github.io/clojure/2015/05/12/flatten-tree-seq.html
+ - https://stackoverflow.com/questions/60591121/how-can-i-turn-an-ordered-tree-into-a-collection-of-named-nodes-in-clojure
+ - https://dnaeon.github.io/graphs-and-clojure/
 
 ## CLI
 
