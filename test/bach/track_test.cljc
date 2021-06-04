@@ -18,17 +18,15 @@
   (testing "get-headers"
     (testing "reserved"
       (let [tree [:track
-                   [:statement
-                    [:header [:meta [:name "tempo"]] [:number "90"]]
-                    [:header [:meta [:name "meter"]] [:meter [:int "3"] [:int "4"]]]]]
+                  [:header [:meta [:name "tempo"]] [:number "90"]]
+                  [:header [:meta [:name "meter"]] [:meter [:int "3"] [:int "4"]]]]
             want {:tempo 90 :meter [3 4]}
             actual (track/get-headers tree)]
         (is (= want actual))))
     (testing "custom"
       (let [tree [:track
-                   [:statement
-                    [:header [:meta [:name "title"]] [:number "90"]]
-                    [:header [:meta [:name "octave"]] [:number "2"]]]]
+                  [:header [:meta [:name "title"]] [:number "90"]]
+                  [:header [:meta [:name "octave"]] [:number "2"]]]
             want {:meter [4 4]
                   :tempo 120
                   :title 90
@@ -39,16 +37,12 @@
 (deftest tempo
   (testing "get-tempo"
     (testing "basic"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta [:name "tempo"]] [:number "90"]]]]
+      (let [tree [:track [:header [:meta [:name "tempo"]] [:number "90"]]]
             want 90
             actual (track/get-tempo tree)]
         (is (= want actual))))
     (testing "case insensitive"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta [:name "tEmPo"]] [:number "90"]]]]
+      (let [tree [:track [:header [:meta [:name "tEmPo"]] [:number "90"]]]
             want 90
             actual (track/get-tempo tree)]
         (is (= want actual))))
@@ -60,16 +54,12 @@
 (deftest meter
   (testing "get-meter"
     (testing "basic"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta [:name "meter"]] [:meter [:int "3"] [:int "4"]]]]]
+      (let [tree [:track [:header [:meta [:name "meter"]] [:meter [:int "3"] [:int "4"]]]]
             want [3 4]
             actual (track/get-meter tree)]
         (is (= want actual))))
     (testing "case insensitive"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta [:name "MeTeR"]] [:meter [:int "3"] [:int "4"]]]]]
+      (let [tree [:track [:header [:meta [:name "MeTeR"]] [:meter [:int "3"] [:int "4"]]]]
             want [3 4]
             actual (track/get-meter tree)]
         (is (= want actual))))
@@ -85,35 +75,29 @@
     (is (= (/ 12 8) (track/meter-as-ratio [12 8]))))
   (testing "get-meter-ratio"
     (testing "basic ratio"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]]]]
+      (let [tree [:track [:header [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]]]
         (is (= (/ 3 4) (track/get-meter-ratio tree)))))
     (testing "irrational ratio"
-      (let [tree [:track
-                  [:statement
-                   [:header [:meta [:name "meter"]] [:meter [:int "0"] [:int "1"]]]]]]
+      (let [tree [:track [:header [:meta [:name "meter"]] [:meter [:int "0"] [:int "1"]]]]]
         (is (= 0 (track/get-meter-ratio tree)))))))
 
 (deftest resolve-variables
   (testing "assign"
     (testing "binds value to name"
       (let [tree [:track
-                  [:statement
-                    [:assign
-                      [:identifier :a]
-                      [:string "'foo'"]]
-                    [:assign
-                      [:identifier :b]
-                      [:identifier :a]]]]
+                  [:assign
+                    [:identifier :a]
+                    [:string "'foo'"]]
+                  [:assign
+                    [:identifier :b]
+                    [:identifier :a]]]
             want [:track
-                  [:statement
-                    [:assign
-                      [:identifier :a]
-                      [:string "'foo'"]]
-                    [:assign
-                      [:identifier :b]
-                      [:string "'foo'"]]]]]
+                  [:assign
+                    [:identifier :a]
+                    [:string "'foo'"]]
+                  [:assign
+                    [:identifier :b]
+                    [:string "'foo'"]]]]
         (is (= want (track/resolve-variables tree))))))
   (testing "identifier")
   (testing "play"))
