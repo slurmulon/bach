@@ -151,7 +151,7 @@
   "Determines if a parsed track has a valid tempo."
   [track]
   (let [tempo (get-tempo track)]
-    (if (not (<= 0 tempo valid-max-tempo))
+    (if (not (<= 1 tempo valid-max-tempo))
       (problem (str "Tempos must be between 0 and " valid-max-tempo " beats per minute"))
       true)))
 
