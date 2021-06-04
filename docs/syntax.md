@@ -300,16 +300,20 @@ Variables allow you to capture, label and reuse values, reducing duplication and
 
 To assign a variable, prefix a unique name with the `:` symbol and provide a value (`<element>`).
 
-In this case our variable's name is "Loop":
+In this case our variable's name is "melody":
 
 ```
-:Loop = [Note('C2'), Note('E2')]
+:melody = [ 1/2 -> Note('C2'), 1/2 -> Note('E2') ]
 ```
 
 Once assigned a name, variables may be dynamically referenced anywhere else in the track:
 
 ```
-:LoopCopy = :Loop
+:harmony = [ 1 -> Chord('Cmin') ]
+
+:song = { :melody :harmony }
+
+play! :song
 ```
 
 Variables are not constants and can be reassigned, but variable hoisting is currently unsupported.
@@ -346,11 +350,9 @@ A `List` playing a `Note('C2')` for an entire measure, starting at the first `Be
 [1 -> Note('C2')]
 ```
 
-If you wanted to start playing the note on the second `Beat` of the measure, then simply rest (`~`) on the first `Beat`:
+If you wanted to start playing the note on the second `Beat` of the measure, then simply rest (`_`) on the first `Beat`:
 
-```
-[1/4 -> ~, 1 -> Note('C2')]
-```
+`[1/4 -> _, 1 -> Note('C2')]`
 
 When a `Beat` tuple is not provided in an assignment or a `Collection`, both the position and duration of the `Beat` will be implied at compile time to be the index of each respective `Element` as they are played.
 
@@ -434,7 +436,7 @@ Only one `play!` definition is allowed per track file.
  - `Note` = Single note in scientific pitch notation
  - `Scale` = Scale in scientific pitch notation
  - `Chord` = Chord in scientific pitch notation
- - `~` = Rest
+ - `_` = Rest
 
 ### Collections
  - `[]` = List (sequential / ordered)
@@ -472,6 +474,9 @@ Only one `play!` definition is allowed per track file.
  - `'foo'` or `"bar"` = string
  - `123` or `4.5` = number
  - `true` or `false` = boolean
+
+### Comments
+ - `## some text` = single-line comment
 
 ### Durations
 

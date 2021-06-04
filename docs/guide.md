@@ -221,7 +221,7 @@ But in our target domain of music, an element represents any of the following:
  - `Note`
  - `Scale`
  - `Chord`
- - `Rest` (`~`)
+ - `Rest` (`_`)
 
 #### Arguments
 
@@ -231,7 +231,7 @@ The first argument determines the **value** of the element and must always be pr
 
 In this example we are defining a chord with a value of Bm7:
 
-```
+```bach
 Chord('Bm7')
 ```
 
@@ -239,7 +239,7 @@ _Note how the `Bm7` is surrounded by quotes, specifying this data as a string._
 
 If you wanted to associate more information with this chord, such as which voicing the chord is in, you can simply add another argument, where each argument beyond the first is separated by a comma:
 
-```
+```bach
 Chord('Bm7', voicing: 2, triad: true)
 ```
 
@@ -267,7 +267,7 @@ Beats are defined using the `->` symbol, where the duration of the beat is writt
 
 In this example we declare a beat that plays a "C minor" scale for a half note (or two beats) in common time.
 
-```
+```bach
 1/2 -> Scale('C minor')
 ```
 
@@ -547,7 +547,7 @@ These "first level" rules do **not** influence or limit deeper nesting levels.
 For example, although loops may only contain lists or sets, _those_ lists/sets
 may contain loops:
 
-```
+```bach
 :a = [1/2 -> chord('A') 1/2 -> chord('E')]
 :b = [1/2 -> chord('B') 1/2 -> chord('G')]
 
@@ -673,7 +673,7 @@ This helps keep your tracks visually well organized, and therefore easier to rea
 
 The general consensus is that, although it takes up more visual space, this:
 
-```
+```bach
 play! [
   4 -> {
     Scale('B minor')
@@ -684,7 +684,7 @@ play! [
 
 is easier to read and understand than this:
 
-```
+```bach
 play! [ 4 -> { Scale('B minor') Chord('Bm') } ]
 ```
 
@@ -748,21 +748,21 @@ We have already encountered many examples of durations throughout the guide, so 
 
 A list playing a `Note('C2')` for an entire measure in common time, starting at the first beat in the measure, would be specified like so:
 
-```
+```bach
 [1 -> Note('C2')]
 ```
 
-If you wanted to start playing the note on the second beat of the measure, then simply rest (`~`) on the first beat:
+If you wanted to start playing the note on the second beat of the measure, then simply rest (`_`) on the first beat:
 
-```
-[1/4 -> ~, 1 -> Note('C2')]
+```bach
+[1/4 -> _, 1 -> Note('C2')]
 ```
 
 When a beat is defined without a duration (in other words, just an element), the duration is implied to be one beat of the meter.
 
 For instance, this, when the meter is common time:
 
-```
+```bach
 [1/4 -> Note('C2'), 1/4 -> Note('F2')]
 ```
 

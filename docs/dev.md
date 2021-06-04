@@ -35,11 +35,11 @@ If you wish to use `bach` in NodeJS instead, head to the [JavaScript](#javascrip
 
 #### Leinengen/Boot
 
-`[bach "2.1.0-SNAPSHOT"]`
+`[bach "3.0.0-SNAPSHOT"]`
 
 #### Gradle
 
-`compile "bach:bach:2.1.0-SNAPSHOT"`
+`compile "bach:bach:3.0.0-SNAPSHOT"`
 
 #### Maven
 
@@ -47,7 +47,7 @@ If you wish to use `bach` in NodeJS instead, head to the [JavaScript](#javascrip
 <dependency>
   <groupId>bach</groupId>
   <artifactId>bach</artifactId>
-  <version>2.1.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -64,7 +64,7 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/default/bach-2.1.0-SNAPSHOT -i /path/to/track.bach compile
+$ target/default/bach-3.0.0-SNAPSHOT -i /path/to/track.bach compile
 ```
 
 The executable currently supports the following actions:
@@ -77,7 +77,7 @@ The executable currently supports the following actions:
 
 ```clojure
 (ns my.namespace
-  (:require [bach.track :refer [compose]]))
+  (:require [bach.compose :refer [compose]]))
 
 ; Parses, optimizes and compiles bach data into an interpretable hash-map
 (compose "play! [1 -> Chord('A'), 1 -> Chord('C')]")
@@ -90,7 +90,7 @@ $ lein -U repl
 ```
 
 ```clojure
-(use 'bach.track :reload)
+(use 'bach.compose :reload)
 
 (compose "play! [1 -> Chord('A'), 1 -> Chord('C')]")
 ```
@@ -134,17 +134,18 @@ You should now see `bach-cljs` under `dependencies` in `package.json`.
 
 #### ES6+
 ```js
-import bach from 'bach-cljs'
+import { compose } from 'bach-cljs'
 ```
 
 #### CommonJS
 
 ```js
-const { bach } = require('bach-cljs')
+const { compose } = require('bach-cljs')
 ```
 
 ```js
-const bach = require('bach-cljs').default
+const bach = require('bach-cljs')
+const { compose } = bach
 ```
 
 #### Library
