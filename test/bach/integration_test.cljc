@@ -1,4 +1,4 @@
-(ns ^:eftest/synchronized bach.v3-integration-test
+(ns ^:eftest/synchronized bach.integration-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
                :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
                       [bach.crypto]])
@@ -261,4 +261,3 @@
                   :index 20}]}]
       ; (clojure.pprint/pprint (bach.tree/cast-tree sequential? vec actual))
       (is (= want actual))))))
-

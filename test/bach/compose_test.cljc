@@ -1,4 +1,4 @@
-(ns ^:eftest/synchronized bach.v3-compose-test
+(ns ^:eftest/synchronized bach.compose-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
                :cljs [[bach.crypto]
                       [cljs.test :refer-macros [deftest is testing run-tests]]
@@ -596,8 +596,7 @@
                     nil
                     nil
                     nil]]
-        (is (= want actual)))))
-  )
+        (is (= want actual))))))
   ; (with-redefs [compose/uid (memoize next-id!)]
   ;   (testing "list -> set -> list -> set"
   ;     (clear!)
@@ -760,15 +759,8 @@
                 nil]
           ; actual (compose/quantize-collections tree (/ 1 2))]
           actual (compose/quantize-collections tree 1)]
-      (is (= want actual))))
-  (testing "list -> set -> beat"))
-      ; (is (= false actual)))))
+      (is (= want actual)))))
 
-; FIXME: Need to test something like this:
-; {
-;   [1 -> scale('E lydian') 1 -> scale('E lydian')]
-;   [1 -> chord('E') 1/2 -> chord('G#min') 1/2 -> chord('B')]
-; }
 (deftest ^:eftest/synchronized beats
   (testing "linearize"
     (let [tree fixture-a
@@ -794,14 +786,10 @@
           actual (compose/linearize-beats tree)]
       ; (clojure.pprint/pprint actual)
       (is (= want actual))))
-  ; (testing "normalize"
-  ; FIXME: :e ends up on its own beat!
-  ;  - Switching order of transpose-lists and tranpose-sets in quantize-collections fixes, but braeks others
   (testing "provision"
     (with-redefs [compose/uid (memoize next-id!)]
       (clear!)
-      (let [;tree fixture-a
-            beats (-> fixture-a atomize-fixture (compose/normalize-beats-2 (/ 1 2)))
+      (let [beats (-> fixture-a atomize-fixture (compose/normalize-beats-2 (/ 1 2)))
             want [{:duration 2,
                    :id 0,
                    :index 0,
@@ -907,8 +895,6 @@
 
 ; FOCUS
 (deftest ^:eftest/synchronized steps-2
-  ; (clear!)
-  ; (with-ids
   (testing "provisioned elements"
     (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
@@ -927,31 +913,28 @@
                  ["stub.2" "stub.4" "stub.6"]]]
        (is (= want actual)))))
     (testing "provisioned beats"
-     (clear!)
      (with-redefs [compose/uid (memoize next-id!)]
-     (clear!)
-     (let [tree (atomize-fixture fixture-e)
-           actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree (/ 1 2)))
-           want [0 0 1 1 2 2 3 3 3 3]]
-       (is (= want actual)))))
-    ; FIXME: Breaks if we remove memoize from next-id!
+      (clear!)
+      (let [tree (atomize-fixture fixture-e)
+            actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps-2 tree (/ 1 2)))
+            want [0 0 1 1 2 2 3 3 3 3]]
+        (is (= want actual)))))
     (testing "provisioned states"
     (with-redefs [compose/uid (memoize next-id!)]
-     (clear!)
-     (let [tree (atomize-fixture fixture-e)
-           actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree (/ 1 2)))
-           want [[0 "stub.1" "stub.3" "stub.5"]
-                 [0 "stub.1" "stub.3" "stub.5"]
-                 [1 "stub.1" "stub.3" "stub.6"]
-                 [1 "stub.1" "stub.3" "stub.6"]
-                 [2 "stub.2" "stub.3" "stub.6"]
-                 [2 "stub.2" "stub.3" "stub.6"]
-                 [3 "stub.2" "stub.4" "stub.6"]
-                 [3 "stub.2" "stub.4" "stub.6"]
-                 [3 "stub.2" "stub.4" "stub.6"]
-                 [3 "stub.2" "stub.4" "stub.6"]]]
-       ; (clojure.pprint/pprint actual)
-       (is (= want actual)))))
+      (clear!)
+      (let [tree (atomize-fixture fixture-e)
+            actual (bach.tree/cast-tree sequential? vec (compose/provision-state-steps tree (/ 1 2)))
+            want [[0 "stub.1" "stub.3" "stub.5"]
+                  [0 "stub.1" "stub.3" "stub.5"]
+                  [1 "stub.1" "stub.3" "stub.6"]
+                  [1 "stub.1" "stub.3" "stub.6"]
+                  [2 "stub.2" "stub.3" "stub.6"]
+                  [2 "stub.2" "stub.3" "stub.6"]
+                  [3 "stub.2" "stub.4" "stub.6"]
+                  [3 "stub.2" "stub.4" "stub.6"]
+                  [3 "stub.2" "stub.4" "stub.6"]
+                  [3 "stub.2" "stub.4" "stub.6"]]]
+        (is (= want actual)))))
     (testing "provisioned plays"
     (with-redefs [compose/uid (memoize next-id!)]
      (clear!)
@@ -1046,110 +1029,3 @@
                    :duration 8,
                    :index 10}]]
         (is (= (norm want) actual))))))
-
-; (clojure.pprint/pprint (->> fixture-a atomize-fixture (conj [:play]) compose/get-play))
-; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/playable))
-; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/compose))
-; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/parse))
-; (clojure.pprint/pprint (-> fixture-a atomize-fixture compose/provision))
-; (clojure.pprint/pprint (-> [:loop [:number "2"] [:list [:string "'a'"] [:string "'z'"]]] track/reduce-values compose/normalize-loops))
-
-; (clojure.pprint/pprint (-> [:list [:play [:a 1]] [:play [:b 2]]] (compose/get-play)))
-
-(def fixture-bach-a
-  "
-  :a = chord('A7')
-  :e = chord('E6')
-  :g = chord('Gm')
-  :f = chord('F#')
-
-  :part-a = 3 of [
-    3 -> { :a, scale('A dorian'), _ }
-    2 -> :e
-    when 3 do { 1 -> :g }
-  ]
-
-  :part-b = 2 of [
-    when 1 do {
-      2 -> :a
-      2 -> thing('Z')
-    }
-    1 -> :f
-    1 -> :e
-  ]
-
-  ## Look a comment
-
-  play! [:part-a :part-b]
-  ## play! 2 of [:part-a :part-b]
-  ")
-
-; (clojure.pprint/pprint (compose/compose fixture-bach-a))
-; (clojure.pprint/pprint (-> fixture-bach-a compose/get-play compose/reduce-track))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse track/reduce-values))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/provision))
-; (clojure.pprint/pprint (-> fixture-bach-a
-;                            bach.ast/parse
-;                            compose/reduce-track
-;                            compose/get-play
-;                            compose/normalize-beats))
-                           ; compose/normalize-collections)); compose/itemize-beats))
-; (clojure.pprint/pprint (-> fixture-bach-a compose/compose))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/validate))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/parse compose/get-iterations))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/reduce-iterations))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.ast/parse compose/digest compose/reduce-iterations))
-
-; (clojure.pprint/pprint (bach.ast/parse fixture-bach-a))
-; (clojure.pprint/pprint (bach.ast/parse "[1 -> :a, 2 -> :b]"))
-; (clojure.pprint/pprint (bach.ast/parse "[when 1, when 2]"))
-; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ], when 2 then { 2 -> :b }]"))
-; (clojure.pprint/pprint (bach.ast/parse "[when 1 then [ 1 -> :a ]]"))
-; (clojure.pprint/pprint (bach.ast/parse "[when 1 then :a]"))
-
-; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2)))
-; (clojure.pprint/pprint (-> fixture-e (compose/provision-beat-steps-2 1/2)))
-; (clojure.pprint/pprint (-> fixture-e (compose/provision-context-steps 1/2)))
-; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/normalize-beats-2 1/2) (compose/provision-play-steps-2)))
-; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/itemize-beats-2 1/2) (compose/provision-stop-steps-2)))
-; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/itemize-beats-2 1/2) (compose/provision-event-steps)))
-; (clojure.pprint/pprint (-> fixture-e atomize-fixture (compose/provision-steps-2 1/2)))
-
-; BORKED
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1/2)))
-; BORKED
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/quantize-collections 1/2)))
-; WORKS
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections))
-; WORKS
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1/2)))
-; BREAKS (issue is with tranpose-lists)
-;  - FIXED: After calling recursive transpose-lists for sequential items
-(println "\n\n-=-=-=-=-=-=-=-=-=\n\n")
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets compose/transpose-lists))
-; NOTE: Using transpose-sets (and not transpose-lists) looks more like what we want
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets)) ;compose/transpose-sets))
-
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1))) ;compose/transpose-sets))
-
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/itemize-beats-2 1))) ;compose/transpose-sets))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable compose/normalize-collections (compose/unitize-durations 1) compose/transpose-sets))
-; (clojure.pprint/pprint (-> fixture-bach-a bach.track/playable (compose/normalize-beats-2 1)))
-; LAST
-; (clojure.pprint/pprint (-> fixture-bach-a compose/compose))
-
-; (clojure.pprint/pprint (-> fixture-e (compose/itemize-beats-2 1/2) compose/beat-as-items))
-; (let [beat-steps (-> fixture-e (compose/provision-beat-steps-2 1/2))
-;       elem-steps (-> fixture-e (compose/provision-element-steps 1/2))]
-;   (clojure.pprint/pprint
-;     (map cons beat-steps elem-steps)))
-    ; (map #(cons %1 %2) beat-steps elem-steps)))
-
-; (let [beat-steps (-> fixture-e atomize-fixture (compose/normalize-beats-2 1/2) compose/provision-play-steps-2)
-;       elem-steps (-> fixture-e atomize-fixture (compose/normalize-beats-2 1/2) compose/provision-stop-steps-2)]
-;   (clojure.pprint/pprint
-;     ; (map cons beat-steps elem-steps)))
-;     (map (partial conj []) beat-steps elem-steps)))
