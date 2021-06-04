@@ -118,7 +118,7 @@
      (min step-beat meter))))
 
 (defn get-pulse-beat-time
-  "Determines the number of milliseconds equal to a one pulse-beat duration."
+  "Determines the number of milliseconds equal to one pulse-beat duration."
   [track]
   (let [tempo (get-tempo track)
         beats-per-second (/ tempo 60)
