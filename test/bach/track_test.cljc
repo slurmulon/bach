@@ -232,16 +232,20 @@
 (deftest valid-meter?
   (testing "returns true when pulse beat divisor is valid"
     (doseq [divisor (rest track/valid-divisors)]
-      (is (= true (track/valid-meter? [:header [:meta [:name "meter"]] [:meter [:number "1"] [:number (str divisor)]]])))
-      )))
-      ; (is (= true (track/valid-meter? [:header [:meta [:name "tempo"]] [:number "120"]])))
-      ; (is (= true (track/valid-meter? [:header [:meta [:name "tempo"]] [:number (str track/valid-max-tempo)]])))
-
+      (is (= true (track/valid-meter? [:header [:meta [:name "meter"]] [:meter [:number "1"] [:number (str divisor)]]]))))
+  (testing "throws problem when pulse beat divisor is not even or greater than max valid divisor"
+    (doseq [divisor (list 5 9 72 512)]
+      (let [tree [:header [:meta [:name "meter"]] [:meter [:number "1"] [:number (str divisor)]]]]
+        (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Meter unit beats" (track/valid-meter? tree))))))))
 
 (deftest valid-play?
-  (testing "returns true when track has a single play! export")
+  (testing "returns true when track has a single play! export"
+    (is (= true (track/valid-play? [:play :a]))))
   (testing "throws problem when track has no play! export")
-  (testing "throws problem when track has multiple play! exports"))
+    (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Exactly one Play" (track/valid-play? [:list])))
+  (testing "throws problem when track has multiple play! exports")
+    (let [tree [:statement [:play :a] [:play :b]]]
+      (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Exactly one Play" (track/valid-play? tree)))))
 
 (deftest pulse-beat
   (testing "provides the beat unit of the meter"
