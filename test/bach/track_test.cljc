@@ -212,9 +212,31 @@
                       [:arguments [:string "'C'"]]]]]]
           (is (= want (track/resolve-durations tree)))))))
 
-(deftest validation)
-(deftest pulse-beat)
-(deftest step-beat)
+(deftest valid-resolves?
+  (testing "assign")
+  (testing "beat")
+  (testing "div")
+  (testing "loop"))
+
+(deftest pulse-beat
+  (testing "provides the beat unit of the meter"
+    (is (= (/ 1 8) (track/get-pulse-beat
+                     [:header
+                      [:meta [:name "meter"]] [:meter [:int "12"] [:int "8"]]])))))
+
+(deftest step-beat
+  (testing "provides the greatest common duration of beats in the track"
+    (let [tree [:track
+                [:beat
+                 [:number "1"]
+                 [:identifier :a]]
+                [:beat
+                 [:number "4"]
+                 [:identifier :b]]
+                [:beat
+                 [:number "1/8"]
+                 [:identifier :c]]]]
+      (is (= (/ 1 8) (track/get-step-beat tree))))))
 
 (deftest consume)
 (deftest digest)
