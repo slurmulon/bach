@@ -1,9 +1,7 @@
 (ns ^:eftest/synchronized bach.track-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
                :cljs [[bach.crypto]
-                      [cljs.test :refer-macros [deftest is testing run-tests]]
-                      [goog.string :as gstring]
-                      [goog.string.format]])
+                      [cljs.test :refer-macros [deftest is testing run-tests]]])
             [instaparse.core :as insta]
             [bach.track :as track]
             [bach.data :as data]))
@@ -18,7 +16,6 @@
 
 (deftest headers
   (testing "get-headers"
-    ; case insensitive
     (testing "reserved"
       (let [tree [:track
                    [:statement
@@ -181,10 +178,7 @@
                     [:meter [:int "6"] [:int "8"]]]
                    [:beat
                     [:duration-dynamic "bar"]
-                    [:atom
-                     [:kind
-                      [:name "note"]
-                      [:arguments [:string "'C'"]]]]]]]
+                    [:set]]]]
             want [:track
                    [:statement
                      [:header
@@ -192,32 +186,43 @@
                       [:meter [:int "6"] [:int "8"]]]
                      [:beat
                       (/ 6 8)
-                      [:atom
-                       [:kind
-                        [:name "note"]
-                        [:arguments [:string "'C'"]]]]]]]]
+                      [:set]]]]]
         (is (= want (track/resolve-durations tree))))))
   (testing "static"
     (doseq [duration track/valid-divisors]
       (let [tree [:beat
                   [:duration-static (str duration)]
-                  [:atom
-                   [:kind
-                    [:name "note"]
-                    [:arguments [:string "'C'"]]]]]
-              want [:beat
-                    (/ 1 duration)
-                    [:atom
-                     [:kind
-                      [:name "note"]
-                      [:arguments [:string "'C'"]]]]]]
+                  [:set]]
+              want [:beat (/ 1 duration) [:set]]]
           (is (= want (track/resolve-durations tree)))))))
 
 (deftest valid-resolves?
   (testing "assign")
-  (testing "beat")
+  (testing "beat"
+    (testing "duration"
+      (testing "must be between 0 and max valid duration"
+        (doseq [duration (list 0 8 79 1024)]
+          (is (= true (track/valid-resolves? [:beat duration [:set]]))))
+        ; FIXME: -1 should be in this spec but breaks integration test when logic is updated
+        (doseq [duration (list 1025 9999)]
+          (let [tree [:beat duration [:set]]]
+            (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Beat durations" (track/valid-resolves? tree)))))
+        ))
+    (testing "value"
+      (testing "must be an atom, rest or set"
+        (doseq [value (list :atom :rest :set)]
+          (is (= true (track/valid-resolves? [:beat 1 [value]]))))
+        (doseq [value (list :list :play :boom)]
+          (let [tree [:beat 1 [value]]]
+            (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Beat values" (track/valid-resolves? tree))))))))
   (testing "div")
-  (testing "loop"))
+  (testing "loop"
+    (testing "value must be a list or set"
+        (doseq [value (list :set :list)]
+          (is (= true (track/valid-resolves? [:loop 3 [value]]))))
+        (doseq [value (list :rest :play :boom)]
+          (let [tree [:loop 3 [value]]]
+            (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Loop values" (track/valid-resolves? tree))))))))
 
 (deftest valid-tempo?
   (testing "returns true when between 0 and max tempo"
@@ -232,10 +237,15 @@
 (deftest valid-meter?
   (testing "returns true when pulse beat divisor is valid"
     (doseq [divisor (rest track/valid-divisors)]
-      (is (= true (track/valid-meter? [:header [:meta [:name "meter"]] [:meter [:number "1"] [:number (str divisor)]]]))))
+      (is (= true (track/valid-meter?
+                    [:header
+                     [:meta [:name "meter"]]
+                     [:meter [:number "1"] [:number (str divisor)]]]))))
   (testing "throws problem when pulse beat divisor is not even or greater than max valid divisor"
-    (doseq [divisor (list 5 9 72 512)]
-      (let [tree [:header [:meta [:name "meter"]] [:meter [:number "1"] [:number (str divisor)]]]]
+    (doseq [divisor (list 5 9 72 257 512)]
+      (let [tree [:header
+                  [:meta [:name "meter"]]
+                  [:meter [:number "1"] [:number (str divisor)]]]]
         (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Meter unit beats" (track/valid-meter? tree))))))))
 
 (deftest valid-play?
