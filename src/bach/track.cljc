@@ -71,7 +71,7 @@
 (defn meter-as-ratio
   [meter]
   (when-let [[beats-per-bar & [beat-unit]] meter]
-    (/ beats-per-bar beat-unit)))
+    (safe-ratio beats-per-bar beat-unit)))
 
 (defn get-meter-ratio
   "Determines the global meter ratio of the track.
