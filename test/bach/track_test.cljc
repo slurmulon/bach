@@ -98,63 +98,105 @@
                    [:header [:meta [:name "meter"]] [:meter [:int "0"] [:int "1"]]]]]]
         (is (= 0 (track/get-meter-ratio tree)))))))
 
-(deftest variables
-  (testing "resolve-variables"
-    (testing "assign"
-      (testing "binds value to name"
-        (let [tree [:track
-                    [:statement
-                     [:assign
+(deftest resolve-variables
+  (testing "assign"
+    (testing "binds value to name"
+      (let [tree [:track
+                  [:statement
+                    [:assign
                       [:identifier :a]
                       [:string "'foo'"]]
-                     [:assign
+                    [:assign
                       [:identifier :b]
                       [:identifier :a]]]]
-              want [:track
-                    [:statement
-                     [:assign
+            want [:track
+                  [:statement
+                    [:assign
                       [:identifier :a]
                       [:string "'foo'"]]
-                     [:assign
+                    [:assign
                       [:identifier :b]
                       [:string "'foo'"]]]]]
-          (is (= want (track/resolve-variables tree))))))
-    (testing "identifier")
-    (testing "play")))
+        (is (= want (track/resolve-variables tree))))))
+  (testing "identifier")
+  (testing "play"))
 
-(deftest resolution
-  (testing "values"
-    (testing "number"
-      (is (= 4 (track/resolve-values [:number "4"])))
-      (is (= 5.25 (track/resolve-values [:number "5.25"]))))
-    (testing "int"
-      (is (= 8 (track/resolve-values [:number "8"]))))
-    (testing "float"
-      (is (= 12.34567890 (track/resolve-values [:number "12.34567890"]))))
-    (testing "+"
-      (is (= 9 (track/resolve-values [:add [:number "1"] [:number "8"]]))))
-    (testing "-")
-      (is (= 3 (track/resolve-values [:sub [:number "7"] [:number "4"]]))))
-    (testing "*"
-      (is (= 12 (track/resolve-values [:mul [:number "3"] [:number "4"]]))))
-    (testing "/"
-      (is (= 5 (track/resolve-values [:div [:number "10"] [:number "2"]]))))
-    (testing "expr"
-      (is (= (/ 3 4) (track/resolve-values
-                       [:add
-                        [:div [:number "1"] [:number "2"]]
-                        [:div [:number "1"] [:number "4"]]]))))
-    (testing "meter"
-      (is (= [5 8] (track/resolve-values [:meter [:int "5"] [:int "8"]]))))
-    (testing "name"
-      (is (= 'foo (track/resolve-values [:name "foo"]))))
-    (testing "string"
-      (is (= "hello bach" (track/resolve-values [:string "'hello bach'"]))))
-    (testing "durations"
-      (testing "dynamic"
-        (testing "beat")
-        (testing "bar"))
-      (testing "static")))
+(deftest resolve-values
+  (testing "number"
+    (is (= 4 (track/resolve-values [:number "4"])))
+    (is (= 5.25 (track/resolve-values [:number "5.25"]))))
+  (testing "int"
+    (is (= 8 (track/resolve-values [:number "8"]))))
+  (testing "float"
+    (is (= 12.34567890 (track/resolve-values [:number "12.34567890"]))))
+  (testing "+"
+    (is (= 9 (track/resolve-values [:add [:number "1"] [:number "8"]]))))
+  (testing "-")
+    (is (= 3 (track/resolve-values [:sub [:number "7"] [:number "4"]]))))
+  (testing "*"
+    (is (= 12 (track/resolve-values [:mul [:number "3"] [:number "4"]]))))
+  (testing "/"
+    (is (= 5 (track/resolve-values [:div [:number "10"] [:number "2"]]))))
+  (testing "expr"
+    (is (= (/ 3 4) (track/resolve-values
+                     [:add
+                       [:div [:number "1"] [:number "2"]]
+                       [:div [:number "1"] [:number "4"]]]))))
+  (testing "meter"
+    (is (= [5 8] (track/resolve-values [:meter [:int "5"] [:int "8"]]))))
+  (testing "name"
+    (is (= 'foo (track/resolve-values [:name "foo"]))))
+  (testing "string"
+    (is (= "hello bach" (track/resolve-values [:string "'hello bach'"]))))
+
+(deftest resolve-durations
+  (testing "dynamic"
+    (testing "beat"
+      (let [tree [:track
+                  [:statement
+                   [:header
+                    [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]
+                   [:beat
+                    [:duration-dynamic "beat"]
+                    [:atom
+                     [:kind
+                      [:name "note"]
+                      [:arguments [:string "'C'"]]]]]]]
+            want [:track
+                   [:statement
+                     ; [:header [:meta 'meter] [6 8]]
+                     [:header
+                      [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]
+                     [:beat
+                      (/ 1 8)
+                      [:atom
+                       [:kind
+                        [:name "note"]
+                        [:arguments [:string "'C'"]]]]]]]]
+        (is (= want (track/resolve-durations tree)))))
+    (testing "bar"
+      (let [tree [:track
+                  [:statement
+                   [:header
+                    [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]
+                   [:beat
+                    [:duration-dynamic "bar"]
+                    [:atom
+                     [:kind
+                      [:name "note"]
+                      [:arguments [:string "'C'"]]]]]]]
+            want [:track
+                   [:statement
+                     [:header
+                      [:meta [:name "meter"]] [:meter [:int "6"] [:int "8"]]]
+                     [:beat
+                      (/ 6 8)
+                      [:atom
+                       [:kind
+                        [:name "note"]
+                        [:arguments [:string "'C'"]]]]]]]]
+        (is (= want (track/resolve-durations tree))))))
+  (testing "static"))
 
 (deftest validation)
 (deftest pulse-beat)
