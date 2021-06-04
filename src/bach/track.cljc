@@ -185,6 +185,8 @@
        :beat (fn [duration [tag :as value]]
                (cond
                  (> duration valid-max-duration)
+                 ; TODO: Use this, but breaks integration test
+                 ; (<= 0 duration valid-max-duration)
                    (problem (str "Beat durations must be between 0 and " valid-max-duration))
                  (compare-items not-every? [:atom :rest :set] tag)
                    (problem (str "Beat values can only be an atom, rest, or set but found: " tag))))
