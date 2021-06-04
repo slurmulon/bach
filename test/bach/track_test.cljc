@@ -201,10 +201,10 @@
   (testing "beat"
     (testing "duration"
       (testing "must be between 0 and max valid duration"
-        (doseq [duration (list 0 8 79 1024)]
+        (doseq [duration (list 0 8 79 track/valid-max-duration)]
           (is (= true (track/valid-resolves? [:beat duration [:set]]))))
         ; FIXME: -1 should be in this spec but breaks integration test when logic is updated
-        (doseq [duration (list 1025 9999)]
+        (doseq [duration (list (inc track/valid-max-duration))]
           (let [tree [:beat duration [:set]]]
             (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Beat durations" (track/valid-resolves? tree)))))
         ))
@@ -242,7 +242,7 @@
                      [:meta [:name "meter"]]
                      [:meter [:number "1"] [:number (str divisor)]]]))))
   (testing "throws problem when pulse beat divisor is not even or greater than max valid divisor"
-    (doseq [divisor (list 5 9 72 257 512)]
+    (doseq [divisor (list 5 9 72 257 (inc track/valid-max-duration))]
       (let [tree [:header
                   [:meta [:name "meter"]]
                   [:meter [:number "1"] [:number (str divisor)]]]]
@@ -257,13 +257,13 @@
     (let [tree [:statement [:play :a] [:play :b]]]
       (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"Exactly one Play" (track/valid-play? tree)))))
 
-(deftest pulse-beat
+(deftest get-pulse-beat
   (testing "provides the beat unit of the meter"
     (is (= (/ 1 8) (track/get-pulse-beat
                      [:header
                       [:meta [:name "meter"]] [:meter [:int "12"] [:int "8"]]])))))
 
-(deftest step-beat
+(deftest get-step-beat
   (testing "provides the greatest common duration of beats in the track"
     (let [tree [:track
                 [:beat
@@ -276,6 +276,29 @@
                  [:number "1/8"]
                  [:identifier :c]]]]
       (is (= (/ 1 8) (track/get-step-beat tree))))))
+
+(deftest get-pulse-beat-time
+  (testing "determines number of milliseconds equal to one pulse-beat duration"
+    (doseq [[want tempo] [[500.0 120] [750.0 80] [1000.0 60]]]
+      (let [tree [:header [:meta [:name "tempo"]] [:number (str tempo)]]]
+        (is (= want (track/get-pulse-beat-time tree)))))))
+
+(deftest get-step-beat-time
+  (testing "determines number of milliseconds equal to one step-beat duration"
+    (doseq [[want tempo meter duration] [[250.0 120 [4 4] (/ 1 8)]
+                                         [250.0 120 [5 8] (/ 1 16)]
+                                         [500.0 120 [6 8] (/ 1 8)]
+                                         [1000.0 120 [12 8] (/ 1 4)]
+                                         [1000.0 120 [2 2] 4]]]
+      (let [tree [:track
+                  [:header
+                   [:meta [:name "tempo"]]
+                   [:number (str tempo)]]
+                  [:header
+                   [:meta [:name "meter"]]
+                   [:meter [:int (str (first meter))] [:int (str (last meter))]]]
+                  [:beat duration [:set]]]]
+        (is (= want (track/get-step-beat-time tree)))))))
 
 (deftest consume)
 (deftest digest)
