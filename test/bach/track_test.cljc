@@ -196,7 +196,21 @@
                         [:name "note"]
                         [:arguments [:string "'C'"]]]]]]]]
         (is (= want (track/resolve-durations tree))))))
-  (testing "static"))
+  (testing "static"
+    (for [duration track/valid-divisors]
+      (let [tree [:beat
+                  [:duration-static (str duration "n")]
+                  [:atom
+                   [:kind
+                    [:name "note"]
+                    [:arguments [:string "'C'"]]]]]
+              want [:beat
+                    duration
+                    [:atom
+                     [:kind
+                      [:name "note"]
+                      [:arguments [:string "'C'"]]]]]]
+          (is (= want (track/resolve-durations tree)))))))
 
 (deftest validation)
 (deftest pulse-beat)
