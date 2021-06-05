@@ -35,11 +35,11 @@
   ([track pattern default]
    (let [header (atom default)]
      (insta/transform
-       {:header (fn [[& [_ kind]] value]
-                  (when (re-matches pattern (name kind))
-                    (reset! header value)))}
-     (resolve-values track))
-    @header)))
+      {:header (fn [[& [_ kind]] value]
+                 (when (re-matches pattern (name kind))
+                   (reset! header value)))}
+      (resolve-values track))
+     @header)))
 
 (defn get-plays
   "Finds and all of the Play! trees in a track."
@@ -176,20 +176,20 @@
   (variable-scope
    (fn [variables set-variable! _]
      (insta/transform
-       {:assign (fn [[& label] [& [value-type] :as value]]
-                  (case value-type
-                    :identifier
-                    (when (-> (variables) (contains? value) not)
-                      (problem (str "Variable is not declared before it's used: " value)))
-                    (set-variable! label value)))
+      {:assign (fn [[& label] [& [value-type] :as value]]
+                 (case value-type
+                   :identifier
+                   (when (-> (variables) (contains? value) not)
+                     (problem (str "Variable is not declared before it's used: " value)))
+                   (set-variable! label value)))
        :beat (fn [duration [tag :as value]]
                (cond
                  (> duration valid-max-duration)
                  ; TODO: Use this, but breaks integration test
                  ; (<= 0 duration valid-max-duration)
-                   (problem (str "Beat durations must be between 0 and " valid-max-duration))
+                 (problem (str "Beat durations must be between 0 and " valid-max-duration))
                  (compare-items not-every? [:atom :rest :set] tag)
-                   (problem (str "Beat values can only be an atom, rest, or set but found: " tag))))
+                 (problem (str "Beat values can only be an atom, rest, or set but found: " tag))))
        :div (fn [_ [& div]]
               (when (not (some #{div} valid-divisors))
                 (problem (str "All divisors must be even and no greater than " (last valid-divisors)))))
@@ -208,8 +208,8 @@
   "Determines if a parsed track passes all validation rules."
   [track]
   (->> [valid-resolves? valid-tempo? valid-meter? valid-play?]
-      (map #(% track))
-      (every? true?)))
+       (map #(% track))
+       (every? true?)))
 
 (def valid? validate)
 
@@ -268,9 +268,9 @@
         bar (get-meter-ratio headers)
         beat (get-pulse-beat headers)]
     (insta/transform
-      {:duration-dynamic #(case (keyword %) :beat beat :bar bar)
-       :duration-static #(/ 1 (from-string %))}
-      track)))
+     {:duration-dynamic #(case (keyword %) :beat beat :bar bar)
+      :duration-static #(/ 1 (from-string %))}
+     track)))
 
 ; FIXME: Probably remove for now, since this prevents `when` from being used if the main export of Play! is a loop
 (defn reduce-iterations
@@ -279,9 +279,9 @@
   [track]
   (if (-> track get-iterations number?)
     (insta/transform
-      {:play #(let [values (rest (last %))]
-                [:play (into [:list] values)])}
-      track)
+     {:play #(let [values (rest (last %))]
+               [:play (into [:list] values)])}
+     track)
     track))
 
 ; TODO: Rename to parse (then rename parse to consume)

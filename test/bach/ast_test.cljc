@@ -1,8 +1,8 @@
 (ns bach.ast-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
-               :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
-                      [goog.string :as gstring]
-                      [goog.string.format :as format]])
+                :cljs [[cljs.test :refer-macros [deftest is testing run-tests]]
+                       [goog.string :as gstring]
+                       [goog.string.format :as format]])
             [bach.ast :refer [parse]]
             [instaparse.core :as insta]))
 
@@ -105,7 +105,7 @@
                   [:meta [:name "Meter"]]
                   [:meter [:int "6"] [:int "8"]]]]]]
       (is (= want (parse "@Meter = 6|8")))))
- (testing "custom"
+  (testing "custom"
     (let [want [:track
                 [:statement
                  [:header
@@ -266,7 +266,7 @@
                       [:when-match "even"]
                       [:identifier [:name "b"]]]]]]]]
         (is (= want (parse code)))))
-   (testing "odd?"
+    (testing "odd?"
       (let [code "10 of [ :a, when odd? do :b ]"
             want [:track
                   [:statement
@@ -290,7 +290,7 @@
                       [:when-match "last"]
                       [:identifier [:name "b"]]]]]]]]
         (is (= want (parse code)))))
-   (testing "first?"
+    (testing "first?"
       (let [code "10 of [ :a, when first? do :b ]"
             want [:track
                   [:statement
@@ -410,12 +410,12 @@
                         [:identifier [:name "b"]]]]]]]]
           (is (= want (parse code)))))
       (testing "any"
-       (let [code "5 of [ when {1 3 5} do :a, when {2 4} do :b ]"
-             want [:track
-                   [:statement
-                    [:loop
-                     [:int "5"]
-                     [:list
+        (let [code "5 of [ when {1 3 5} do :a, when {2 4} do :b ]"
+              want [:track
+                    [:statement
+                     [:loop
+                      [:int "5"]
+                      [:list
                        [:when
                         [:when-any [:int "1"] [:int "3"] [:int "5"]]
                         [:identifier [:name "a"]]]
@@ -484,7 +484,7 @@
                        [:when
                         [:when-match "even"]
                         [:identifier [:name "x"]]]]]]]]
-            (is (= want (parse code)))))
+          (is (= want (parse code)))))
       (testing "odd"
         (let [code "10 of [ when odd? do :x ]"
               want [:track
@@ -495,7 +495,7 @@
                        [:when
                         [:when-match "odd"]
                         [:identifier [:name "x"]]]]]]]]
-            (is (= want (parse code)))))
+          (is (= want (parse code)))))
       (testing "last"
         (let [code "10 of [ when last? do :x ]"
               want [:track
@@ -506,7 +506,7 @@
                        [:when
                         [:when-match "last"]
                         [:identifier [:name "x"]]]]]]]]
-            (is (= want (parse code)))))
+          (is (= want (parse code)))))
       (testing "first"
         (let [code "10 of [ when first? do :x ]"
               want [:track
@@ -517,7 +517,7 @@
                        [:when
                         [:when-match "first"]
                         [:identifier [:name "x"]]]]]]]]
-            (is (= want (parse code))))))))
+          (is (= want (parse code))))))))
 
 (deftest comments
   (testing "basic"

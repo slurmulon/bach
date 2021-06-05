@@ -4,9 +4,9 @@
 (defn cast-tree
   "Walks an iterable N-ary tree (depth-first, pre-order) and applies `as` to each node where `is?` returns true."
   ([is? as tree]
-    (cast-tree clojure.walk/prewalk is? as tree))
+   (cast-tree clojure.walk/prewalk is? as tree))
   ([walk is? as tree]
-    (walk #(if (is? %) (as %) %) tree)))
+   (walk #(if (is? %) (as %) %) tree)))
 
 (defn flatten-by
   "Flattens and reduces collection using `by` function."
@@ -39,11 +39,11 @@
   [tree]
   (letfn [(flat [coll]
             (lazy-seq
-              (when-let [items (seq coll)]
-                (let [node (first items)]
-                  (if (sequential? node)
-                    (concat (flat node) (flat (rest items)))
-                    (cons node (flat (rest items))))))))]
+             (when-let [items (seq coll)]
+               (let [node (first items)]
+                 (if (sequential? node)
+                   (concat (flat node) (flat (rest items)))
+                   (cons node (flat (rest items))))))))]
     (if (sequential? tree) (flat tree) tree)))
 
 (defn squash

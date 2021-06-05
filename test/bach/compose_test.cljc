@@ -1,10 +1,10 @@
 (ns ^:eftest/synchronized bach.compose-test
   (:require #?@(:clj [[clojure.test :refer [deftest is testing]]]
-               :cljs [[bach.crypto]
-                      [cljs.test :refer-macros [deftest is testing run-tests]]
-                      [goog.string :as gstring]
+                :cljs [[bach.crypto]
+                       [cljs.test :refer-macros [deftest is testing run-tests]]
+                       [goog.string :as gstring]
                       ; [goog.string.format :as format]])
-                      [goog.string.format]])
+                       [goog.string.format]])
             [instaparse.core :as insta]
             [bach.compose :as compose]
             [bach.track :as track]
@@ -23,22 +23,22 @@
 ;  - Different durations between concurrent beats (i.e. in set) on same list index
 (def fixture-a
   [:list
-    [:beat
-      [:number "1"]
-      [:identifier :a]]
-    [:set
-      [:beat [:number "2"] [:identifier :b]]
-      [:beat [:number "3"] [:identifier :c]]]
-    [:set
-      [:list
-        [:beat [:number "4"] [:identifier :d]]
-        [:beat [:number "5"] [:identifier :e]]]
-      [:list
+   [:beat
+    [:number "1"]
+    [:identifier :a]]
+   [:set
+    [:beat [:number "2"] [:identifier :b]]
+    [:beat [:number "3"] [:identifier :c]]]
+   [:set
+    [:list
+     [:beat [:number "4"] [:identifier :d]]
+     [:beat [:number "5"] [:identifier :e]]]
+    [:list
         ; TODO: Make version of fixture using 4 here instead (same duration vs. diff duration)
-        [:beat [:number "6"] [:identifier :f]]
-        [:set
-          [:beat [:number "7"] [:identifier :g]]
-          [:beat [:number "8"] [:identifier :h]]]]]])
+     [:beat [:number "6"] [:identifier :f]]
+     [:set
+      [:beat [:number "7"] [:identifier :g]]
+      [:beat [:number "8"] [:identifier :h]]]]]])
 
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
@@ -46,40 +46,40 @@
 ;  - Same durations between concurrent beats (i.e. in set) on same list index (4, :d :f)
 (def fixture-a2
   [:list
-    [:beat
-      [:number "1"]
-      [:identifier :a]]
-    [:set
-      [:beat [:number "2"] [:identifier :b]]
-      [:beat [:number "3"] [:identifier :c]]]
-    [:set
-      [:list
-        [:beat [:number "4"] [:identifier :d]]
-        [:beat [:number "5"] [:identifier :e]]]
-      [:list
-        [:beat [:number "4"] [:identifier :f]]
-        [:set
-          [:beat [:number "7"] [:identifier :g]]
-          [:beat [:number "8"] [:identifier :h]]]]]])
+   [:beat
+    [:number "1"]
+    [:identifier :a]]
+   [:set
+    [:beat [:number "2"] [:identifier :b]]
+    [:beat [:number "3"] [:identifier :c]]]
+   [:set
+    [:list
+     [:beat [:number "4"] [:identifier :d]]
+     [:beat [:number "5"] [:identifier :e]]]
+    [:list
+     [:beat [:number "4"] [:identifier :f]]
+     [:set
+      [:beat [:number "7"] [:identifier :g]]
+      [:beat [:number "8"] [:identifier :h]]]]]])
 
 ; Nested collections
 ;  - Ordered (lists) within unordered (sets)
 ;  - Simultaneous play signals, simultaneous stop signals
 (def fixture-b
   [:list
-    [:beat
-      [:number "1"]
-      [:identifier :a]]
-    [:set
-      [:beat [:number "2"] [:identifier :b]]
-      [:beat [:number "3"] [:identifier :c]]]
-    [:set
-      [:list
-        [:beat [:number "4"] [:identifier :d]]
-        [:beat [:number "5"] [:identifier :e]]]
-      [:list
-        [:beat [:number "4"] [:identifier :f]]
-        [:beat [:number "6"] [:identifier :g]]]]])
+   [:beat
+    [:number "1"]
+    [:identifier :a]]
+   [:set
+    [:beat [:number "2"] [:identifier :b]]
+    [:beat [:number "3"] [:identifier :c]]]
+   [:set
+    [:list
+     [:beat [:number "4"] [:identifier :d]]
+     [:beat [:number "5"] [:identifier :e]]]
+    [:list
+     [:beat [:number "4"] [:identifier :f]]
+     [:beat [:number "6"] [:identifier :g]]]]])
 
 ; Multiple identical elements
 (def fixture-c
@@ -99,11 +99,11 @@
   [:set
    [:list
     [:beat
-      [:number "2"]
-      [:identifier :a1]]
+     [:number "2"]
+     [:identifier :a1]]
     [:beat
-      [:number "3"]
-      [:identifier :a2]]]
+     [:number "3"]
+     [:identifier :a2]]]
    [:list
     [:beat
      [:number "1"]
@@ -122,19 +122,19 @@
   [:list
    [:set
     [:list
-      [:beat
-        [:number "2"]
-        [:identifier :a1]]
-      [:beat
-        [:number "3"]
-        [:identifier :a2]]]
+     [:beat
+      [:number "2"]
+      [:identifier :a1]]
+     [:beat
+      [:number "3"]
+      [:identifier :a2]]]
     [:list
-      [:beat
-        [:number "3"]
-        [:identifier :b1]]
-      [:beat
-        [:number "2"]
-        [:identifier :b2]]];]
+     [:beat
+      [:number "3"]
+      [:identifier :b1]]
+     [:beat
+      [:number "2"]
+      [:identifier :b2]]];]
     [:list
      [:beat
       [:number "1"]
@@ -164,33 +164,33 @@
 
 (def fixture-h
   [:list
-    [:beat
-      [:number "1"]
-      [:identifier :a]]
-    [:set
-      [:beat [:number "2"] [:identifier :b]]
-      [:beat [:number "3"] [:identifier :c]]]
-    [:set
-      [:list
-        [:beat [:number "4"] [:identifier :d]]
-        [:beat [:number "5"] [:identifier :e]]]
-      [:list
-        [:beat [:number "6"] [:identifier :f]]
-        [:beat [:number "7"] [:identifier :g]]]]])
+   [:beat
+    [:number "1"]
+    [:identifier :a]]
+   [:set
+    [:beat [:number "2"] [:identifier :b]]
+    [:beat [:number "3"] [:identifier :c]]]
+   [:set
+    [:list
+     [:beat [:number "4"] [:identifier :d]]
+     [:beat [:number "5"] [:identifier :e]]]
+    [:list
+     [:beat [:number "6"] [:identifier :f]]
+     [:beat [:number "7"] [:identifier :g]]]]])
 
 (defn atomize-fixture
   [fixture]
   (insta/transform
-    {:beat (fn [duration beat]
-             [:beat
-               duration
-               [:atom
-                 [:kind [:name "stub"]]
-                 [:arguments [:string (->> beat
-                                           last
-                                           name
-                                           (#?(:clj format :cljs gstring/format) "'%s'"))]]]])}
-    fixture))
+   {:beat (fn [duration beat]
+            [:beat
+             duration
+             [:atom
+              [:kind [:name "stub"]]
+              [:arguments [:string (->> beat
+                                        last
+                                        name
+                                        (#?(:clj format :cljs gstring/format) "'%s'"))]]]])}
+   fixture))
 
 ; @see https://cljdoc.org/d/leiningen/leiningen/2.9.5/api/leiningen.test
 ; (deftest ^:v3 normalization
@@ -220,23 +220,23 @@
 (deftest ^:eftest/synchronized loops
   (testing "basic"
     (let [tree [:loop
-                  [:number "2"]
-                  [:list
-                    [:beat
-                      [:number "1"]
-                      [:identifier :a]]
-                    [:beat
-                      [:number "3"]
-                      [:identifier :b]]]]
+                [:number "2"]
+                [:list
+                 [:beat
+                  [:number "1"]
+                  [:identifier :a]]
+                 [:beat
+                  [:number "3"]
+                  [:identifier :b]]]]
           want [{:duration 1
-                  :elements [:identifier :a]}
+                 :elements [:identifier :a]}
                 {:duration 3
-                  :elements [:identifier :b]}
+                 :elements [:identifier :b]}
                 {:duration 1
-                  :elements [:identifier :a]}
+                 :elements [:identifier :a]}
                 {:duration 3
-                  :elements [:identifier :b]}]]
-        (is (= want (compose/normalize-collections tree)))))
+                 :elements [:identifier :b]}]]
+      (is (= want (compose/normalize-collections tree)))))
   (testing "containing"
     (testing "list"
       (let [tree [:list
@@ -247,11 +247,11 @@
                    [:number "2"]
                    [:list
                     [:beat
-                      [:number "1"]
-                      [:identifier :a]]
+                     [:number "1"]
+                     [:identifier :a]]
                     [:beat
-                      [:number "3"]
-                      [:identifier :b]]]]]
+                     [:number "3"]
+                     [:identifier :b]]]]]
             want [{:duration 4
                    :elements [:identifier :x]}
                   [{:duration 1
@@ -262,7 +262,7 @@
                     :elements [:identifier :a]}
                    {:duration 3
                     :elements [:identifier :b]}]]]
-          (is (= want (compose/normalize-collections tree)))))
+        (is (= want (compose/normalize-collections tree)))))
     (testing "parallel lists"
       (let [tree [:set
                   [:beat
@@ -272,20 +272,20 @@
                    [:number "2"]
                    [:list
                     [:beat
-                      [:number "1"]
-                      [:identifier :a]]
+                     [:number "1"]
+                     [:identifier :a]]
                     [:beat
-                      [:number "3"]
-                      [:identifier :b]]]]
+                     [:number "3"]
+                     [:identifier :b]]]]
                   [:loop
                    [:number "2"]
                    [:list
                     [:beat
-                      [:number "2"]
-                      [:identifier :c]]
+                     [:number "2"]
+                     [:identifier :c]]
                     [:beat
-                      [:number "5"]
-                      [:identifier :d]]]]]
+                     [:number "5"]
+                     [:identifier :d]]]]]
             actual (compose/normalize-collections tree)
             want #{{:duration 4, :elements [:identifier :x]}
                    [{:duration 1, :elements [:identifier :a]}
@@ -296,7 +296,7 @@
                     {:duration 5, :elements [:identifier :d]}
                     {:duration 2, :elements [:identifier :c]}
                     {:duration 5, :elements [:identifier :d]}]}]
-          (is (= want actual))))
+        (is (= want actual))))
     (testing "nested loop"
       (let [tree [:list
                   [:beat
@@ -307,42 +307,42 @@
                    [:loop
                     [:number "2"]
                     [:list
-                      [:beat
-                        [:number "2"]
-                        [:identifier :b]]
-                      [:beat
-                        [:number "3"]
-                        [:identifier :c]]]]]]
+                     [:beat
+                      [:number "2"]
+                      [:identifier :b]]
+                     [:beat
+                      [:number "3"]
+                      [:identifier :c]]]]]]
             actual (compose/normalize-collections tree)
             want [{:duration 1, :elements [:identifier :a]}
                   [{:duration 2, :elements [:identifier :b]}
-                    {:duration 3, :elements [:identifier :c]}
-                    {:duration 2, :elements [:identifier :b]}
-                    {:duration 3, :elements [:identifier :c]}
-                    {:duration 2, :elements [:identifier :b]}
-                    {:duration 3, :elements [:identifier :c]}
-                    {:duration 2, :elements [:identifier :b]}
-                    {:duration 3, :elements [:identifier :c]}]]]
-          (is (= want actual))))
+                   {:duration 3, :elements [:identifier :c]}
+                   {:duration 2, :elements [:identifier :b]}
+                   {:duration 3, :elements [:identifier :c]}
+                   {:duration 2, :elements [:identifier :b]}
+                   {:duration 3, :elements [:identifier :c]}
+                   {:duration 2, :elements [:identifier :b]}
+                   {:duration 3, :elements [:identifier :c]}]]]
+        (is (= want actual))))
     ; (testing "in set"
     (testing "whens"
       (testing "basic"
         (let [tree [:loop
                     [:number "2"]
-                      [:list
-                      [:when
-                        [:number "1"]
-                        [:beat
-                          [:number "1"]
-                          [:identifier :a]]]
-                      [:when
-                        [:number "2"]
-                        [:beat
-                          [:number "1"]
-                          [:identifier :b]]]]]
+                    [:list
+                     [:when
+                      [:number "1"]
+                      [:beat
+                       [:number "1"]
+                       [:identifier :a]]]
+                     [:when
+                      [:number "2"]
+                      [:beat
+                       [:number "1"]
+                       [:identifier :b]]]]]
               actual (-> tree track/reduce-values compose/normalize-loops)
               want [:list [:beat 1 [:identifier :a]]
-                          [:beat 1 [:identifier :b]]]]
+                    [:beat 1 [:identifier :b]]]]
           (is (= want actual))))
       (testing "mixed"
         (let [tree [:loop
@@ -354,18 +354,18 @@
                        [:number "1"]
                        [:identifier :a]]]
                      [:when
-                       [:number "2"]
-                       [:beat
-                         [:number "1"]
-                         [:identifier :b]]]
+                      [:number "2"]
+                      [:beat
+                       [:number "1"]
+                       [:identifier :b]]]
                      [:beat
-                       [:number "3"]
-                       [:identifier :c]]]]
+                      [:number "3"]
+                      [:identifier :c]]]]
               actual (-> tree track/reduce-values compose/normalize-loops)
               want [:list [:beat 1 [:identifier :a]]
-                          [:beat 3 [:identifier :c]]
-                          [:beat 1 [:identifier :b]]
-                          [:beat 3 [:identifier :c]]]]
+                    [:beat 3 [:identifier :c]]
+                    [:beat 1 [:identifier :b]]
+                    [:beat 3 [:identifier :c]]]]
           ; (clojure.pprint/pprint actual)
           (is (= want actual))))
       (testing "nested"
@@ -448,8 +448,7 @@
                      [:beat 1 [:identifier :b]]
                      [:beat 3 [:identifier :z]]]]
               actual (-> tree track/reduce-values compose/normalize-loops)]
-          (is (= want actual))))
-      )))
+          (is (= want actual)))))))
 
 (deftest ^:eftest/synchronized durations
   (testing "reduction"
@@ -469,20 +468,20 @@
     (testing "list -> set -> beats"
       (clear!)
       (let [tree (-> fixture-f
-                    atomize-fixture
-                    compose/normalize-collections
-                    (compose/unitize-durations 1))
+                     atomize-fixture
+                     compose/normalize-collections
+                     (compose/unitize-durations 1))
             actual (compose/transpose-lists tree)
             want [[#{{:duration 2,
                       :elements [{:id "stub.1", :kind :stub, :props [], :value "a1"}]}
-                    {:duration 3,
+                     {:duration 3,
                       :elements [{:id "stub.2", :kind :stub, :props [], :value "a2"}]}}
-                      nil]
-                    {:duration 4,
-                      :elements [{:id "stub.3", :kind :stub, :props [], :value "b1"}]}
-                    nil
-                    nil
-                    nil]]
+                   nil]
+                  {:duration 4,
+                   :elements [{:id "stub.3", :kind :stub, :props [], :value "b1"}]}
+                  nil
+                  nil
+                  nil]]
         (is (= want actual))))))
   ; (with-redefs [compose/uid (memoize next-id!)]
   ;   (testing "list -> set -> list -> set"
@@ -500,16 +499,16 @@
     (testing "list -> set -> list"
       (clear!)
       (let [tree (-> fixture-h
-                    atomize-fixture
-                    compose/normalize-collections
-                    (compose/unitize-durations 1))
+                     atomize-fixture
+                     compose/normalize-collections
+                     (compose/unitize-durations 1))
             actual (compose/transpose-sets tree)
             want [{:duration 1,
                    :elements [{:id "stub.1", :kind :stub, :value "a", :props '()}]}
                   #{{:duration 2,
                      :elements [{:id "stub.2", :kind :stub, :value "b", :props '()}]}
                     {:duration 3,
-                      :elements [{:id "stub.3", :kind :stub, :value "c", :props '()}]}}
+                     :elements [{:id "stub.3", :kind :stub, :value "c", :props '()}]}}
                   [#{{:duration 4,
                       :elements [{:id "stub.4", :kind :stub, :value "d", :props '()}]}
                      {:duration 6,
@@ -643,28 +642,28 @@
 (deftest ^:eftest/synchronized steps
   (testing "provisioned elements"
     (with-redefs [compose/uid (memoize next-id!)]
-     (clear!)
-     (let [tree (atomize-fixture fixture-e)
-           actual (bach.tree/cast-tree sequential? vec (compose/provision-element-steps tree (/ 1 2)))
-           want [["stub.1" "stub.3" "stub.5"]
-                 ["stub.1" "stub.3" "stub.5"]
-                 ["stub.1" "stub.3" "stub.6"]
-                 ["stub.1" "stub.3" "stub.6"]
-                 ["stub.2" "stub.3" "stub.6"]
-                 ["stub.2" "stub.3" "stub.6"]
-                 ["stub.2" "stub.4" "stub.6"]
-                 ["stub.2" "stub.4" "stub.6"]
-                 ["stub.2" "stub.4" "stub.6"]
-                 ["stub.2" "stub.4" "stub.6"]]]
-       (is (= want actual)))))
-    (testing "provisioned beats"
-     (with-redefs [compose/uid (memoize next-id!)]
+      (clear!)
+      (let [tree (atomize-fixture fixture-e)
+            actual (bach.tree/cast-tree sequential? vec (compose/provision-element-steps tree (/ 1 2)))
+            want [["stub.1" "stub.3" "stub.5"]
+                  ["stub.1" "stub.3" "stub.5"]
+                  ["stub.1" "stub.3" "stub.6"]
+                  ["stub.1" "stub.3" "stub.6"]
+                  ["stub.2" "stub.3" "stub.6"]
+                  ["stub.2" "stub.3" "stub.6"]
+                  ["stub.2" "stub.4" "stub.6"]
+                  ["stub.2" "stub.4" "stub.6"]
+                  ["stub.2" "stub.4" "stub.6"]
+                  ["stub.2" "stub.4" "stub.6"]]]
+        (is (= want actual)))))
+  (testing "provisioned beats"
+    (with-redefs [compose/uid (memoize next-id!)]
       (clear!)
       (let [tree (atomize-fixture fixture-e)
             actual (bach.tree/cast-tree sequential? vec (compose/provision-beat-steps tree (/ 1 2)))
             want [0 0 1 1 2 2 3 3 3 3]]
         (is (= want actual)))))
-    (testing "provisioned states"
+  (testing "provisioned states"
     (with-redefs [compose/uid (memoize next-id!)]
       (clear!)
       (let [tree (atomize-fixture fixture-e)
@@ -680,38 +679,38 @@
                   [3 "stub.2" "stub.4" "stub.6"]
                   [3 "stub.2" "stub.4" "stub.6"]]]
         (is (= want actual)))))
-    (testing "provisioned plays"
+  (testing "provisioned plays"
     (with-redefs [compose/uid (memoize next-id!)]
-     (clear!)
-     (let [tree (atomize-fixture fixture-e)
-           actual (bach.tree/cast-tree sequential? vec (-> tree (compose/normalize-beats (/ 1 2)) (compose/provision-play-steps)))
-           want [["stub.1" "stub.3" "stub.5"]
-                 []
-                 ["stub.6"]
-                 []
-                 ["stub.2"]
-                 []
-                 ["stub.4"]
-                 []
-                 []
-                 []]]
-       (is (= want actual)))))
-    (testing "provisioned stops"
-     (with-redefs [compose/uid (memoize next-id!)]
-     (clear!)
-     (let [tree (atomize-fixture fixture-e)
-           actual (-> tree (compose/normalize-beats (/ 1 2)) (compose/provision-stop-steps))
-           want [["stub.2" "stub.4" "stub.6"]
-                 []
-                 ["stub.5"]
-                 []
-                 ["stub.1"]
-                 []
-                 ["stub.3"]
-                 []
-                 []
-                 []]]
-       (is (= want actual)))))
+      (clear!)
+      (let [tree (atomize-fixture fixture-e)
+            actual (bach.tree/cast-tree sequential? vec (-> tree (compose/normalize-beats (/ 1 2)) (compose/provision-play-steps)))
+            want [["stub.1" "stub.3" "stub.5"]
+                  []
+                  ["stub.6"]
+                  []
+                  ["stub.2"]
+                  []
+                  ["stub.4"]
+                  []
+                  []
+                  []]]
+        (is (= want actual)))))
+  (testing "provisioned stops"
+    (with-redefs [compose/uid (memoize next-id!)]
+      (clear!)
+      (let [tree (atomize-fixture fixture-e)
+            actual (-> tree (compose/normalize-beats (/ 1 2)) (compose/provision-stop-steps))
+            want [["stub.2" "stub.4" "stub.6"]
+                  []
+                  ["stub.5"]
+                  []
+                  ["stub.1"]
+                  []
+                  ["stub.3"]
+                  []
+                  []
+                  []]]
+        (is (= want actual)))))
     ; INPROG
     ; (testing "provisioned unified steps"
     ;   (clear!)
@@ -720,4 +719,4 @@
     ;         want []]
     ;     (is (= want actual))
     ;         ))))
-    );)
+);)

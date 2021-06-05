@@ -49,13 +49,13 @@
   (let [alphabet "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         hash-gen (fn [n]
                    (->> x
-                      hash
-                      (iterate #(unsigned-bit-shift-right % 6))
-                      (take n)
-                      reverse
-                      #?(:clj byte-array)))
+                        hash
+                        (iterate #(unsigned-bit-shift-right % 6))
+                        (take n)
+                        reverse
+                        #?(:clj byte-array)))
         hash-id (custom alphabet 6 hash-gen)]
-  (hash-id)))
+    (hash-id)))
 
 ; TODO: Replace w/ slingshot
 (defn problem
