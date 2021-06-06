@@ -2,9 +2,7 @@
   "name": "bach-cljs",
   "version": "3.0.0-alpha",
   "description": "Semantic music notation",
-  "main": "dist/bach.cjs.js",
-  "module": "dist/bach.esm.js",
-  "browser": "dist/bach.umd.js",
+  "main": "index.js",
   "directories": {
     "test": "test"
   },
