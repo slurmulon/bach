@@ -1,6 +1,6 @@
-(ns bach.exports
-  (:require [bach.compose :as compose]))
+; (ns bach.exports
+;   (:require [bach.compose :as compose]))
 
-(defn generate []
-  #js {:compose compose/compose
-       :elementize compose/elementize})
+; (defn generate []
+;   #js {:compose compose/compose
+;        :elementize compose/elementize})

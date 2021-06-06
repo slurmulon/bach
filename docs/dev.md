@@ -64,13 +64,13 @@ $ lein bin
 Then you can execute the resulting binary like so:
 
 ```sh
-$ target/default/bach-3.0.0-SNAPSHOT -i /path/to/track.bach compile
+$ target/default/bach-3.0.0-SNAPSHOT -i /path/to/track.bach compose
 ```
 
 The executable currently supports the following actions:
 
 - `parse`: creates an Abstract Syntax Tree (AST) from vanilla `bach` data
-- `compile`: parses and compiles vanilla `bach` data into `bach.json`, an intermediary JSON micro-format that allows for simple interpretation of tracks
+- `compose`: parses and compiles vanilla `bach` data into `bach.json`, an intermediary JSON micro-format that allows for simple interpretation of tracks
 - `help`
 
 #### Library
