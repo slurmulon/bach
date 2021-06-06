@@ -17,7 +17,7 @@
             (let [input (:input data)
                   output (-> input slurp parse)]
               (println output)))
-   :compile (fn [data]
+   :compose (fn [data]
               (let [input (:input data)
                     output (-> input
                                slurp

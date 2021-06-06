@@ -9,11 +9,9 @@
           {:target :node-library
            :output-to "dist/bach.cjs.js"
            :js-options {:entry-keys ["main" "browser"]}
-           ; ORIG
-           ; :exports-var bach.compose/compose}
            :exports {:compose bach.compose/compose,
-                     :elementize bach.compose/elementize}
-           :exports-fn bach.exports/generate}
+                     :elementize bach.compose/elementize}}
+           ; :exports-fn bach.exports/generate}
           ; TODO: Update package.json:main, package.json:module
           ; :esm
           ; {:target :esm
