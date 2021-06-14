@@ -19,15 +19,15 @@ Although its primary domain is music, `bach` enables the synchronization of rhyt
 ## Documentation
 
  - **Home**: https://codebach.tech
- - **Guide**: https://codebach.tech/bach/#/guide
+ - **Guide**: https://codebach.tech/#/guide
  - **Examples**: https://codebach.tech/#/examples
- - **Syntax**: https://codebach.tech/bach/#/syntax
+ - **Syntax**: https://codebach.tech/#/syntax
  - **Development**: https://codebach.tech/#/dev
  - **Contribute**: https://codebach.tech/#/contribute
 
-Before diving into the docs, please note that `bach` is a new data format, so naturally there is limited [tooling](http://codebach.tech/#/dev?id=tools) and integration support for it today.
+Before diving into the docs, please note that `bach` is a new data format, so naturally there is limited [tooling](https://codebach.tech/#/dev?id=tools) and integration support for it today.
 
-But whether you're an adventerous musician or a developer exploring `bach` for their project, we advise that you read our [Guide](https://slurmulon.github.io/bach/#/guide) page since it provides the most comphrensive overview of `bach` available.
+But whether you're an adventerous musician or a developer exploring `bach` for their project, we advise that you read our [Guide](https://codebach.tech/#/guide) page since it provides the most comphrensive overview of `bach` available.
 
 ## Example
 
@@ -75,7 +75,7 @@ play! [
 ]
 ```
 
-You can find more examples of `bach` in the [Examples](https://slurmulon.github.io/bach/#/examples) page of the documentation.
+You can find more examples of `bach` in the [Examples](https://codebach.tech/#/examples) page of the documentation.
 
 ## License
 
